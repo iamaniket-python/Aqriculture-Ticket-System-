@@ -1,100 +1,21 @@
 {% extends 'Base/base.html' %}
 
-{% block title %}Login{% endblock %}
-
 {% block content %}
+<div class="container mt-5">
+    <div class="card p-4 shadow">
+        <h3 class="text-center">Login with Mobile</h3>
 
-<style>
-body {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    min-height: 100vh;
-}
-
-/* Glass card */
-.glass-card {
-    backdrop-filter: blur(12px);
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 15px;
-    border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    color: white;
-}
-
-/* Input styling */
-.glass-input {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-}
-
-.glass-input::placeholder {
-    color: #ddd;
-}
-
-/* Button */
-.btn-custom {
-    background: #ffffff;
-    color: #333;
-    font-weight: bold;
-}
-.btn-custom:hover {
-    background: #f1f1f1;
-}
-
-/* Divider */
-.divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    color: #ddd;
-}
-.divider::before,
-.divider::after {
-    content: "";
-    flex: 1;
-    border-bottom: 1px solid #ddd;
-}
-.divider:not(:empty)::before {
-    margin-right: .75em;
-}
-.divider:not(:empty)::after {
-    margin-left: .75em;
-}
-</style>
-
-<div class="container d-flex justify-content-center align-items-center" style="height:90vh;">
-    <div class="glass-card p-5" style="width: 400px;">
-
-        <h3 class="text-center mb-4">Welcome to Farm</h3>
-
-        <!-- LOGIN FORM -->
-        <form method="POST">
+        <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
-
-            <input class="form-control glass-input mb-3" name="email" placeholder="Email or Mobile">
-            <input class="form-control glass-input mb-3" type="password" name="password" placeholder="Password">
-
-            <button class="btn btn-custom w-100">Login</button>
+            <input class="form-control mb-3" name="mobile" placeholder="Enter Mobile Number" required>
+            
+            <!-- ✅ FIXED BUTTON -->
+            <button type="submit" class="btn btn-primary w-100">Send OTP</button>
         </form>
 
         {% if error %}
-        <p class="text-warning mt-2 text-center">{{ error }}</p>
+        <p class="text-danger mt-2">{{ error }}</p>
         {% endif %}
-
-        <!-- Divider -->
-        <div class="divider my-3">OR</div>
-
-        <!-- OpenID Style Buttons -->
-        <div class="d-grid gap-2">
-            <button class="btn btn-light">Continue with Google</button>
-           
-        </div>
-
-        <p class="mt-4 text-center">
-            <a href="{% url 'register' %}" class="text-white">Create Account</a>
-        </p>
-
     </div>
 </div>
-
 {% endblock %}

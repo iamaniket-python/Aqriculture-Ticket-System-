@@ -1,3 +1,4 @@
+import random, time
 from django.shortcuts import redirect, render
 from rest_framework import generics
 from rest_framework.response import Response
@@ -5,6 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 import jwt
+from django.http import HttpResponse
+import random
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.conf import settings
@@ -21,33 +24,35 @@ class RegisterView(generics.CreateAPIView):
     serializer_class=RegisterSerializer
 
 
-class LoginView(generics.GenericAPIView):
-    serializer_class = LoginSerializer
-    permission_classes = [AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        email = request.data.get('email')
-        password = request.data.get('password')
+def login_page(request):
+    if request.method == "POST":
+        mobile = request.POST.get("mobile")
+        print("POST came to login_page")
 
         try:
-            user_obj = User.objects.get(email=email) 
-        except User.DoesNotExist:
-            return Response({"detail": "Invalid credentials"}, status=401)
-
-        user = authenticate(username=user_obj.username, password=password)
-
-        if user is not None:
-            refresh = RefreshToken.for_user(user)
-            user_serializer = UserSerializer(user)
-
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'user': user_serializer.data
+            profile = Profile.objects.get(mobile=mobile)
+            print("Profile found")
+        except Profile.DoesNotExist:
+            print("Profile not found")
+            return render(request, 'Authentication/login.html', {
+                "error": "Mobile not registered"
             })
-        else:
-            return Response({"detail": "Invalid credentials"}, status=401)
-        
+
+        otp = random.randint(1000, 9999)
+        request.session['otp'] = str(otp)
+        request.session['mobile'] = mobile
+        request.session['otp_time'] = time.time()
+
+        print("OTP:", otp)
+        print("Before redirect")
+
+        return redirect('verify_otp')
+
+    return render(request, 'Authentication/login.html')
+
+
+
+
 def get_user_from_token(request):
     token = request.COOKIES.get('access')
 
@@ -92,46 +97,6 @@ def register(request):
         return redirect('login')
 
     return render(request, 'Authentication/register.html')
-
-
-# 🔐 Login Page (JWT generate + session store)
-def login_page(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-
-        try:
-            user_obj = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return render(request, 'Authentication/login.html', {"error": "Invalid credentials"})
-
-        user = authenticate(username=user_obj.username, password=password)
-
-        if user is not None:
-            refresh = RefreshToken.for_user(user)
-
-            response = redirect('profile')   
-            response.set_cookie(
-                key='access',
-                value=str(refresh.access_token),
-                httponly=True,   # 🔐 can't access via JS
-                secure=False,    # True in production (HTTPS)
-                samesite='Lax'
-            )
-
-            response.set_cookie(
-                key='refresh',
-                value=str(refresh),
-                httponly=True,
-                secure=False,
-                samesite='Lax'
-            )
-
-            return response
-        else:
-            return render(request, 'Authentication/login.html', {"error": "Invalid credentials"})
-
-    return render(request, 'Authentication/login.html')
 
 
 # 🏠 Dashboard (Protected)
@@ -209,3 +174,52 @@ def create_ticket(request):
         return redirect('profile')
 
     return render(request, 'UserProfile/create_ticket.html')
+
+
+def verify_otp(request):
+    if request.method == "POST":
+        entered_otp = request.POST.get("otp")
+
+        session_otp = request.session.get('otp')
+        mobile = request.session.get('mobile')
+
+        if not session_otp or not mobile:
+            return render(request, 'Authentication/verify_otp.html', {
+                "error": "Session expired. Please login again."
+            })
+
+        if entered_otp == session_otp:
+            profile = Profile.objects.get(mobile=mobile)
+            user = profile.user
+
+            refresh = RefreshToken.for_user(user)
+
+            response = redirect('profile')
+            response.set_cookie('access', str(refresh.access_token), httponly=True)
+            response.set_cookie('refresh', str(refresh), httponly=True)
+
+            return response
+        else:
+            return render(request, 'Authentication/verify_otp.html', {
+                "error": "Invalid OTP"
+            })
+
+    # ✅ ALWAYS SHOW PAGE
+    return render(request, 'Authentication/verify_otp.html') 
+
+   
+
+def resend_otp(request):
+    mobile = request.session.get('mobile')
+
+    if not mobile:
+        return redirect('login')
+
+    otp = random.randint(1000, 9999)
+
+    request.session['otp'] = str(otp)
+    request.session['otp_time'] = time.time()
+
+    print("New OTP:", otp)
+
+    return redirect('verify_otp')
