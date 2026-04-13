@@ -1,21 +1,93 @@
 {% extends 'Base/base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card p-4 shadow">
+
+<style>
+body {
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    height: 100vh;
+}
+
+/* Center container */
+.login-wrapper {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Glass card */
+.glass-card {
+    width: 380px;
+    padding: 30px;
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+    color: white;
+}
+
+/* Input style */
+.glass-card input {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+}
+
+.glass-card input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Button */
+.glass-btn {
+    background: #ffffff;
+    color: #4f46e5;
+    font-weight: 600;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.glass-btn:hover {
+    background: #e5e7eb;
+}
+
+/* Title */
+.glass-card h3 {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+</style>
+
+<div class="login-wrapper">
+    <div class="glass-card">
+
         <h3 class="text-center">Login with Mobile</h3>
 
         <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
-            <input class="form-control mb-3" name="mobile" placeholder="Enter Mobile Number" required>
-            
-            <!-- ✅ FIXED BUTTON -->
-            <button type="submit" class="btn btn-primary w-100">Send OTP</button>
+
+            <input class="form-control mb-3"
+                   name="mobile"
+                   placeholder="Enter Mobile Number"
+                   required>
+
+            <button type="submit" class="glass-btn w-100">
+                Send OTP
+            </button>
         </form>
 
         {% if error %}
-        <p class="text-danger mt-2">{{ error }}</p>
+        <p class="text-danger mt-3 text-center">{{ error }}</p>
         {% endif %}
+
     </div>
 </div>
+
 {% endblock %}

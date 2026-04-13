@@ -1,12 +1,12 @@
 import random, time
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 import jwt
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import random
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -16,6 +16,7 @@ from user.models import Ticket
 from .serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from django.contrib.auth import authenticate
 from .models import Profile
+from .models import TrackingUser
 
 # Create your views here.
 class RegisterView(generics.CreateAPIView):
@@ -131,16 +132,14 @@ def profile(request):
     if search_query:
         tickets = tickets.filter(title__icontains=search_query)
 
-    paginator = Paginator(tickets, 5)  # 5 per page
+    paginator = Paginator(tickets, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'UserProfile/profile.html', {
-        # "page_obj": page_obj,
-        # "search_query": search_query,
-        "tickets": tickets,
+        "page_obj": page_obj, 
+        "search_query": search_query,
         "user": user
-        
     })
 # CREATE TICKET
 def create_ticket(request):
@@ -194,7 +193,7 @@ def verify_otp(request):
 
             refresh = RefreshToken.for_user(user)
 
-            response = redirect('profile')
+            response = redirect('check_tracking')
             response.set_cookie('access', str(refresh.access_token), httponly=True)
             response.set_cookie('refresh', str(refresh), httponly=True)
 
@@ -223,3 +222,66 @@ def resend_otp(request):
     print("New OTP:", otp)
 
     return redirect('verify_otp')
+
+# TRACKING PART
+def check_tracking(request):
+    if request.method == "POST":
+        tracking_id = request.POST.get("tracking_id")
+
+        user = TrackingUser.objects.filter(tracking_id=tracking_id).first()
+
+        if user:
+            # SAVE SESSION (VERY IMPORTANT)
+            request.session["tracking_verified"] = True
+            request.session["tracking_id"] = tracking_id
+
+            print("Verified successfully")
+
+            # 🔥 REDIRECT TO PROFILE
+            return redirect("profile")
+
+        else:
+            return render(request, "UserProfile/check_tracking.html", {
+                "error": "Invalid Tracking ID"
+            })
+    return render(request, "UserProfile/check_tracking.html")
+
+def get_tickets(request):
+    tickets = Ticket.objects.filter(user=request.user).order_by('-id')
+
+    data = []
+    for t in tickets:
+        data.append({
+            "title": t.title,
+            "description": t.description,
+            "status": t.status
+        })
+
+    return JsonResponse({"tickets": data})
+
+# EDIT
+def edit_ticket(request, id):
+    user_id = request.session.get("user_id")
+
+    ticket = get_object_or_404(Ticket, id=id, user_id=user_id)
+
+    if request.method == "POST":
+        ticket.title = request.POST.get("title")
+        ticket.description = request.POST.get("description")
+        ticket.status = request.POST.get("status")
+        ticket.save()
+
+        return redirect("profile")
+
+    return render(request, "edit_ticket.html", {"ticket": ticket})
+
+def delete_ticket(request, id):
+    user_id = request.session.get("user_id")
+
+    try:
+        ticket = Ticket.objects.get(id=id, user_id=user_id)
+        ticket.delete()
+    except Ticket.DoesNotExist:
+        pass
+
+    return redirect("profile")

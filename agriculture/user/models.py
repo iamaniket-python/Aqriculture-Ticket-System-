@@ -25,3 +25,10 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+class TrackingUser(models.Model):
+    mobile = models.CharField(max_length=15)
+    tracking_id = models.CharField(max_length=50, unique=True)
+    
+    def __str__(self):
+        return self.tracking_id

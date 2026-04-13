@@ -1,0 +1,101 @@
+{% extends 'Base/base.html' %}
+
+{% block title %}Verify Tracking{% endblock %}
+
+{% block content %}
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    background: radial-gradient(circle at top, #1e293b, #0f172a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: Arial;
+}
+
+/* Glass card */
+.tracking-card {
+    width: 380px;
+    padding: 30px;
+    border-radius: 18px;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+
+    text-align: center;
+}
+
+/* Input */
+.tracking-card input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+
+    border: none;
+    outline: none;
+    border-radius: 10px;
+
+    background: rgba(255,255,255,0.15);
+    color: white;
+    text-align: center;
+    font-size: 16px;
+}
+
+.tracking-card input::placeholder {
+    color: rgba(255,255,255,0.6);
+}
+
+/* Button */
+.tracking-card button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #22c55e;
+    color: white;
+    font-weight: bold;
+
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.tracking-card button:hover {
+    background: #16a34a;
+    transform: translateY(-2px);
+}
+
+/* Error */
+.error {
+    margin-top: 10px;
+    color: #ef4444;
+}
+</style>
+
+<div class="tracking-card">
+
+    <h2>🔐 Verify Tracking ID</h2>
+    <p style="opacity:0.7;">Enter your tracking ID to continue</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input name="tracking_id" placeholder="Enter Tracking ID" required>
+        <button type="submit">Verify</button>
+    </form>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

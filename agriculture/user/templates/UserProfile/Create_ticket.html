@@ -1,14 +1,134 @@
-<h2>Create Ticket</h2>
+{% extends 'Base/base.html' %}
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+{% block title %}Create Ticket{% endblock %}
 
-    <input name="title" placeholder="Title"><br><br>
+{% block content %}
 
-    <textarea name="description" placeholder="Description"></textarea><br><br>
+<style>
+body {
+    margin: 0;
+    height: 100vh;
 
-    <input type="file" name="image"><br><br>
-    <input type="file" name="document"><br><br>
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    <button type="submit">Submit Ticket</button>
-</form>
+    background: radial-gradient(circle at top, #0f172a, #1e293b);
+    color: white;
+    font-family: Arial;
+}
+
+/* Glass Card */
+.ticket-card {
+    width: 420px;
+    padding: 30px;
+
+    border-radius: 20px;
+
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    border: 1px solid rgba(255,255,255,0.15);
+
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Heading */
+.ticket-card h2 {
+    margin-bottom: 20px;
+}
+
+/* Inputs */
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+
+    border-radius: 10px;
+    border: none;
+    outline: none;
+
+    background: rgba(255,255,255,0.15);
+    color: white;
+
+    font-size: 14px;
+}
+
+textarea {
+    height: 100px;
+    resize: none;
+}
+
+/* File inputs */
+input[type="file"] {
+    background: transparent;
+    padding: 8px;
+}
+
+/* Button */
+button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+
+    font-weight: bold;
+    font-size: 15px;
+
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.03);
+    box-shadow: 0 10px 20px rgba(34,197,94,0.3);
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Labels */
+label {
+    display: block;
+    text-align: left;
+    margin-top: 10px;
+    font-size: 13px;
+    opacity: 0.8;
+}
+</style>
+
+<div class="ticket-card">
+
+    <h2>🎫 Create Ticket</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <input name="title" placeholder="Enter Title" required>
+
+        <textarea name="description" placeholder="Describe your issue" required></textarea>
+
+        <label>📷 Upload Image</label>
+        <input type="file" name="image" required>
+
+        <label>📄 Upload Document</label>
+        <input type="file" name="document" required>
+
+        <button type="submit">Submit Ticket</button>
+    </form>
+
+</div>
+
+{% endblock %}
