@@ -17,3 +17,11 @@ class Ticket(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    mobile = models.CharField(max_length=15)
+
+    def __str__(self):
+        return self.user.username

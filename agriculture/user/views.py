@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from user.models import Ticket
 from .serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from django.contrib.auth import authenticate
+from .models import Profile
 
 # Create your views here.
 class RegisterView(generics.CreateAPIView):
@@ -66,23 +67,26 @@ def register(request):
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
+        mobile = request.POST.get("mobile")
 
-        # ✅ check username exists
+        # ✅ validations
         if User.objects.filter(username=username).exists():
-            return render(request, 'Authentication/register.html', {
-                "error": "Username already exists"
-            })
+            return render(request, 'Authentication/register.html', {"error": "Username already exists"})
 
-        # ✅ check email exists
         if User.objects.filter(email=email).exists():
-            return render(request, 'Authentication/register.html', {
-                "error": "Email already exists"
-            })
+            return render(request, 'Authentication/register.html', {"error": "Email already exists"})
 
-        User.objects.create_user(
+        # ✅ create user (NO mobile here)
+        user = User.objects.create_user(
             username=username,
             email=email,
             password=password
+        )
+
+        # ✅ create profile with mobile
+        Profile.objects.create(
+            user=user,
+            mobile=mobile
         )
 
         return redirect('login')
@@ -167,8 +171,8 @@ def profile(request):
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'UserProfile/profile.html', {
-        "page_obj": page_obj,
-        "search_query": search_query,
+        # "page_obj": page_obj,
+        # "search_query": search_query,
         "tickets": tickets,
         "user": user
         
