@@ -1,0 +1,14 @@
+<h2>Create Ticket</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <input name="title" placeholder="Title"><br><br>
+
+    <textarea name="description" placeholder="Description"></textarea><br><br>
+
+    <input type="file" name="image"><br><br>
+    <input type="file" name="document"><br><br>
+
+    <button type="submit">Submit Ticket</button>
+</form>

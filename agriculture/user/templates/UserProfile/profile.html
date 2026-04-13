@@ -1,0 +1,32 @@
+{% extends 'Base/base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<!-- 🔝 Navbar -->
+    <nav class="navbar navbar-dark bg-dark px-3">
+      <span class="navbar-brand">Ticket System</span>
+
+      <div>
+        <a href="{% url 'create_ticket' %}" class="btn btn-sm btn-success">Create Ticket</a>
+        <a href="{% url 'logout' %}" class="btn btn-sm btn-danger">Logout</a>
+      </div>
+    </nav>
+
+<h2>Hello {{ user.username }}</h2>
+
+<h3 class="mt-4">Your Tickets</h3>
+
+{% for ticket in tickets %}
+  <div class="card mb-3 shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title">{{ ticket.title }}</h5>
+      <p class="card-text">{{ ticket.description }}</p>
+      <span class="badge bg-info">{{ ticket.status }}</span>
+    </div>
+  </div>
+{% empty %}
+  <p>No tickets found</p>
+{% endfor %}
+
+{% endblock %}
