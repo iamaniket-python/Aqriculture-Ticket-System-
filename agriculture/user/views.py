@@ -259,29 +259,3 @@ def get_tickets(request):
 
     return JsonResponse({"tickets": data})
 
-# EDIT
-def edit_ticket(request, id):
-    user_id = request.session.get("user_id")
-
-    ticket = get_object_or_404(Ticket, id=id, user_id=user_id)
-
-    if request.method == "POST":
-        ticket.title = request.POST.get("title")
-        ticket.description = request.POST.get("description")
-        ticket.status = request.POST.get("status")
-        ticket.save()
-
-        return redirect("profile")
-
-    return render(request, "edit_ticket.html", {"ticket": ticket})
-
-def delete_ticket(request, id):
-    user_id = request.session.get("user_id")
-
-    try:
-        ticket = Ticket.objects.get(id=id, user_id=user_id)
-        ticket.delete()
-    except Ticket.DoesNotExist:
-        pass
-
-    return redirect("profile")
