@@ -1,0 +1,307 @@
+
+body {
+    background: #f9fafb;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+}
+
+/* ================= LOGIN ================= */
+.login-wrapper {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-ui {
+    width: 380px;
+    padding: 35px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.card-ui h3 {
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #111827;
+}
+
+.card-ui input {
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 10px;
+}
+
+.primary-btn {
+    background: #111827;
+    color: white;
+    border-radius: 10px;
+    padding: 10px;
+    border: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.primary-btn:hover {
+    background: #374151;
+}
+
+.link-text {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.link-text a {
+    color: #111827;
+    font-weight: 600;
+}
+
+/* ================= REGISTER ================= */
+.signup-wrapper {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.signup-card {
+    width: 420px;
+    padding: 35px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.signup-card h3 {
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #111827;
+}
+
+.signup-card input {
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 10px;
+    transition: 0.3s;
+}
+
+.signup-card input:focus {
+    border-color: #111827;
+    box-shadow: 0 0 0 2px rgba(17,24,39,0.1);
+}
+
+.btn-custom {
+    background: #111827;
+    color: white;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 10px;
+    border: none;
+}
+
+.btn-custom:hover {
+    background: #374151;
+}
+
+.login-link {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.login-link a {
+    color: #111827;
+    font-weight: 600;
+}
+
+/* ================= OTP ================= */
+.otp-wrapper {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.otp-card {
+    width: 420px;
+    padding: 35px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.otp-card h3 {
+    font-weight: 700;
+    color: #111827;
+}
+
+.otp-card p {
+    color: #6b7280;
+}
+
+.otp-boxes {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.otp-boxes input {
+    width: 55px;
+    height: 60px;
+    text-align: center;
+    font-size: 22px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #f3f4f6;
+}
+
+.verify-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    background: #111827;
+    color: white;
+}
+
+.verify-btn:hover {
+    background: #374151;
+}
+
+.resend {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.disabled {
+    opacity: 0.4;
+}
+
+/* ================= TRACKING ================= */
+.tracking-wrapper {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tracking-card {
+    width: 400px;
+    padding: 35px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.tracking-card h2 {
+    color: #111827;
+}
+
+.tracking-card input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+}
+
+.tracking-card button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 10px;
+    background: #111827;
+    color: white;
+}
+
+/* ================= CREATE TICKET ================= */
+.ticket-wrapper {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ticket-card {
+    width: 450px;
+    padding: 35px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.ticket-card h2 {
+    text-align: center;
+}
+
+.ticket-card input,
+.ticket-card textarea,
+.ticket-card select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+}
+
+button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 10px;
+    background: #111827;
+    color: white;
+}
+
+/* ================= PROFILE ================= */
+.navbar {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.profile-container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 30px;
+}
+
+.welcome-card,
+.table-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #f3f4f6;
+}
+
+th, td {
+    padding: 12px;
+}
+
+tr {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* STATUS */
+.status-open { color: #f59e0b; }
+.status-closed { color: #ef4444; }
+.status-default { color: #22c55e; }
+
+/* IMAGE */
+.ticket-img {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+}

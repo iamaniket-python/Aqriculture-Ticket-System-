@@ -3,109 +3,7 @@
 {% block title %}Create Ticket{% endblock %}
 
 {% block content %}
-
-<style>
-body {
-    background: #f9fafb;
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* Center */
-.ticket-wrapper {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Card */
-.ticket-card {
-    width: 450px;
-    padding: 35px;
-    border-radius: 16px;
-
-    background: #ffffff;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-
-    animation: fadeIn 0.4s ease-in-out;
-}
-
-/* Title */
-.ticket-card h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #111827;
-}
-
-/* Inputs */
-.ticket-card input,
-.ticket-card textarea,
-.ticket-card select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-
-    background: #f3f4f6;
-    color: #111827;
-
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-.ticket-card input:focus,
-.ticket-card textarea:focus,
-.ticket-card select:focus {
-    border-color: #111827;
-    box-shadow: 0 0 0 2px rgba(17,24,39,0.1);
-    outline: none;
-}
-
-/* Textarea */
-textarea {
-    height: 100px;
-    resize: none;
-}
-
-/* Labels */
-label {
-    font-size: 13px;
-    color: #6b7280;
-    margin-top: 10px;
-    display: block;
-}
-
-/* Button */
-button {
-    width: 100%;
-    margin-top: 15px;
-    padding: 12px;
-
-    border: none;
-    border-radius: 10px;
-
-    background: #111827;
-    color: white;
-
-    font-weight: 600;
-    font-size: 15px;
-
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-button:hover {
-    background: #374151;
-}
-
-/* Animation */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-</style>
+{% load static %}
 
 <div class="ticket-wrapper">
 
@@ -120,7 +18,7 @@ button:hover {
 
             <textarea name="description" placeholder="Describe your issue" required></textarea>
 
-            <!-- Dropdown 1: purchase -->
+            
             <label>Purchase</label>
             <select name="purchase" required>
                 <option value="">Select Purchase</option>
@@ -129,7 +27,7 @@ button:hover {
                 <option value="iphone">i phone</option>
             </select>
 
-            <!-- Dropdown 2: purchase -->
+            
             <label>category</label>
             <select name="category" required>
                 <option value="">Select Priority</option>
@@ -138,8 +36,8 @@ button:hover {
                 <option value="skincare">skincare</option>
             </select>
 
-            <label>📷 Upload Image</label>
-            <input type="file" name="image">
+            <label>📷 Upload Images</label>
+            <input type="file" name="images" multiple>
 
             <label>📄 Upload Document</label>
             <input type="file" name="document">

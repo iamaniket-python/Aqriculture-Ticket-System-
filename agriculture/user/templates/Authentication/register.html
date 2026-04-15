@@ -3,85 +3,17 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-
-<style>
-body {
-    background: #f9fafb;
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* Center layout */
-.signup-wrapper {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Card */
-.signup-card {
-    width: 420px;
-    padding: 35px;
-    border-radius: 16px;
-
-    background: #ffffff;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-
-    text-align: center;
-}
-
-/* Title */
-.signup-card h3 {
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: #111827;
-}
-
-/* Inputs */
-.signup-card input {
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    padding: 10px;
-    transition: 0.3s;
-}
-
-.signup-card input:focus {
-    border-color: #111827;
-    box-shadow: 0 0 0 2px rgba(17,24,39,0.1);
-}
-
-/* Button */
-.btn-custom {
-    background: #111827;
-    color: white;
-    font-weight: 600;
-    border-radius: 10px;
-    padding: 10px;
-    border: none;
-    transition: 0.3s;
-}
-
-.btn-custom:hover {
-    background: #374151;
-}
-
-/* Login link */
-.login-link {
-    margin-top: 15px;
-    font-size: 14px;
-}
-
-.login-link a {
-    color: #111827;
-    font-weight: 600;
-    text-decoration: none;
-}
-</style>
+{% load static %}
 
 <div class="signup-wrapper">
     <div class="signup-card">
 
-        <h3>📝 Create Account</h3>
+       <dotlottie-wc
+  src="https://lottie.host/e51b8482-a3cd-48cd-9a9f-7f041448a808/UvqVeW7tx1.lottie"
+  style="width: 300px;height: 300px"
+  autoplay
+  loop
+></dotlottie-wc>
 
         <form method="POST">
             {% csrf_token %}

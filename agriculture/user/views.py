@@ -1,4 +1,5 @@
 import random, time
+from tokenize import Comment
 from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import generics
 from rest_framework.response import Response
@@ -15,8 +16,9 @@ from django.contrib.auth.models import User
 from user.models import Ticket
 from .serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from django.contrib.auth import authenticate
-from .models import Profile
+from .models import Profile, TicketImage
 from .models import TrackingUser
+
 
 # Create your views here.
 class RegisterView(generics.CreateAPIView):
@@ -166,7 +168,9 @@ def create_ticket(request):
             image=image,
             document=document
         )
-
+        images = request.FILES.getlist("images")
+        for img in images:
+            TicketImage.objects.create(ticket=ticket, image=img)
         # Send email
         send_mail(
             subject="New Ticket Created",
@@ -263,4 +267,5 @@ def get_tickets(request):
         })
 
     return JsonResponse({"tickets": data})
+
 

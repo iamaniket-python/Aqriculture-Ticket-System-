@@ -1,113 +1,7 @@
 {% extends 'Base/base.html' %} {% block title %}Profile{% endblock %} 
 {% block content %}
+{% load static %}
 
-<style>
-  body {
-    background: #f9fafb;
-    font-family: "Segoe UI", sans-serif;
-  }
-
-  /* Navbar */
-  .navbar {
-    background: #ffffff !important;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  /* Container */
-  .profile-container {
-    max-width: 1000px;
-    margin: auto;
-    padding: 30px;
-  }
-
-  /* Welcome Card */
-  .welcome-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
-  }
-
-  /* Table Card */
-  .table-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-  }
-
-  /* Table */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  thead {
-    background: #f3f4f6;
-  }
-
-  th,
-  td {
-    padding: 12px;
-    text-align: left;
-    font-size: 14px;
-  }
-
-  th {
-    color: #374151;
-    font-weight: 600;
-  }
-
-  tr {
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  tr:hover {
-    background: #f9fafb;
-  }
-
-  /* Status */
-  .status-open {
-    color: #f59e0b;
-    font-weight: 600;
-  }
-  .status-closed {
-    color: #ef4444;
-    font-weight: 600;
-  }
-  .status-default {
-    color: #22c55e;
-    font-weight: 600;
-  }
-
-  /* Priority */
-  .priority-high {
-    color: #ef4444;
-    font-weight: 600;
-  }
-  .priority-medium {
-    color: #f59e0b;
-    font-weight: 600;
-  }
-  .priority-low {
-    color: #22c55e;
-    font-weight: 600;
-  }
-
-  /* Buttons */
-  .btn {
-    border-radius: 8px;
-  }
-
-  /* Image */
-  .ticket-img {
-    width: 45px;
-    height: 45px;
-    border-radius: 6px;
-    object-fit: cover;
-  }
-</style>
 
 <!-- NAVBAR -->
 <nav class="navbar px-3">
@@ -163,63 +57,82 @@
 
 <tbody>
   {% for ticket in page_obj %}
-  <tr>
+ <tr>
     <td>{{ forloop.counter }}</td>
-
     <td>{{ ticket.title }}</td>
-
-    <td>{{ ticket.description|truncatechars:40 }}</td>
-
-    <!-- PURCHASE -->
-    <td>
-      {{ ticket.purchase}}
-    </td>
-
-    <!-- CATEGORY (FIX ADDED) -->
-    <td>
-      {{ ticket.category }}
-    </td>
-
-    <!-- DATE -->
+    <td>{{ ticket.description }}</td>
+    <td>{{ ticket.purchase }}</td>
+    <td>{{ ticket.category }}</td>
     <td>{{ ticket.created_at }}</td>
 
-    <!-- IMAGE -->
     <td>
-      {% if ticket.image %}
-        <img src="{{ ticket.image.url }}" class="ticket-img" />
-      {% else %}
-        ❌
-      {% endif %}
+        {% for img in ticket.images.all %}
+            <img src="{{ img.image.url }}" class="ticket-img">
+        {% empty %}
+            ❌
+        {% endfor %}
     </td>
 
-    <!-- DOCUMENT -->
     <td>
-      {% if ticket.document %}
-        <a href="{{ ticket.document.url }}" target="_blank">📄 View</a>
-      {% else %}
-        ❌
-      {% endif %}
+        {% if ticket.document %}
+            <a href="{{ ticket.document.url }}">📄 View</a>
+        {% else %}
+            ❌
+        {% endif %}
     </td>
 
-    <!-- STATUS -->
-    <td>
-      {% if ticket.status == "Open" %}
-        <span class="status-open">🟡 Open</span>
-      {% elif ticket.status == "Closed" %}
-        <span class="status-closed">🔴 Closed</span>
-      {% else %}
-        <span class="status-default">{{ ticket.status }}</span>
-      {% endif %}
-    </td>
-  </tr>
+    <td>{{ ticket.status }}</td>
 
-  {% empty %}
-  <tr>
-    <td colspan="9" style="text-align:center; padding:15px;">
-      No tickets found
-    </td>
-  </tr>
+    <!-- ✅ COMMENT COLUMN -->
+    <!-- <td>
+        <div id="comments-{{ ticket.id }}">
+            {% for comment in ticket.comments.all %}
+                <div style="font-size:13px; background:#f3f4f6; padding:5px; margin:3px 0;">
+                    <b>{{ comment.user.username }}</b>: {{ comment.message }}
+                </div>
+            {% empty %}
+                <span style="font-size:12px;">No comments</span>
+            {% endfor %}
+        </div>
+
+        <input type="text" id="input-{{ ticket.id }}" placeholder="Write comment..." style="width:65%;">
+
+       {% for ticket in page_obj %}
+    <button onclick="addComment({ ticketid })">Send</button>
+{% endfor %}
+    </td> -->
+</tr>
   {% endfor %}
 </tbody>
+<script>
+function addComment(ticketId) {
+    let input = document.getElementById("input-" + ticketId);
+    let message = input.value;
 
+    if(message.trim() === "") return;
+
+    fetch(`/add-comment/${ticketId}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+            message: message
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        let commentBox = document.getElementById("comments-" + ticketId);
+
+        commentBox.innerHTML += `
+            <div style="font-size:13px; background:#f3f4f6; padding:5px; margin:3px 0; border-radius:6px;">
+                <b>${data.user}</b>: ${data.message}
+            </div>
+        `;
+
+        input.value = "";
+    });
+}
+</script>
 {% endblock %}

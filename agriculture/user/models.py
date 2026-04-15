@@ -33,3 +33,16 @@ class TrackingUser(models.Model):
     
     def __str__(self):
         return self.tracking_id
+
+
+class TicketImage(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to='tickets/images/')
+
+
+
+class Comment(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="comments")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)  

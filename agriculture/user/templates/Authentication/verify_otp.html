@@ -1,120 +1,17 @@
 {% extends 'Base/base.html' %}
-
+{% block title %}Verify Otp{% endblock %}
 {% block content %}
-
-<style>
-body {
-    background: #f9fafb;
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* Center wrapper */
-.otp-wrapper {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Card */
-.otp-card {
-    width: 420px;
-    padding: 35px;
-    border-radius: 16px;
-
-    background: #ffffff;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-
-    text-align: center;
-}
-
-/* Title */
-.otp-card h3 {
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #111827;
-}
-
-.otp-card p {
-    color: #6b7280;
-    font-size: 14px;
-}
-
-/* OTP boxes */
-.otp-boxes {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.otp-boxes input {
-    width: 55px;
-    height: 60px;
-    text-align: center;
-    font-size: 22px;
-    border-radius: 10px;
-
-    border: 1px solid #e5e7eb;
-    outline: none;
-
-    background: #f3f4f6;
-    color: #111827;
-    font-weight: bold;
-    transition: 0.2s;
-}
-
-.otp-boxes input:focus {
-    border-color: #111827;
-    box-shadow: 0 0 0 2px rgba(17,24,39,0.1);
-}
-
-/* Button */
-.verify-btn {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 10px;
-
-    background: #111827;
-    color: white;
-    font-weight: 600;
-    transition: 0.3s;
-}
-
-.verify-btn:hover {
-    background: #374151;
-}
-
-/* Error */
-.error {
-    color: red;
-    margin-top: 10px;
-}
-
-/* Resend */
-.resend {
-    margin-top: 15px;
-    font-size: 14px;
-    color: #6b7280;
-}
-
-.resend a {
-    color: #111827;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.disabled {
-    pointer-events: none;
-    opacity: 0.4;
-}
-</style>
+{% load static %}
 
 <div class="otp-wrapper">
     <div class="otp-card">
 
-        <h3>🔐 Verify OTP</h3>
+       <dotlottie-wc
+  src="https://lottie.host/a4274b67-7ff7-4355-a0ad-1cd372e9fe7d/bsfjTx60wJ.lottie"
+  style="width: 300px;height: 300px"
+  autoplay
+  loop
+></dotlottie-wc>
         <p>Enter the 4-digit code sent to your mobile</p>
 
         <form method="POST">

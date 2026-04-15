@@ -32,5 +32,6 @@ urlpatterns = [
     path("check-tracking/", views.check_tracking, name="check_tracking"),
     path("create-ticket/", views.create_ticket, name="create_ticket"),
     path("api/tickets/", views.get_tickets, name="api_tickets"),
+    # path('add-comment/<int:ticket_id>/', views.add_comment, name='add_comment'),
    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
