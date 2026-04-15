@@ -4,11 +4,11 @@
 
 <style>
 body {
-    background: linear-gradient(135deg, #4f46e5, #06b6d4);
-    height: 100vh;
+    background: #f9fafb;
+    font-family: 'Segoe UI', sans-serif;
 }
 
-/* Center container */
+/* Center layout */
 .login-wrapper {
     height: 100vh;
     display: flex;
@@ -16,59 +16,63 @@ body {
     justify-content: center;
 }
 
-/* Glass card */
-.glass-card {
+/* Card */
+.card-ui {
     width: 380px;
-    padding: 30px;
-    border-radius: 18px;
+    padding: 35px;
+    border-radius: 16px;
 
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-
-    color: white;
-}
-
-/* Input style */
-.glass-card input {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-}
-
-.glass-card input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* Button */
-.glass-btn {
     background: #ffffff;
-    color: #4f46e5;
-    font-weight: 600;
-    border: none;
-    padding: 10px;
-    border-radius: 10px;
-    transition: 0.3s;
-}
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 
-.glass-btn:hover {
-    background: #e5e7eb;
+    text-align: center;
 }
 
 /* Title */
-.glass-card h3 {
+.card-ui h3 {
     font-weight: 700;
     margin-bottom: 20px;
+    color: #111827;
+}
+
+/* Input */
+.card-ui input {
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 10px;
+}
+
+/* Button */
+.primary-btn {
+    background: #111827;
+    color: white;
+    border-radius: 10px;
+    padding: 10px;
+    border: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.primary-btn:hover {
+    background: #374151;
+}
+
+/* Signup link */
+.link-text {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.link-text a {
+    color: #111827;
+    font-weight: 600;
 }
 </style>
 
 <div class="login-wrapper">
-    <div class="glass-card">
+    <div class="card-ui">
 
-        <h3 class="text-center">Login with Mobile</h3>
+        <h3>Login</h3>
 
         <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
@@ -78,14 +82,18 @@ body {
                    placeholder="Enter Mobile Number"
                    required>
 
-            <button type="submit" class="glass-btn w-100">
+            <button type="submit" class="primary-btn w-100">
                 Send OTP
             </button>
         </form>
 
         {% if error %}
-        <p class="text-danger mt-3 text-center">{{ error }}</p>
+        <p class="text-danger mt-3">{{ error }}</p>
         {% endif %}
+
+        <div class="link-text">
+            New user? <a href="{% url 'register' %}">Create Account</a>
+        </div>
 
     </div>
 </div>

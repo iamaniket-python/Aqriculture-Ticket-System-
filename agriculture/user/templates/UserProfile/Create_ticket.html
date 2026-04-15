@@ -6,67 +6,75 @@
 
 <style>
 body {
-    margin: 0;
-    height: 100vh;
+    background: #f9fafb;
+    font-family: 'Segoe UI', sans-serif;
+}
 
+/* Center */
+.ticket-wrapper {
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    background: radial-gradient(circle at top, #0f172a, #1e293b);
-    color: white;
-    font-family: Arial;
 }
 
-/* Glass Card */
+/* Card */
 .ticket-card {
-    width: 420px;
-    padding: 30px;
+    width: 450px;
+    padding: 35px;
+    border-radius: 16px;
 
-    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-
-    border: 1px solid rgba(255,255,255,0.15);
-
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-
-    text-align: center;
-    animation: fadeIn 0.5s ease-in-out;
+    animation: fadeIn 0.4s ease-in-out;
 }
 
-/* Heading */
+/* Title */
 .ticket-card h2 {
+    text-align: center;
     margin-bottom: 20px;
+    color: #111827;
 }
 
 /* Inputs */
-input, textarea {
+.ticket-card input,
+.ticket-card textarea,
+.ticket-card select {
     width: 100%;
     padding: 12px;
     margin-top: 10px;
 
     border-radius: 10px;
-    border: none;
-    outline: none;
+    border: 1px solid #e5e7eb;
 
-    background: rgba(255,255,255,0.15);
-    color: white;
+    background: #f3f4f6;
+    color: #111827;
 
     font-size: 14px;
+    transition: 0.2s;
 }
 
+.ticket-card input:focus,
+.ticket-card textarea:focus,
+.ticket-card select:focus {
+    border-color: #111827;
+    box-shadow: 0 0 0 2px rgba(17,24,39,0.1);
+    outline: none;
+}
+
+/* Textarea */
 textarea {
     height: 100px;
     resize: none;
 }
 
-/* File inputs */
-input[type="file"] {
-    background: transparent;
-    padding: 8px;
+/* Labels */
+label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 10px;
+    display: block;
 }
 
 /* Button */
@@ -78,10 +86,10 @@ button {
     border: none;
     border-radius: 10px;
 
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: #111827;
     color: white;
 
-    font-weight: bold;
+    font-weight: 600;
     font-size: 15px;
 
     cursor: pointer;
@@ -89,45 +97,58 @@ button {
 }
 
 button:hover {
-    transform: scale(1.03);
-    box-shadow: 0 10px 20px rgba(34,197,94,0.3);
+    background: #374151;
 }
 
 /* Animation */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-/* Labels */
-label {
-    display: block;
-    text-align: left;
-    margin-top: 10px;
-    font-size: 13px;
-    opacity: 0.8;
 }
 </style>
 
-<div class="ticket-card">
+<div class="ticket-wrapper">
 
-    <h2>🎫 Create Ticket</h2>
+    <div class="ticket-card">
 
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+        <h2>🎫 Create Ticket</h2>
 
-        <input name="title" placeholder="Enter Title" required>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
 
-        <textarea name="description" placeholder="Describe your issue" required></textarea>
+            <input name="title" placeholder="Enter Title" required>
 
-        <label>📷 Upload Image</label>
-        <input type="file" name="image" required>
+            <textarea name="description" placeholder="Describe your issue" required></textarea>
 
-        <label>📄 Upload Document</label>
-        <input type="file" name="document" required>
+            <!-- Dropdown 1: purchase -->
+            <label>Purchase</label>
+            <select name="purchase" required>
+                <option value="">Select Purchase</option>
+                <option value="laptop">Laptop</option>
+                <option value="mobile">Mobile</option>
+                <option value="iphone">i phone</option>
+            </select>
 
-        <button type="submit">Submit Ticket</button>
-    </form>
+            <!-- Dropdown 2: purchase -->
+            <label>category</label>
+            <select name="category" required>
+                <option value="">Select Priority</option>
+                <option value="tv">tv</option>
+                <option value="fridge">fridge</option>
+                <option value="skincare">skincare</option>
+            </select>
+
+            <label>📷 Upload Image</label>
+            <input type="file" name="image">
+
+            <label>📄 Upload Document</label>
+            <input type="file" name="document">
+
+            <button type="submit">Submit Ticket</button>
+
+        </form>
+
+    </div>
 
 </div>
 

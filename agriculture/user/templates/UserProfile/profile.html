@@ -3,178 +3,223 @@
 
 <style>
   body {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color: white;
+    background: #f9fafb;
+    font-family: "Segoe UI", sans-serif;
   }
 
+  /* Navbar */
   .navbar {
-    backdrop-filter: blur(10px);
-    background: rgba(0, 0, 0, 0.4) !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb;
   }
 
+  /* Container */
   .profile-container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: auto;
     padding: 30px;
   }
+
+  /* Welcome Card */
   .welcome-card {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border-radius: 14px;
     padding: 20px;
-    border-radius: 15px;
-    margin-top: 20px;
-    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
   }
 
-  /* Ticket card */
-  .ticket-card {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 15px;
-    transition: 0.3s;
+  /* Table Card */
+  .table-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
   }
 
-  .ticket-card:hover {
-    transform: translateY(-3px);
-    background: rgba(255, 255, 255, 0.12);
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
   }
 
-  /* Badge */
-  .badge {
-    padding: 6px 10px;
-    border-radius: 20px;
-    font-size: 12px;
+  thead {
+    background: #f3f4f6;
+  }
+
+  th,
+  td {
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  th {
+    color: #374151;
+    font-weight: 600;
+  }
+
+  tr {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  tr:hover {
+    background: #f9fafb;
+  }
+
+  /* Status */
+  .status-open {
+    color: #f59e0b;
+    font-weight: 600;
+  }
+  .status-closed {
+    color: #ef4444;
+    font-weight: 600;
+  }
+  .status-default {
+    color: #22c55e;
+    font-weight: 600;
+  }
+
+  /* Priority */
+  .priority-high {
+    color: #ef4444;
+    font-weight: 600;
+  }
+  .priority-medium {
+    color: #f59e0b;
+    font-weight: 600;
+  }
+  .priority-low {
+    color: #22c55e;
+    font-weight: 600;
   }
 
   /* Buttons */
   .btn {
     border-radius: 8px;
   }
+
+  /* Image */
+  .ticket-img {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    object-fit: cover;
+  }
 </style>
 
 <!-- NAVBAR -->
-<nav
-  class="navbar navbar-dark px-3 shadow-sm"
-  style="background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px)"
->
-  <span class="navbar-brand fw-bold"> 🎫 Ticket System </span>
+<nav class="navbar px-3">
+  <span class="navbar-brand fw-bold">🎫 Ticket System</span>
 
   <div class="d-flex align-items-center gap-2">
     {% if request.session.tracking_verified %}
-    <span style="color: #22c55e; font-size: 18px; margin-right: 10px">
-      👋 Hello {{ user.username }}
-    </span>
 
-    <a href="{% url 'create_ticket' %}" class="btn btn-sm btn-success">
+    <a href="{% url 'create_ticket' %}" class="btn btn-sm btn-dark">
       + Create Ticket
     </a>
-
     {% else %}
-    <span style="color: #ef4444; font-size: 13px; margin-right: 10px">
-      ❌ Not Verified
-    </span>
+    <span style="color: #dc2626">❌ Not Verified</span>
 
     <a href="{% url 'check_tracking' %}" class="btn btn-sm btn-warning">
-      🔐 Verify Tracking ID
+      Verify ID
     </a>
     {% endif %}
 
-    <a href="{% url 'logout' %}" class="btn btn-sm btn-danger"> Logout </a>
+    <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger">
+      Logout
+    </a>
   </div>
 </nav>
 
-<!-- ================= TICKET TABLE ================= -->
-
-<div style="padding: 20px">
-  <h4 style="color: white; margin-bottom: 15px">📌 Your Tickets</h4>
-
-  <div style="overflow-x: auto">
-    <table
-      style="
-        width: 100%;
-        border-collapse: collapse;
-        background: rgba(255, 255, 255, 0.06);
-        backdrop-filter: blur(10px);
-        border-radius: 12px;
-        overflow: hidden;
-        color: white;
-      "
-    >
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Title</th>
-          <th>Description</th>
-          <th>Status</th>
-          <th>Created</th>
-          <th>Image</th>
-          <th>Document</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {% for ticket in page_obj %}
-        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1)">
-          <td style="padding: 10px">{{ forloop.counter }}</td>
-
-          <td>{{ ticket.title }}</td>
-
-          <td>{{ ticket.description|truncatechars:40 }}</td>
-
-          <!-- STATUS -->
-          <td>
-            {% if ticket.status == "Open" %}
-            <span style="color: #f59e0b">🟡 Open</span>
-            {% elif ticket.status == "Closed" %}
-            <span style="color: #ef4444">🔴 Closed</span>
-            {% else %}
-            <span style="color: #22c55e">{{ ticket.status }}</span>
-            {% endif %}
-          </td>
-
-          <!-- CREATED DATE -->
-          <td>{{ ticket.created_at }}</td>
-
-          <!-- IMAGE -->
-          <td>
-            {% if ticket.image %}
-            <img
-              src="{{ ticket.image.url }}"
-              style="
-                width: 45px;
-                height: 45px;
-                border-radius: 6px;
-                object-fit: cover;
-              "
-            />
-            {% else %} ❌ {% endif %}
-          </td>
-
-          <!-- DOCUMENT -->
-          <td>
-            {% if ticket.document %}
-            <a
-              href="{{ ticket.document.url }}"
-              target="_blank"
-              style="color: #38bdf8; text-decoration: none"
-            >
-              📄 View
-            </a>
-            {% else %} ❌ {% endif %}
-          </td>
-         
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" style="text-align: center; padding: 15px">
-            No tickets found
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="profile-container">
+  <!-- Welcome -->
+  <div class="welcome-card">
+    <h4>Welcome {{ user.username }}</h4>
+    <p style="color: #6b7280">Manage your tickets easily</p>
   </div>
-</div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <h5 style="margin-bottom: 15px">📌 Your Tickets</h5>
+
+    <div style="overflow-x: auto">
+      <table>
+        <!-- HEADER -->
+     <thead>
+  <tr>
+    <th>#</th>
+    <th>Title</th>
+    <th>Description</th>
+    <th>Purchase</th>
+    <th>Category</th>
+    <th>Date</th>
+    <th>Image</th>
+    <th>Document</th>
+    <th>Status</th>
+  </tr>
+</thead>
+
+<tbody>
+  {% for ticket in page_obj %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+
+    <td>{{ ticket.title }}</td>
+
+    <td>{{ ticket.description|truncatechars:40 }}</td>
+
+    <!-- PURCHASE -->
+    <td>
+      {{ ticket.purchase}}
+    </td>
+
+    <!-- CATEGORY (FIX ADDED) -->
+    <td>
+      {{ ticket.category }}
+    </td>
+
+    <!-- DATE -->
+    <td>{{ ticket.created_at }}</td>
+
+    <!-- IMAGE -->
+    <td>
+      {% if ticket.image %}
+        <img src="{{ ticket.image.url }}" class="ticket-img" />
+      {% else %}
+        ❌
+      {% endif %}
+    </td>
+
+    <!-- DOCUMENT -->
+    <td>
+      {% if ticket.document %}
+        <a href="{{ ticket.document.url }}" target="_blank">📄 View</a>
+      {% else %}
+        ❌
+      {% endif %}
+    </td>
+
+    <!-- STATUS -->
+    <td>
+      {% if ticket.status == "Open" %}
+        <span class="status-open">🟡 Open</span>
+      {% elif ticket.status == "Closed" %}
+        <span class="status-closed">🔴 Closed</span>
+      {% else %}
+        <span class="status-default">{{ ticket.status }}</span>
+      {% endif %}
+    </td>
+  </tr>
+
+  {% empty %}
+  <tr>
+    <td colspan="9" style="text-align:center; padding:15px;">
+      No tickets found
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
 {% endblock %}

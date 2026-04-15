@@ -6,30 +6,40 @@
 
 <style>
 body {
-    margin: 0;
+    background: #f9fafb;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Center layout */
+.tracking-wrapper {
     height: 100vh;
-    background: radial-gradient(circle at top, #1e293b, #0f172a);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-family: Arial;
 }
 
-/* Glass card */
+/* Card */
 .tracking-card {
-    width: 380px;
-    padding: 30px;
-    border-radius: 18px;
+    width: 400px;
+    padding: 35px;
+    border-radius: 16px;
 
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-    border: 1px solid rgba(255,255,255,0.12);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 
     text-align: center;
+}
+
+/* Title */
+.tracking-card h2 {
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+}
+
+.tracking-card p {
+    color: #6b7280;
+    font-size: 14px;
 }
 
 /* Input */
@@ -38,18 +48,21 @@ body {
     padding: 12px;
     margin-top: 15px;
 
-    border: none;
-    outline: none;
+    border: 1px solid #e5e7eb;
     border-radius: 10px;
 
-    background: rgba(255,255,255,0.15);
-    color: white;
+    background: #f3f4f6;
+    color: #111827;
     text-align: center;
-    font-size: 16px;
+    font-size: 15px;
+
+    transition: 0.2s;
 }
 
-.tracking-card input::placeholder {
-    color: rgba(255,255,255,0.6);
+.tracking-card input:focus {
+    border-color: #111827;
+    box-shadow: 0 0 0 2px rgba(17,24,39,0.1);
+    outline: none;
 }
 
 /* Button */
@@ -61,40 +74,50 @@ body {
     border: none;
     border-radius: 10px;
 
-    background: #22c55e;
+    background: #111827;
     color: white;
-    font-weight: bold;
+    font-weight: 600;
 
     cursor: pointer;
     transition: 0.3s;
 }
 
 .tracking-card button:hover {
-    background: #16a34a;
-    transform: translateY(-2px);
+    background: #374151;
 }
 
 /* Error */
 .error {
     margin-top: 10px;
     color: #ef4444;
+    font-size: 14px;
 }
 </style>
 
-<div class="tracking-card">
+<div class="tracking-wrapper">
 
-    <h2>🔐 Verify Tracking ID</h2>
-    <p style="opacity:0.7;">Enter your tracking ID to continue</p>
+    <div class="tracking-card">
 
-    <form method="POST">
-        {% csrf_token %}
-        <input name="tracking_id" placeholder="Enter Tracking ID" required>
-        <button type="submit">Verify</button>
-    </form>
+        <h2>🔐 Verify Tracking ID</h2>
+        <p>Enter your tracking ID to continue</p>
 
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
+        <form method="POST">
+            {% csrf_token %}
+
+            <input name="tracking_id"
+                   placeholder="Enter Tracking ID"
+                   required>
+
+            <button type="submit">
+                Verify
+            </button>
+        </form>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+    </div>
 
 </div>
 

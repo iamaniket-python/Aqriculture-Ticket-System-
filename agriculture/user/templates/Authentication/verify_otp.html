@@ -4,8 +4,8 @@
 
 <style>
 body {
-    background: linear-gradient(135deg, #7c3aed, #06b6d4);
-    height: 100vh;
+    background: #f9fafb;
+    font-family: 'Segoe UI', sans-serif;
 }
 
 /* Center wrapper */
@@ -16,21 +16,28 @@ body {
     justify-content: center;
 }
 
-/* Glass card */
+/* Card */
 .otp-card {
     width: 420px;
-    padding: 30px;
-    border-radius: 18px;
+    padding: 35px;
+    border-radius: 16px;
 
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-
-    color: white;
     text-align: center;
+}
+
+/* Title */
+.otp-card h3 {
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #111827;
+}
+
+.otp-card p {
+    color: #6b7280;
+    font-size: 14px;
 }
 
 /* OTP boxes */
@@ -42,18 +49,24 @@ body {
 }
 
 .otp-boxes input {
-    width: 50px;
-    height: 55px;
+    width: 55px;
+    height: 60px;
     text-align: center;
     font-size: 22px;
     border-radius: 10px;
 
-    border: none;
+    border: 1px solid #e5e7eb;
     outline: none;
 
-    background: rgba(255, 255, 255, 0.25);
-    color: white;
+    background: #f3f4f6;
+    color: #111827;
     font-weight: bold;
+    transition: 0.2s;
+}
+
+.otp-boxes input:focus {
+    border-color: #111827;
+    box-shadow: 0 0 0 2px rgba(17,24,39,0.1);
 }
 
 /* Button */
@@ -63,30 +76,38 @@ body {
     border: none;
     border-radius: 10px;
 
-    background: white;
-    color: #7c3aed;
+    background: #111827;
+    color: white;
     font-weight: 600;
     transition: 0.3s;
 }
 
 .verify-btn:hover {
-    background: #e5e7eb;
+    background: #374151;
+}
+
+/* Error */
+.error {
+    color: red;
+    margin-top: 10px;
 }
 
 /* Resend */
 .resend {
     margin-top: 15px;
     font-size: 14px;
+    color: #6b7280;
 }
 
 .resend a {
-    color: #fff;
-    text-decoration: underline;
+    color: #111827;
+    font-weight: 600;
+    text-decoration: none;
 }
 
 .disabled {
     pointer-events: none;
-    opacity: 0.5;
+    opacity: 0.4;
 }
 </style>
 
@@ -109,16 +130,20 @@ body {
             <!-- hidden real input -->
             <input type="hidden" name="otp" id="otpValue">
 
-            <button type="submit" class="verify-btn">Verify OTP</button>
+            <button type="submit" class="verify-btn">
+                Verify OTP
+            </button>
         </form>
 
         {% if error %}
-        <p style="color:red; margin-top:10px;">{{ error }}</p>
+        <p class="error">{{ error }}</p>
         {% endif %}
 
         <div class="resend">
             Resend OTP in <span id="timer">60</span>s <br>
-            <a href="{% url 'resend_otp' %}" id="resendBtn" class="disabled">Resend OTP</a>
+            <a href="{% url 'resend_otp' %}" id="resendBtn" class="disabled">
+                Resend OTP
+            </a>
         </div>
 
     </div>
@@ -128,7 +153,7 @@ body {
 let inputs = document.querySelectorAll(".otp-input");
 let hiddenInput = document.getElementById("otpValue");
 
-// auto focus next box
+// auto move + combine OTP
 inputs.forEach((input, index) => {
     input.addEventListener("input", () => {
         if (input.value.length === 1 && index < inputs.length - 1) {
@@ -138,6 +163,15 @@ inputs.forEach((input, index) => {
         let otp = "";
         inputs.forEach(i => otp += i.value);
         hiddenInput.value = otp;
+    });
+});
+
+// backspace support
+inputs.forEach((input, index) => {
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && !input.value && index > 0) {
+            inputs[index - 1].focus();
+        }
     });
 });
 

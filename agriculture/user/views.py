@@ -151,6 +151,9 @@ def create_ticket(request):
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
+        purchase = request.POST.get("purchase")
+        category = request.POST.get("category") 
+
         image = request.FILES.get("image")
         document = request.FILES.get("document")
 
@@ -158,6 +161,8 @@ def create_ticket(request):
             user=user,
             title=title,
             description=description,
+            purchase=purchase,
+            category=category,
             image=image,
             document=document
         )

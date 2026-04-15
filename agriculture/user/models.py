@@ -11,7 +11,8 @@ class Ticket(models.Model):
 
     image = models.ImageField(upload_to='tickets/images/', blank=True, null=True)
     document = models.FileField(upload_to='tickets/docs/', blank=True, null=True)
-
+    purchase = models.CharField(max_length=50,blank=True, null=True)
+    category = models.CharField(max_length=50,blank=True, null=True)
     status = models.CharField(max_length=20, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
