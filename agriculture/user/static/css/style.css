@@ -263,9 +263,10 @@ button {
 }
 
 .profile-container {
-    max-width: 1000px;
-    margin: auto;
+   width: 100vw;
+    max-width: 100%;
     padding: 30px;
+    box-sizing: border-box;
 }
 
 .welcome-card,
@@ -305,3 +306,4 @@ tr {
     height: 45px;
     border-radius: 6px;
 }
+ 

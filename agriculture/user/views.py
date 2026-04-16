@@ -18,6 +18,7 @@ from .serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from django.contrib.auth import authenticate
 from .models import Profile, TicketImage
 from .models import TrackingUser
+from django.contrib.auth.decorators import user_passes_test
 
 
 # Create your views here.
@@ -26,6 +27,9 @@ class RegisterView(generics.CreateAPIView):
     permission_classes=[AllowAny]
     serializer_class=RegisterSerializer
 
+
+def landing_page(request):
+    return render(request, 'landingpage/landing.html')
 
 def login_page(request):
     if request.method == "POST":
@@ -52,9 +56,6 @@ def login_page(request):
         return redirect('verify_otp')
 
     return render(request, 'Authentication/login.html')
-
-
-
 
 def get_user_from_token(request):
     token = request.COOKIES.get('access')
@@ -83,15 +84,11 @@ def register(request):
 
         if User.objects.filter(email=email).exists():
             return render(request, 'Authentication/register.html', {"error": "Email already exists"})
-
-        # ✅ create user (NO mobile here)
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
-
-        # ✅ create profile with mobile
         Profile.objects.create(
             user=user,
             mobile=mobile
@@ -267,5 +264,4 @@ def get_tickets(request):
         })
 
     return JsonResponse({"tickets": data})
-
 

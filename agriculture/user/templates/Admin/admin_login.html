@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', sans-serif;
+    padding: 20px;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 900px;
+    background: #fff;
+    border-radius: 20px;
+    display: flex;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* LEFT SIDE */
+.left {
+    width: 50%;
+    background: linear-gradient(135deg, #6c63ff, #7f53ac);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.left img {
+    width: 100%;
+    max-width: 300px;
+}
+
+/* RIGHT SIDE */
+.right {
+    width: 50%;
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #6c63ff;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+h4 {
+    margin-bottom: 25px;
+}
+
+.form-control {
+    border-radius: 30px;
+    padding: 12px 15px;
+}
+
+.btn-login {
+    border-radius: 30px;
+    background: linear-gradient(135deg, #6c63ff, #7f53ac);
+    color: #fff;
+    border: none;
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+}
+
+.btn-login:hover {
+    opacity: 0.9;
+}
+
+.forgot {
+    font-size: 14px;
+    color: #6c63ff;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.error {
+    background: #ffe0e0;
+    color: red;
+    padding: 8px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+/* 🔥 RESPONSIVE PART */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+    }
+
+    .left {
+        width: 100%;
+        height: 200px;
+    }
+
+    .left img {
+        max-width: 150px;
+    }
+
+    .right {
+        width: 100%;
+        padding: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .right {
+        padding: 20px 15px;
+    }
+
+    .form-control {
+        font-size: 14px;
+    }
+
+    .btn-login {
+        padding: 10px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <!-- LEFT IMAGE -->
+    <div class="left">
+        <img src="https://cdn-icons-png.flaticon.com/512/295/295128.png">
+    </div>
+
+    <!-- RIGHT FORM -->
+    <div class="right">
+
+        <div class="avatar">👤</div>
+        <h4>Admin Login</h4>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="error">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <input type="text" name="username" class="form-control mb-3" placeholder="Username" required>
+
+            <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
+
+            <a href="#" class="forgot">Forgot Password?</a>
+
+            <button type="submit" class="btn btn-login">Sign In</button>
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

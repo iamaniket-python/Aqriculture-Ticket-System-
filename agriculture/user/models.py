@@ -14,7 +14,9 @@ class Ticket(models.Model):
     purchase = models.CharField(max_length=50,blank=True, null=True)
     category = models.CharField(max_length=50,blank=True, null=True)
     status = models.CharField(max_length=20, default='Pending')
+    
     created_at = models.DateTimeField(auto_now_add=True)
+    
 
     def __str__(self):
         return self.title

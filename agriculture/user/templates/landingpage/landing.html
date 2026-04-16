@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f9fafb;
+}
+
+/* ===== MAIN CARD ===== */
+.card {
+    width: 360px;
+    padding: 40px 28px;
+    border-radius: 24px;
+    background: #ffffff;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    transition: 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+}
+
+/* TITLE */
+.title {
+    font-size: 34px;
+    font-weight: 800;
+    color: #111;
+    letter-spacing: 1px;
+}
+
+/* SUBTITLE */
+.subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 10px;
+}
+
+/* ICON */
+.icon {
+    font-size: 65px;
+    margin: 25px 0;
+}
+
+/* BUTTONS */
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.btn {
+    padding: 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s ease;
+    display: block;
+}
+
+/* PRIMARY BUTTON */
+.btn-primary {
+    background: #111;
+    color: #fff;
+    border: 1px solid #111;
+}
+
+.btn-primary:hover {
+    background: #333;
+}
+
+/* OUTLINE BUTTON */
+.btn-outline {
+    border: 1.5px solid #111;
+    color: #111;
+    background: transparent;
+}
+
+.btn-outline:hover {
+    background: #111;
+    color: #fff;
+}
+
+/* ADMIN */
+.admin {
+    margin-top: 25px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.admin a {
+    color: #111;
+    font-weight: 600;
+    text-decoration: none;
+    position: relative;
+}
+
+.admin a::after {
+    content: "";
+    width: 0%;
+    height: 1px;
+    background: #111;
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    transition: 0.3s;
+}
+
+.admin a:hover::after {
+    width: 100%;
+}
+
+/* SMALL RESPONSIVE */
+@media (max-width: 420px) {
+    .card {
+        width: 90%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <div>
+       <img src="{% static 'image/log-in.png' %}" alt="Login" style="height:200px; width:200px;" />
+
+        
+
+        <div class="buttons">
+            <a href="{% url 'login' %}" class="btn btn-primary">User Login</a>
+            <a href="{% url 'register' %}" class="btn btn-outline">User Signup</a>
+        </div>
+    </div>
+
+    <div class="admin">
+        Admin access → <a href="#">Login</a>
+    </div>
+
+</div>
+
+</body>
+</html>
