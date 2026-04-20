@@ -1,53 +1,79 @@
 {% extends 'Base/base.html' %}
-
 {% block title %}Create Ticket{% endblock %}
 
 {% block content %}
 {% load static %}
 
 <div class="ticket-wrapper">
+  <div class="ticket-card">
 
-    <div class="ticket-card">
+    <h2>🎫 Create Ticket</h2>
 
-        <h2>🎫 Create Ticket</h2>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
 
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
+      <!-- 1. SELECT ORDER -->
+      <label>Select Your Order ID</label>
+      <select name="purchase" id="purchaseSelect" required>
+        <option value="">Select Order</option>
 
-            <input name="title" placeholder="Enter Title" required>
+        {% for p in purchases %}
+          <option value="{{ p.id }}" data-product="{{ p.product_name }}">
+            {{ p.purchase_id }}
+          </option>
+        {% empty %}
+          <option disabled>No purchases found</option>
+        {% endfor %}
+      </select>
 
-            <textarea name="description" placeholder="Describe your issue" required></textarea>
+      <!-- 🔥 AUTO PRODUCT SHOW -->
+      <p id="productName" style="color:#6b7280; margin-top:5px;"></p>
 
-            
-            <label>Purchase</label>
-            <select name="purchase" required>
-                <option value="">Select Purchase</option>
-                <option value="laptop">Laptop</option>
-                <option value="mobile">Mobile</option>
-                <option value="iphone">i phone</option>
-            </select>
+      <!-- 2. CATEGORY -->
+      <label>Category</label>
+      <select name="category" required>
+        <option value="">Select Category</option>
+        <option value="Product Issue">Product Issue</option>
+        <option value="Delivery Issue">Delivery Issue</option>
+        <option value="Payment Issue">Payment Issue</option>
+      </select>
 
-            
-            <label>category</label>
-            <select name="category" required>
-                <option value="">Select Priority</option>
-                <option value="tv">tv</option>
-                <option value="fridge">fridge</option>
-                <option value="skincare">skincare</option>
-            </select>
+      <!-- 3. OTHER -->
+      <label>Other (Optional)</label>
+      <input name="other" placeholder="Any extra info (optional)" />
 
-            <label>📷 Upload Images</label>
-            <input type="file" name="images" multiple>
+      <!-- 4. TITLE -->
+      <label>Title</label>
+      <input name="title" placeholder="Enter Issue Title" required />
 
-            <label>📄 Upload Document</label>
-            <input type="file" name="document">
+      <!-- 5. DESCRIPTION -->
+      <label>Description</label>
+      <textarea name="description" placeholder="Describe your issue" required></textarea>
 
-            <button type="submit">Submit Ticket</button>
+      <!-- 6. IMAGES -->
+      <label>📷 Upload Images</label>
+      <input type="file" name="images" multiple />
 
-        </form>
+      <!-- 7. DOCUMENT -->
+      <label>📄 Upload Document</label>
+      <input type="file" name="document" />
 
-    </div>
+      <button type="submit">Submit Ticket</button>
 
+    </form>
+  </div>
 </div>
+
+<!-- 🔥 JS FOR AUTO PRODUCT -->
+<script>
+document.getElementById("purchaseSelect").addEventListener("change", function() {
+    let selected = this.options[this.selectedIndex];
+    let product = selected.getAttribute("data-product");
+
+    document.getElementById("productName").innerText = product 
+        ? "Product: " + product 
+        : "";
+});
+</script>
 
 {% endblock %}

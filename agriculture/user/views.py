@@ -13,12 +13,16 @@ from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.contrib.auth.models import User
-from user.models import Ticket
+from user.models import Ticket ,TicketComment,TicketImage
 from .serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from django.contrib.auth import authenticate
-from .models import Profile, TicketImage
+from .models import Profile, Purchase, TicketImage
 from .models import TrackingUser
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_POST
+
 
 
 # Create your views here.
@@ -34,24 +38,27 @@ def landing_page(request):
 def login_page(request):
     if request.method == "POST":
         mobile = request.POST.get("mobile")
-        print("POST came to login_page")
+        print("Mobile entered:", mobile)
 
-        try:
-            profile = Profile.objects.get(mobile=mobile)
-            print("Profile found")
-        except Profile.DoesNotExist:
-            print("Profile not found")
+        # 🔥 DEBUG: check purchases linked to this mobile
+        purchases = Purchase.objects.filter(user__profile__mobile=mobile)
+        print("Purchase count:", purchases.count())
+
+        if not purchases.exists():
+          
             return render(request, 'Authentication/login.html', {
-                "error": "Mobile not registered"
+               
             })
 
+        print("✅ Purchase found, sending OTP")
+
+        # OTP generate
         otp = random.randint(1000, 9999)
         request.session['otp'] = str(otp)
         request.session['mobile'] = mobile
         request.session['otp_time'] = time.time()
 
         print("OTP:", otp)
-        print("Before redirect")
 
         return redirect('verify_otp')
 
@@ -70,7 +77,7 @@ def get_user_from_token(request):
     except:
         return None
     
-# 📝 Register Page 
+
 def register(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -99,14 +106,14 @@ def register(request):
     return render(request, 'Authentication/register.html')
 
 
-# 🏠 Dashboard (Protected)
-def dashboard(request):
-    token = request.session.get('access')
+# # 🏠 Dashboard (Protected)
+# def dashboard(request):
+#     token = request.session.get('access')
 
-    if not token:
-        return redirect('login')
+#     if not token:
+#         return redirect('login')
 
-    return render(request, 'Authentication/dashboard.html')
+#     return render(request, 'Authentication/dashboard.html')
 
 
 # 🚪 Logout
@@ -127,19 +134,23 @@ def profile(request):
     search_query = request.GET.get('search', '')
 
     tickets = Ticket.objects.filter(user=user)
+    has_purchase = Purchase.objects.filter(user=user).exists()
 
     if search_query:
         tickets = tickets.filter(title__icontains=search_query)
 
-    paginator = Paginator(tickets, 5)
+    paginator = Paginator(tickets, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'UserProfile/profile.html', {
         "page_obj": page_obj, 
         "search_query": search_query,
-        "user": user
+        "user": user,
+        'has_purchase': has_purchase
     })
+
+
 # CREATE TICKET
 def create_ticket(request):
     user = get_user_from_token(request)
@@ -147,14 +158,21 @@ def create_ticket(request):
     if not user:
         return redirect('login')
 
+    
+    purchases = Purchase.objects.filter(user=user)
+
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
-        purchase = request.POST.get("purchase")
+        purchase_id = request.POST.get("purchase")
         category = request.POST.get("category") 
 
         image = request.FILES.get("image")
         document = request.FILES.get("document")
+        other = request.POST.get("other")
+
+        
+        purchase = Purchase.objects.get(id=purchase_id, user=user)
 
         ticket = Ticket.objects.create(
             user=user,
@@ -163,22 +181,21 @@ def create_ticket(request):
             purchase=purchase,
             category=category,
             image=image,
-            document=document
+            document=document,
+            other=other 
         )
+
         images = request.FILES.getlist("images")
         for img in images:
             TicketImage.objects.create(ticket=ticket, image=img)
-        # Send email
-        send_mail(
-            subject="New Ticket Created",
-            message=f"Ticket '{title}' created by {user.username}",
-            from_email="aniketsrivastava57@gmail.com",
-            recipient_list=["aniketsrivastava57@gmail.com"],
-        )
 
         return redirect('profile')
 
-    return render(request, 'UserProfile/create_ticket.html')
+    
+    return render(request, 'UserProfile/create_ticket.html', {
+        'purchases': purchases
+    })
+
 
 
 def verify_otp(request):
@@ -194,23 +211,32 @@ def verify_otp(request):
             })
 
         if entered_otp == session_otp:
-            profile = Profile.objects.get(mobile=mobile)
-            user = profile.user
 
+            # 🔥 CHECK PROFILE EXIST OR NOT
+            profile = Profile.objects.filter(mobile=mobile).first()
+
+            if not profile:
+                # 🔥 AUTO REGISTER
+                user = User.objects.create(username=mobile)
+                profile = Profile.objects.create(user=user, mobile=mobile)
+            else:
+                user = profile.user
+
+            # 🔥 JWT TOKEN
             refresh = RefreshToken.for_user(user)
 
-            response = redirect('check_tracking')
+            response = redirect('profile')
             response.set_cookie('access', str(refresh.access_token), httponly=True)
             response.set_cookie('refresh', str(refresh), httponly=True)
 
             return response
+
         else:
             return render(request, 'Authentication/verify_otp.html', {
                 "error": "Invalid OTP"
             })
 
-    # ✅ ALWAYS SHOW PAGE
-    return render(request, 'Authentication/verify_otp.html') 
+    return render(request, 'Authentication/verify_otp.html')
 
    
 
@@ -265,3 +291,57 @@ def get_tickets(request):
 
     return JsonResponse({"tickets": data})
 
+
+def ticket_chat(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    chats = TicketComment.objects.filter(ticket=ticket).order_by("created_at")
+
+    # USER SEND MESSAGE
+    if request.method == "POST":
+        message = request.POST.get("message")
+
+        if message:
+            TicketComment.objects.create(
+                ticket=ticket,
+                sender=request.user, 
+                message=message
+            )
+            return redirect("ticket_chat", ticket_id=ticket.id)
+
+    return render(request, "Ticket/ticket_chat.html", {
+        "ticket": ticket,
+        "chats": chats
+    })
+
+def admin_reply(request, ticket_id):
+    ticket = Ticket.objects.get(id=ticket_id)
+
+    if request.method == "POST":
+        message = request.POST.get("message")
+
+        TicketComment.objects.create(
+            ticket=ticket,
+            sender="admin",
+            message=message
+        )
+
+    return redirect("admin_dashboard")
+
+
+
+
+@staff_member_required
+def admin_reply(request, ticket_id):
+
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    if request.method == "POST":
+        message = request.POST.get("message")
+
+        TicketComment.objects.create(
+            ticket=ticket,
+            sender=request.user,
+            message=message
+        )
+
+    return redirect("admin_dashboard")

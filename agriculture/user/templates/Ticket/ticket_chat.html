@@ -1,0 +1,248 @@
+{% extends 'Base/base.html' %} {% block content %}
+
+<style>
+  body {
+    background: #f2f2f2;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+  }
+
+  .wrapper {
+    max-width: 900px;
+    margin: auto;
+  }
+
+  /* TOP BAR */
+  .top-bar {
+    background: #fff;
+    padding: 14px 18px;
+    border-radius: 16px;
+    border: 1px solid #e8e8e8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .back-btn {
+    text-decoration: none;
+    background: #000;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    transition: 0.2s;
+  }
+
+  .back-btn:hover {
+    background: #333;
+  }
+
+  /* ORDER CARD */
+  .order-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+  }
+
+  .order-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+    color: #444;
+  }
+
+  .label {
+    color: #888;
+  }
+
+  /* CHAT CARD */
+  .chat-card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 15px;
+  }
+
+  .chat-box {
+    height: 450px;
+    overflow-y: auto;
+    padding: 12px;
+    background: #fafafa;
+    border-radius: 14px;
+  }
+
+  /* MSG */
+  .msg {
+    display: flex;
+    margin: 10px 0;
+  }
+
+  .right {
+    justify-content: flex-end;
+  }
+  .left {
+    justify-content: flex-start;
+  }
+
+  .bubble {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .user {
+    background: #000;
+    color: #fff;
+    border-bottom-right-radius: 5px;
+  }
+
+  .admin {
+    background: #e9e9e9;
+    color: #000;
+    border-bottom-left-radius: 5px;
+  }
+
+  /* INPUT */
+  .input-box {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .input-box input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    outline: none;
+  }
+
+  .input-box button {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  .input-box button:hover {
+    background: #333;
+  }
+</style>
+
+<div class="wrapper mt-4">
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="title">💬 Ticket Chat</div>
+    <a href="{% url 'profile' %}" class="back-btn">← Back</a>
+  </div>
+
+  <!-- ORDER INFO -->
+  <div class="order-card">
+    <div class="order-row">
+      <span class="label">Order ID</span>
+      <span><b>{{ ticket.purchase.purchase_id }}</b></span>
+    </div>
+
+    <div class="order-row">
+      <span class="label">Product</span>
+      <span>{{ ticket.purchase.product_name }}</span>
+    </div>
+
+    <div class="order-row">
+      <span class="label">Status</span>
+      <span><b>{{ ticket.status }}</b></span>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat-card">
+    <div class="chat-box">
+      {% for chat in chats %}
+
+      <div class="msg">
+        {% if chat.sender.is_staff %}
+
+        <!-- ADMIN -->
+        <div>
+          <div style="font-size: 11px; color: #555; margin-bottom: 4px">
+            🔴 Admin ({{ chat.sender.username }})
+          </div>
+
+          <div
+            style="
+              background: rgba(255, 77, 77, 0.15);
+              backdrop-filter: blur(10px);
+              -webkit-backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 77, 77, 0.3);
+              color: #b30000;
+              padding: 10px 14px;
+              border-radius: 14px;
+              display: inline-block;
+              max-width: 70%;
+              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            "
+          >
+            {{ chat.message }}
+          </div>
+        </div>
+
+        {% else %}
+
+        <!-- USER -->
+        <div>
+          <div style="font-size: 11px; color: #555; margin-bottom: 4px">
+            🟢 {{ chat.sender.username }}
+          </div>
+
+          <div
+            style="
+              backdrop-filter: blur(10px);
+              -webkit-backdrop-filter: blur(10px);
+
+              color: #1e7e34;
+              padding: 10px 14px;
+              border-radius: 14px;
+              display: inline-block;
+              max-width: 70%;
+              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            "
+          >
+            {{ chat.message }}
+          </div>
+        </div>
+
+        {% endif %}
+      </div>
+
+      {% endfor %}
+    </div>
+    <!-- INPUT -->
+    <form method="POST" class="input-box">
+      {% csrf_token %}
+      <input
+        type="text"
+        name="message"
+        placeholder="Write a message..."
+        required
+      />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

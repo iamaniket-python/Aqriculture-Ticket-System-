@@ -41,5 +41,9 @@ urlpatterns = [
     path('create-staff/', admin_views.create_staff, name='create_staff'),
     path('register/', admin_views.register, name='register'),
     path('logout/', admin_views.logout_view, name='logout'),
+
+    #chating system
+    path("ticket/chat/<int:ticket_id>/", views.ticket_chat, name="ticket_chat"),
+    path("admin/reply/<int:ticket_id>/", views.admin_reply, name="admin_reply"),
    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Ticket,TrackingUser
+from .models import Purchase, Ticket,TrackingUser
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'user', 'status', 'created_at']
@@ -9,3 +9,4 @@ class TicketAdmin(admin.ModelAdmin):
   
 
 admin.site.register(TrackingUser)
+admin.site.register(Purchase)

@@ -4,6 +4,16 @@ from django.db import models
 from django.db import models
 from django.contrib.auth.models import User
 
+
+class Purchase(models.Model):
+    mobile = models.CharField(max_length=15, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product_name = models.CharField(max_length=200)
+    purchase_id = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.product_name} ({self.purchase_id})"
 class Ticket(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
@@ -11,7 +21,8 @@ class Ticket(models.Model):
 
     image = models.ImageField(upload_to='tickets/images/', blank=True, null=True)
     document = models.FileField(upload_to='tickets/docs/', blank=True, null=True)
-    purchase = models.CharField(max_length=50,blank=True, null=True)
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, blank=True, null=True)
+    other = models.CharField(max_length=255, blank=True, null=True)
     category = models.CharField(max_length=50,blank=True, null=True)
     status = models.CharField(max_length=20, default='Pending')
     
@@ -43,8 +54,12 @@ class TicketImage(models.Model):
 
 
 
-class Comment(models.Model):
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="comments")
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+class TicketComment(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="chats")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)  
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sender} - {self.message[:20]}"
