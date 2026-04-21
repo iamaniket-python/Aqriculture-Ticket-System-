@@ -3,7 +3,6 @@ from django.urls import path
 from user import views
 from django.conf import settings
 from django.conf.urls.static import static
-from user import admin_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -11,39 +10,36 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # User
     path('', views.landing_page, name='home'),
     path('login/', views.login_page, name='login'),
-    
-
-    # APi
-    path('api/auth/register/', views.RegisterView.as_view(), name="auth_register"),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-
-  # Website
     path('register/', views.register, name='register'),
     path('profile/', views.profile, name='profile'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('resend-otp/', views.resend_otp, name='resend_otp'),
     path('logout/', views.logout_view, name='logout'),
 
-    # Ticket Traking
+    # API
+    path('api/auth/register/', views.RegisterView.as_view(), name="auth_register"),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Ticket
     path("check-tracking/", views.check_tracking, name="check_tracking"),
     path("create-ticket/", views.create_ticket, name="create_ticket"),
     path("api/tickets/", views.get_tickets, name="api_tickets"),
-    # path('add-comment/<int:ticket_id>/', views.add_comment, name='add_comment'),
 
-    #admin
-    path('admin-login/', admin_views.admin_login, name='admin_login'),
-    path('admin-dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
-    path('update-ticket/<int:id>/', admin_views.update_ticket, name='update_ticket'),
-    path('create-staff/', admin_views.create_staff, name='create_staff'),
-    path('register/', admin_views.register, name='register'),
-    path('logout/', admin_views.logout_view, name='logout'),
-
-    #chating system
+    # Chat
     path("ticket/chat/<int:ticket_id>/", views.ticket_chat, name="ticket_chat"),
-    path("admin/reply/<int:ticket_id>/", views.admin_reply, name="admin_reply"),
+    path("admin/ticket/chat/<int:ticket_id>/", views.admin_ticket_chat, name="admin_ticket_chat"),
+    
+    #Dashboard
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('assign-ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
+    path('admin-login/', views.admin_login_view, name='admin_login'),
    
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Media files
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

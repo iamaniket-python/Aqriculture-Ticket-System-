@@ -15,13 +15,14 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from user.models import Ticket ,TicketComment,TicketImage
 from .serializers import RegisterSerializer,LoginSerializer,UserSerializer
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout
 from .models import Profile, Purchase, TicketImage
 from .models import TrackingUser
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
+from django.contrib.auth import authenticate, login
 
 
 
@@ -293,20 +294,25 @@ def get_tickets(request):
 
 
 def ticket_chat(request, ticket_id):
+    user = get_user_from_token(request)   # 🔥 IMPORTANT
+
+    if not user:
+        return redirect("login")
+
     ticket = get_object_or_404(Ticket, id=ticket_id)
     chats = TicketComment.objects.filter(ticket=ticket).order_by("created_at")
 
-    # USER SEND MESSAGE
     if request.method == "POST":
         message = request.POST.get("message")
 
         if message:
             TicketComment.objects.create(
                 ticket=ticket,
-                sender=request.user, 
+                sender=get_user_from_token(request),
                 message=message
             )
-            return redirect("ticket_chat", ticket_id=ticket.id)
+
+        return redirect("ticket_chat", ticket_id=ticket.id)
 
     return render(request, "Ticket/ticket_chat.html", {
         "ticket": ticket,
@@ -321,8 +327,9 @@ def admin_reply(request, ticket_id):
 
         TicketComment.objects.create(
             ticket=ticket,
-            sender="admin",
-            message=message
+            sender=request.user,
+            message=message,
+            is_read=False  
         )
 
     return redirect("admin_dashboard")
@@ -331,17 +338,148 @@ def admin_reply(request, ticket_id):
 
 
 @staff_member_required
-def admin_reply(request, ticket_id):
+def admin_ticket_chat(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    chats = TicketComment.objects.filter(ticket=ticket).order_by("created_at")
+
+    if request.method == "POST":
+        message = request.POST.get("message")
+        image = request.FILES.get("image")
+
+        if message or image:
+            TicketComment.objects.create(
+                ticket=ticket,
+                sender=request.user,  
+                message=message,
+                image=image
+            )
+
+        return redirect("admin_ticket_chat", ticket_id=ticket.id)
+
+    return render(request, "admin_ticket_chat.html", {
+        "ticket": ticket,
+        "chats": chats
+    })
+
+#dashboard
+def admin_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            # ✅ ONLY ADMIN / STAFF ALLOWED
+            if user.is_staff or user.is_superuser:
+                login(request, user)
+                return redirect('admin_dashboard')
+            else:
+                return render(request, 'login.html', {
+                    "error": "You are not authorized to access admin dashboard"
+                })
+        else:
+            return render(request, 'login.html', {
+                "error": "Invalid username or password"
+            })
+
+    return render(request, 'Dashboard/login.html')
+
+@login_required(login_url='admin_login')
+def admin_dashboard(request):
+
+    # 🔐 only staff allowed
+    if not request.user.is_staff:
+        return redirect('admin_login')
+
+    # 📊 ticket stats
+    total = Ticket.objects.count()
+    pending = Ticket.objects.filter(status='pending').count()
+    resolved = Ticket.objects.filter(status='resolved').count()
+    in_progress = Ticket.objects.filter(status='in_progress').count()
+
+    tickets = Ticket.objects.all().order_by('-created_at')
+    staff_users = User.objects.filter(is_staff=True)
+
+    # 🔔 new tickets notifications
+    new_tickets = Ticket.objects.filter(status='pending').order_by('-created_at')[:5]
+
+    # 💬 unread messages (FIXED)
+    unread_messages = TicketComment.objects.filter(
+        is_read=False
+    ).order_by('-created_at')[:5]
+
+    unread_count = TicketComment.objects.filter(
+        is_read=False
+    ).count()
+
+    return render(request, 'Dashboard/index.html', {
+        'total': total,
+        'pending': pending,
+        'resolved': resolved,
+        'in_progress': in_progress,
+        'tickets': tickets,
+        'staff_users': staff_users,
+
+       
+        'new_tickets': new_tickets,
+
+        'unread_messages': unread_messages,
+        'unread_count': unread_count
+    })
+
+def assign_ticket(request, ticket_id):
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
 
     ticket = get_object_or_404(Ticket, id=ticket_id)
 
     if request.method == "POST":
-        message = request.POST.get("message")
+        staff_id = request.POST.get("staff_id")
 
-        TicketComment.objects.create(
-            ticket=ticket,
-            sender=request.user,
-            message=message
-        )
+        staff = get_object_or_404(User, id=staff_id, is_staff=True)  
 
-    return redirect("admin_dashboard")
+        ticket.assigned_to = staff
+        ticket.status = "in_progress"
+        ticket.save()
+
+        return redirect('admin_dashboard')
+    
+
+def admin_login_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None and (user.is_staff or user.is_superuser):
+            login(request, user)
+            return redirect('admin_dashboard')
+        else:
+            return render(request, 'Dashboard/login.html', {
+                "error": "Only admin/staff allowed"
+            })
+
+    return render(request, 'Dashboard/login.html')
+
+def admin_ticket_chat(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    # ✅ mark messages as read
+    TicketComment.objects.filter(
+        ticket=ticket,
+        sender='user',
+        is_read=False
+    ).update(is_read=True)
+
+    messages = ticket.messages.all()
+
+    return render(request, 'Dashboard/chat.html', {
+        'ticket': ticket,
+        'messages': messages
+    })
+
+def admin_logout(request):
+    logout(request)
+    return redirect('login')

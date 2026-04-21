@@ -6,26 +6,14 @@ class JWTAuthMiddleware:
 
     def __call__(self, request):
 
-        public_paths = [
-            '/login/',
-            '/register/',
-            '/admin/',
-            '/verify-otp/',
-            '/',
-        ]
+        public_paths = ['/login/', '/register/', '/admin/', '/verify-otp/', '/']
 
-        # ✅ Allow public pages
-        if request.path in public_paths:
-            return self.get_response(request)
+       
+        if not any(request.path.startswith(path) for path in public_paths):
 
-        # ✅ Allow static/media files (IMPORTANT)
-        if request.path.startswith('/static/') or request.path.startswith('/media/'):
-            return self.get_response(request)
+            token = request.COOKIES.get('access')
 
-        # 🔐 Check token
-        token = request.COOKIES.get('access')
-
-        if not token:
-            return redirect('/login/')  # FIXED PATH
+            if not token:
+                return redirect('login')
 
         return self.get_response(request)

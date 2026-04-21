@@ -23,6 +23,7 @@ class Ticket(models.Model):
     document = models.FileField(upload_to='tickets/docs/', blank=True, null=True)
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, blank=True, null=True)
     other = models.CharField(max_length=255, blank=True, null=True)
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'is_staff': True}, related_name='assigned_tickets')
     category = models.CharField(max_length=50,blank=True, null=True)
     status = models.CharField(max_length=20, default='Pending')
     
@@ -59,7 +60,10 @@ class TicketComment(models.Model):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="chats")
     sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     message = models.TextField()
+    image = models.ImageField(upload_to="chat_images/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+    is_read = models.BooleanField(default=False)
     def __str__(self):
         return f"{self.sender} - {self.message[:20]}"
