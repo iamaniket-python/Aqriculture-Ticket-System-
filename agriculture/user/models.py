@@ -15,6 +15,14 @@ class Purchase(models.Model):
     def __str__(self):
         return f"{self.product_name} ({self.purchase_id})"
 class Ticket(models.Model):
+      
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+    ]
+      
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -25,7 +33,7 @@ class Ticket(models.Model):
     other = models.CharField(max_length=255, blank=True, null=True)
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'is_staff': True}, related_name='assigned_tickets')
     category = models.CharField(max_length=50,blank=True, null=True)
-    status = models.CharField(max_length=20, default='Pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -67,3 +75,16 @@ class TicketComment(models.Model):
     is_read = models.BooleanField(default=False)
     def __str__(self):
         return f"{self.sender} - {self.message[:20]}"
+    
+
+class AdminChat(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_msgs")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_msgs")
+
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sender} → {self.receiver}"

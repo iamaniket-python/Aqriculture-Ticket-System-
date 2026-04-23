@@ -16,13 +16,14 @@ from django.contrib.auth.models import User
 from user.models import Ticket ,TicketComment,TicketImage
 from .serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from django.contrib.auth import authenticate, logout
-from .models import Profile, Purchase, TicketImage
+from .models import AdminChat, Profile, Purchase, TicketImage
 from .models import TrackingUser
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate, login
+from django.db.models import Q
 
 
 
@@ -392,19 +393,40 @@ def admin_dashboard(request):
     if not request.user.is_staff:
         return redirect('admin_login')
 
-    # 📊 ticket stats
-    total = Ticket.objects.count()
-    pending = Ticket.objects.filter(status='pending').count()
-    resolved = Ticket.objects.filter(status='resolved').count()
-    in_progress = Ticket.objects.filter(status='in_progress').count()
+    # 🎯 GET filters
+    selected_user = request.GET.get('user')
+    selected_purchase = request.GET.get('purchase_id')
 
+    # =========================
+    # 📋 TICKETS FILTER
+    # =========================
     tickets = Ticket.objects.all().order_by('-created_at')
+
+    if selected_user:
+        tickets = tickets.filter(user_id=selected_user)
+
+    # =========================
+    # 📊 STATS (based on filtered tickets)
+    # =========================
+    total = tickets.count()
+    pending = tickets.filter(status='pending').count()
+    resolved = tickets.filter(status='resolved').count()
+    in_progress = tickets.filter(status='in_progress').count()
+
+    # =========================
+    # 👥 USERS + STAFF
+    # =========================
+    users = User.objects.filter(ticket__isnull=False).distinct()
     staff_users = User.objects.filter(is_staff=True)
 
-    # 🔔 new tickets notifications
+    # =========================
+    # 🔔 NOTIFICATIONS
+    # =========================
     new_tickets = Ticket.objects.filter(status='pending').order_by('-created_at')[:5]
 
-    # 💬 unread messages (FIXED)
+    # =========================
+    # 💬 MESSAGES
+    # =========================
     unread_messages = TicketComment.objects.filter(
         is_read=False
     ).order_by('-created_at')[:5]
@@ -413,19 +435,62 @@ def admin_dashboard(request):
         is_read=False
     ).count()
 
+    # =========================
+    # 💬 CHAT USERS (only user messages)
+    # =========================
+    tickets_with_messages = Ticket.objects.filter(
+        chats__sender__is_staff=False
+    ).distinct().order_by('-created_at')
+
+    if selected_user:
+        tickets_with_messages = tickets_with_messages.filter(user_id=selected_user)
+
+    # =========================
+    # 🖼️ GALLERY FILTER
+    # =========================
+    gallery_tickets = Ticket.objects.all().order_by('-created_at')
+
+    if selected_user:
+        gallery_tickets = gallery_tickets.filter(user_id=selected_user)
+
+    if selected_purchase:
+        gallery_tickets = gallery_tickets.filter(
+            purchase__purchase_id=selected_purchase
+        )
+
+    
+    if selected_user:
+         purchases = Purchase.objects.filter(user_id=selected_user).distinct()
+    else:
+        purchases = Purchase.objects.none()  
+
+    # =========================
+    # 🚀 FINAL RESPONSE
+    # =========================
     return render(request, 'Dashboard/index.html', {
         'total': total,
         'pending': pending,
         'resolved': resolved,
         'in_progress': in_progress,
+
         'tickets': tickets,
         'staff_users': staff_users,
 
-       
         'new_tickets': new_tickets,
 
         'unread_messages': unread_messages,
-        'unread_count': unread_count
+        'unread_count': unread_count,
+
+        'tickets_with_messages': tickets_with_messages,
+
+        # 🔽 filters
+        'users': users,
+        'purchases': purchases,
+        'selected_user': selected_user,
+        'selected_purchase': selected_purchase,
+
+        # 🖼️ gallery
+        'gallery_tickets': gallery_tickets,
     })
 
 def assign_ticket(request, ticket_id):
@@ -466,7 +531,7 @@ def admin_login_view(request):
 def admin_ticket_chat(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
 
-    # ✅ mark messages as read
+    
     TicketComment.objects.filter(
         ticket=ticket,
         sender='user',
@@ -482,4 +547,120 @@ def admin_ticket_chat(request, ticket_id):
 
 def admin_logout(request):
     logout(request)
-    return redirect('login')
+    return redirect('admin_login')
+
+def assign_ticket(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    if request.method == "POST":
+        staff_id = request.POST.get("staff_id")
+        staff = User.objects.get(id=staff_id)
+
+        ticket.assigned_to = staff
+        ticket.save()
+
+    return redirect('admin_dashboard')
+
+def update_ticket_status(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    if request.method == "POST":
+        status = request.POST.get("status")
+        ticket.status = status
+        ticket.save()
+
+    return redirect('admin_dashboard')
+
+
+def admin_chat_list(request):
+
+    if not request.user.is_staff:
+        return redirect('admin_login')
+
+    users = User.objects.filter(is_staff=True).exclude(id=request.user.id)
+
+    return render(request, 'Dashboard/chat_list.html', {
+        'users': users
+    })
+
+
+def admin_chat_detail(request, user_id):
+
+    if not request.user.is_staff:
+        return redirect('admin_login')
+
+    other_user = get_object_or_404(User, id=user_id)
+
+    messages = AdminChat.objects.filter(
+        Q(sender=request.user, receiver=other_user) |
+        Q(sender=other_user, receiver=request.user)
+    ).order_by('created_at')
+
+    # mark messages as read
+    AdminChat.objects.filter(
+        sender=other_user,
+        receiver=request.user,
+        is_read=False
+    ).update(is_read=True)
+
+    return render(request, 'Dashboard/chat_detail.html', {
+        'messages': messages,
+        'other_user': other_user
+    })
+
+def send_admin_message(request, user_id):
+
+    if request.method == "POST":
+        msg = request.POST.get("message")
+        receiver = User.objects.get(id=user_id)
+
+        AdminChat.objects.create(
+            sender=request.user,
+            receiver=receiver,
+            message=msg
+        )
+
+    return redirect('admin_chat_detail', user_id=user_id)
+
+
+def admin_ticket_chat(request, ticket_id):
+
+    if not request.user.is_staff:
+        return redirect('admin_login')
+
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    # all tickets (for sidebar users)
+    tickets = Ticket.objects.all()
+
+    # chat messages
+    messages = TicketComment.objects.filter(ticket=ticket).order_by('created_at')
+
+    # send message
+    if request.method == "POST":
+        msg = request.POST.get("message")
+
+        TicketComment.objects.create(
+            ticket=ticket,
+            message=msg,
+            sender=request.user
+        )
+
+        return redirect('admin_ticket_chat', ticket_id=ticket.id)
+
+    return render(request, 'Dashboard/chat.html', {
+        'ticket': ticket,
+        'tickets': tickets,
+        'messages': messages
+    })
+
+def view_image(request, ticket_id):
+
+    if not request.user.is_staff:
+        return redirect('admin_login')
+
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+
+    return render(request, 'Dashboard/index.html', {
+        'ticket': ticket
+    })

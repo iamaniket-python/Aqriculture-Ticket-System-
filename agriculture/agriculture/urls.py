@@ -38,6 +38,17 @@ urlpatterns = [
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('assign-ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
     path('admin-login/', views.admin_login_view, name='admin_login'),
+    path('admin-logout/', views.admin_logout, name='logout'),
+    path('assign-ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
+    path('update-ticket/<int:ticket_id>/', views.update_ticket_status, name='update_ticket'),
+
+    #chatsystem
+    path('admin-chat/', views.admin_chat_list, name='admin_chat'),
+   
+    path('dashboard/chat/<int:ticket_id>/', views.admin_ticket_chat, name='admin_ticket_chat'),
+    path('send-message/<int:user_id>/', views.send_admin_message, name='send_admin_message'),
+    path('dashboard/gallery/image/<int:ticket_id>/', views.view_image, name='view_image'),
+   
    
 ]
 
