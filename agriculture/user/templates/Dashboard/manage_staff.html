@@ -1,0 +1,119 @@
+{% extends 'Dashboard/base.html' %}
+
+{% block content %}
+
+{% load static %}
+    <!-- SIDEBAR END -->
+
+    <!-- MAIN CONTENT START -->
+     <div class="main-panel" style="margin-left:0 !important; width:100% !important;">
+      <div class="content-wrapper">
+
+        <!-- TITLE -->
+        <div class="page-header">
+          <h3 class="page-title">👨‍💻 Staff Management</h3>
+        </div>
+
+        <!-- STATS -->
+        <div class="row mb-4">
+
+          <div class="col-md-4">
+            <div class="card p-3 text-center">
+              <h5>Total Staff</h5>
+              <h3>{{ staffs|length }}</h3>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card p-3 text-center">
+              <h5>Pending</h5>
+              <h3 class="text-warning">{{ pending_staff_count }}</h3>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card p-3 text-center">
+              <h5>Approved</h5>
+              <h3 class="text-success">
+                {{ approved_staff_count }}
+              </h3>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TABLE -->
+        <div class="card p-3">
+
+          <h4 class="mb-3">Staff Requests</h4>
+
+          <div class="table-responsive">
+
+            <table class="table table-hover">
+
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Username</th>
+                  <th>Status</th>
+                  <th>Access</th>
+                
+                </tr>
+              </thead>
+
+              <tbody>
+
+                {% for staff in staffs %}
+                <tr>
+
+                  <td>{{ forloop.counter }}</td>
+
+                  <td>
+                    {{ staff.user.username }}
+                  </td>
+
+                  <td>
+                    {% if staff.is_approved %}
+                      <span class="badge bg-success">Approved</span>
+                    {% else %}
+                      <span class="badge bg-warning">Pending</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if staff.is_disabled %}
+                      <span class="badge bg-danger">Disabled</span>
+                    {% else %}
+                      <span class="badge bg-primary">Active</span>
+                    {% endif %}
+                  </td>
+
+                
+
+                </tr>
+
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted">
+                    No staff found
+                  </td>
+                </tr>
+                {% endfor %}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+    <!-- MAIN CONTENT END -->
+
+  </div>
+
+</div>
+
+{% endblock %}

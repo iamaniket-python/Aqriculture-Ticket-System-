@@ -48,7 +48,25 @@ urlpatterns = [
     path('dashboard/chat/<int:ticket_id>/', views.admin_ticket_chat, name='admin_ticket_chat'),
     path('send-message/<int:user_id>/', views.send_admin_message, name='send_admin_message'),
     path('dashboard/gallery/image/<int:ticket_id>/', views.view_image, name='view_image'),
-   
+    path('view-ticket/<int:id>/', views.view_ticket, name='view_ticket'),
+
+    #staff
+
+    path('staff/register/', views.staff_register, name='staff_register'),
+    path('staff/login/', views.staff_login, name='staff_login'),
+    path('staff/dashboard/', views.staff_dashboard, name='staff_dashboard'),
+
+    path('admin/staff/', views.admin_staff_list, name='admin_staff_list'),
+    path('approve/<int:id>/', views.approve_staff, name='approve_staff'),
+    path('reject/<int:id>/', views.reject_staff, name='reject_staff'),
+    path('dashboard/staff/', views.admin_staff_list, name='admin_staff_list'),
+    path('staff/logout/', views.staff_logout, name='staff_logout'),
+
+    path('dashboard/staff/', views.admin_staff_list, name='admin_staff_list'),
+    path('dashboard/staff/approve/<int:id>/', views.approve_staff, name='approve_staff'),
+    path('dashboard/staff/reject/<int:id>/', views.reject_staff, name='reject_staff'),
+    
+
    
 ]
 

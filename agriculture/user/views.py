@@ -13,7 +13,7 @@ from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.contrib.auth.models import User
-from user.models import Ticket ,TicketComment,TicketImage
+from user.models import Ticket ,TicketComment,TicketImage,StaffProfile
 from .serializers import RegisterSerializer,LoginSerializer,UserSerializer
 from django.contrib.auth import authenticate, logout
 from .models import AdminChat, Profile, Purchase, TicketImage
@@ -664,3 +664,179 @@ def view_image(request, ticket_id):
     return render(request, 'Dashboard/index.html', {
         'ticket': ticket
     })
+
+def view_ticket(request, id):  
+    if not request.user.is_staff:
+        return redirect('admin_login')
+
+    ticket = get_object_or_404(Ticket, id=id)
+
+    messages = TicketComment.objects.filter(ticket=ticket).order_by('created_at')
+
+    if request.method == "POST":
+        msg = request.POST.get("message")
+
+        if msg:
+            TicketComment.objects.create(
+                ticket=ticket,
+                message=msg,
+                sender=request.user
+            )
+
+        return redirect('view_ticket', id=id)
+
+    return render(request, 'Dashboard/view_ticket.html', {
+        't': ticket,
+        'messages': messages
+    })
+
+# staff
+# =========================
+# 🧑‍💻 STAFF REGISTER
+# =========================
+def staff_register(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        if User.objects.filter(username=username).exists():
+            return render(request, "Dashboard/register.html", {
+                "error": "Username already exists"
+            })
+
+        # ❗ IMPORTANT FIX
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            is_staff=False  
+        )
+
+        StaffProfile.objects.create(user=user)
+
+        return render(request, "Dashboard/register.html", {
+            "msg": "✅ Request sent to admin"
+        })
+
+    return render(request, "Dashboard/register.html")
+
+
+# =========================
+# 🔐 STAFF LOGIN
+# =========================
+def staff_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user:
+
+            # ❗ check staff
+            if not user.is_staff:
+                return render(request, "Dashboard/login.html", {
+                    "error": "Not a staff account"
+                })
+
+            profile = StaffProfile.objects.filter(user=user).first()
+
+            if not profile:
+                return render(request, "Dashboard/login.html", {
+                    "error": "Profile not found"
+                })
+
+            if not profile.is_approved:
+                return render(request, "Dashboard/login.html", {
+                    "error": "❌ Waiting for admin approval"
+                })
+
+            login(request, user)
+            return redirect("staff_dashboard")
+
+        return render(request, "Dashboard/login.html", {
+            "error": "Invalid credentials"
+        })
+
+    return render(request, "Dashboard/login.html")
+
+
+# =========================
+# 📊 STAFF DASHBOARD
+# =========================
+@login_required(login_url='staff_login')
+def staff_dashboard(request):
+
+    if not request.user.is_staff:
+        return redirect("staff_login")
+
+    profile = StaffProfile.objects.get(user=request.user)
+
+    if not profile.is_approved:
+        return redirect("staff_login")
+
+    tickets = Ticket.objects.filter(assigned_to=request.user)
+
+    return render(request, "Dashboard/staff_dashboard.html", {
+        "tickets": tickets
+    })
+
+
+@login_required(login_url='admin_login')
+def admin_staff_list(request):
+
+    staffs = StaffProfile.objects.all()
+
+    pending_staff_count = StaffProfile.objects.filter(
+        is_approved=False
+    ).count()
+
+    approved_staff_count = StaffProfile.objects.filter(
+        is_approved=True
+    ).count()
+
+    return render(request, "Dashboard/manage_staff.html", {
+        "staffs": staffs,
+        "pending_staff_count": pending_staff_count,
+        "approved_staff_count": approved_staff_count,
+    })
+
+# =========================
+# ✅ APPROVE
+# =========================
+@login_required(login_url='admin_login')
+def approve_staff(request, id):
+
+    if not request.user.is_superuser:
+        return redirect("admin_login")
+
+    profile = get_object_or_404(StaffProfile, id=id)
+
+    # ✅ MAIN LOGIC
+    profile.is_approved = True
+    profile.user.is_staff = True  
+
+    profile.user.save()
+    profile.save()
+
+    return redirect("admin_staff_list")
+
+
+# =========================
+# ❌ REJECT
+# =========================
+@login_required(login_url='admin_login')
+def reject_staff(request, id):
+
+    if not request.user.is_superuser:
+        return redirect("admin_login")
+
+    profile = get_object_or_404(StaffProfile, id=id)
+
+    profile.delete()   # safer
+
+    return redirect("admin_staff_list")
+
+def staff_logout(request):
+    logout(request)
+    return redirect('staff_login')
+
