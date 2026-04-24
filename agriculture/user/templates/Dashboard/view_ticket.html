@@ -3,7 +3,8 @@
 {% block content %}
 
 {% load static %}
-  <style>
+
+<style>
 .img-popup{
   position:fixed;
   top:0;
@@ -23,37 +24,28 @@
   border-radius:10px;
 }
 
-.img-popup .close{
-  position:absolute;
-  top:20px;
-  right:30px;
-  font-size:30px;
-  color:white;
-  text-decoration:none;
-}
-
 .img-popup:target{
   display:flex;
 }
 </style>
- 
-        <div class="main-panel" style="margin-left:0 !important; width:100% !important;">
-  <div class="content-wrapper">
 
-    <!-- 🔷 PAGE TITLE -->
-    <div class="page-header">
-      <h3 class="page-title">
-        🎫 Ticket Details
-      </h3>
+<div class="container-fluid px-3">
 
-      <a href="{% url 'admin_dashboard' %}" class="btn btn-light">
-        ⬅ Back
-      </a>
-    </div>
+  <!-- PAGE TITLE -->
+  <div class="page-header">
+    <h3 class="page-title">🎫 Ticket Details</h3>
 
-    <!-- 🔷 CARD -->
-    <div class="card shadow-sm" style="border-radius:12px;">
-      <div class="card-body">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-light">
+      ⬅ Back
+    </a>
+  </div>
+
+  <!-- CARD -->
+  <div class="card shadow-sm" style="border-radius:12px;">
+    <div class="card-body">
+
+      <!-- (your full content SAME AS IT IS) -->
+
 
         <!-- 👤 USER INFO -->
         <h5 class="mb-3">👤 User Info</h5>
