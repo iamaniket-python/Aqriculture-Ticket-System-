@@ -1,33 +1,105 @@
-{% extends 'Base/base.html' %}
-{% block title %}Create Ticket{% endblock %}
+{% extends 'Base/base.html' %} {% block title %}Create Ticket{% endblock %}
+{%block content %} {% load static %}
+<style>
+  .upload-btn {
+    margin-top: 10px;
+    padding: 8px 14px;
+    border: none;
+    background: #6366f1;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+  }
 
-{% block content %}
-{% load static %}
+  .preview-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
 
+  .preview-item {
+    position: relative;
+  }
+
+  .preview-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* ❌ remove button */
+  .remove-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+</style>
+<br>
+<br>
+<br>
+br
 <div class="ticket-wrapper">
   <div class="ticket-card">
-
     <h2>🎫 Create Ticket</h2>
 
-    <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
+    <!-- 🔥 STEP 1: ORDER SELECT FORM (GET) -->
+    <form method="GET">
+  <label>Select Your Order ID</label>
+  <select name="purchase" onchange="this.form.submit()">
+    <option value="">Select Order</option>
 
-      <!-- 1. SELECT ORDER -->
-      <label>Select Your Order ID</label>
-      <select name="purchase" id="purchaseSelect" required>
-        <option value="">Select Order</option>
+    {% for p in purchases %}
+      <option value="{{ p.purchase_id }}"
+        {% if selected_purchase == p.purchase_id %}selected{% endif %}>
+        {{ p.purchase_id }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
 
-        {% for p in purchases %}
-          <option value="{{ p.id }}" data-product="{{ p.product_name }}">
-            {{ p.purchase_id }}
-          </option>
-        {% empty %}
-          <option disabled>No purchases found</option>
-        {% endfor %}
-      </select>
+    <br>
 
-      <!-- 🔥 AUTO PRODUCT SHOW -->
-      <p id="productName" style="color:#6b7280; margin-top:5px;"></p>
+   <!-- 🔥 STEP 2: MAIN FORM -->
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <!-- hidden purchase -->
+  <input type="hidden" name="purchase" value="{{ selected_purchase }}">
+
+  <!-- PRODUCT -->
+  <label>Select Product</label>
+
+  {% if selected_purchase %}
+    <select name="product" required>
+      <option value="">Select Product</option>
+
+      {% for item in products %}
+        <option value="{{ item.product_name }}"
+          {% if selected_product == item.product_name %}selected{% endif %}>
+          {{ item.product_name }}
+        </option>
+      {% endfor %}
+    </select>
+  {% else %}
+    <!-- 🔒 disabled dropdown -->
+    <select disabled>
+      <option>Select order first</option>
+    </select>
+  {% endif %}
+
 
       <!-- 2. CATEGORY -->
       <label>Category</label>
@@ -48,32 +120,99 @@
 
       <!-- 5. DESCRIPTION -->
       <label>Description</label>
-      <textarea name="description" placeholder="Describe your issue" required></textarea>
+      <textarea
+        name="description"
+        placeholder="Describe your issue"
+        required
+      ></textarea>
 
       <!-- 6. IMAGES -->
+      <!-- 6. IMAGES -->
       <label>📷 Upload Images</label>
-      <input type="file" name="images" multiple />
+
+      <input
+        type="file"
+        id="imageInput"
+        name="images"
+        multiple
+        accept="image/*"
+        style="display: none"
+      />
+
+      <button type="button" onclick="openFilePicker()" class="upload-btn">
+        + Select Images
+      </button>
+
+      <!-- 🔥 Preview Container -->
+      <div id="previewContainer" class="preview-box"></div>
 
       <!-- 7. DOCUMENT -->
       <label>📄 Upload Document</label>
       <input type="file" name="document" />
 
       <button type="submit">Submit Ticket</button>
-
     </form>
   </div>
 </div>
 
 <!-- 🔥 JS FOR AUTO PRODUCT -->
 <script>
-document.getElementById("purchaseSelect").addEventListener("change", function() {
-    let selected = this.options[this.selectedIndex];
-    let product = selected.getAttribute("data-product");
+  document.addEventListener("DOMContentLoaded", function () {
+    function openFilePicker() {
+      document.getElementById("imageInput").click();
+    }
+    window.openFilePicker = openFilePicker;
 
-    document.getElementById("productName").innerText = product 
-        ? "Product: " + product 
-        : "";
-});
+    let selectedFiles = [];
+
+    document
+      .getElementById("imageInput")
+      .addEventListener("change", function (e) {
+        let files = Array.from(e.target.files);
+
+        files.forEach((file) => selectedFiles.push(file));
+
+        renderPreview();
+      });
+
+    function renderPreview() {
+      let container = document.getElementById("previewContainer");
+      container.innerHTML = "";
+
+      selectedFiles.forEach((file, index) => {
+        let reader = new FileReader();
+
+        reader.onload = function (e) {
+          let div = document.createElement("div");
+          div.classList.add("preview-item");
+
+          div.innerHTML = `
+          <img src="${e.target.result}">
+          <div class="remove-btn" onclick="removeImage(${index})">✖</div>
+        `;
+
+          container.appendChild(div);
+        };
+
+        reader.readAsDataURL(file);
+      });
+
+      updateFileInput();
+    }
+
+    window.removeImage = function (index) {
+      selectedFiles.splice(index, 1);
+      renderPreview();
+    };
+
+    function updateFileInput() {
+      let dt = new DataTransfer();
+
+      selectedFiles.forEach((file) => dt.items.add(file));
+
+      document.getElementById("imageInput").files = dt.files;
+    }
+  });
 </script>
 
 {% endblock %}

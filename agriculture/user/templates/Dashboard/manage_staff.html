@@ -72,21 +72,31 @@
                     {{ staff.user.username }}
                   </td>
 
-                  <td>
-                    {% if staff.is_approved %}
-                      <span class="badge bg-success">Approved</span>
-                    {% else %}
-                      <span class="badge bg-warning">Pending</span>
-                    {% endif %}
-                  </td>
+               <td>
+  {% if staff.is_approved %}
+    <span class="badge bg-success">Approved</span>
+  {% else %}
+    <form method="POST" action="{% url 'approve_staff' staff.id %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-warning">
+        Approve
+      </button>
+    </form>
+  {% endif %}
+</td>
 
-                  <td>
-                    {% if staff.is_disabled %}
-                      <span class="badge bg-danger">Disabled</span>
-                    {% else %}
-                      <span class="badge bg-primary">Active</span>
-                    {% endif %}
-                  </td>
+<td>
+  {% if staff.is_disabled %}
+    <span class="badge bg-danger">Disabled</span>
+  {% else %}
+    <form method="POST" action="{% url 'reject_staff' staff.id %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-danger">
+        Disable
+      </button>
+    </form>
+  {% endif %}
+</td>
 
                 
 

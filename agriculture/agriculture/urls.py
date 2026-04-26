@@ -9,66 +9,108 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
+
+    # =========================
+    # 🔧 DJANGO ADMIN PANEL
+    # =========================
     path('admin/', admin.site.urls),
 
-    # User
+    # =========================
+    # 👤 USER AUTH
+    # =========================
     path('', views.landing_page, name='home'),
     path('login/', views.login_page, name='login'),
     path('register/', views.register, name='register'),
-    path('profile/', views.profile, name='profile'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('resend-otp/', views.resend_otp, name='resend_otp'),
-    path('logout/', views.logout_view, name='logout'),
+    path('logout/', views.logout_view, name='user_logout'),
 
-    # API
+    # =========================
+    # 👤 USER PANEL
+    # =========================
+    path('profile/', views.profile, name='profile'),
+    path('create-ticket/', views.create_ticket, name='create_ticket'),
+    path('check-tracking/', views.check_tracking, name='check_tracking'),
+
+    # =========================
+    # 💬 USER CHAT
+    # =========================
+    path('user/ticket/chat/<int:ticket_id>/', views.ticket_chat, name='user_ticket_chat'),
+
+    # =========================
+    # ⚙️ API
+    # =========================
     path('api/auth/register/', views.RegisterView.as_view(), name="auth_register"),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/tickets/', views.get_tickets, name="api_tickets"),
 
-    # Ticket
-    path("check-tracking/", views.check_tracking, name="check_tracking"),
-    path("create-ticket/", views.create_ticket, name="create_ticket"),
-    path("api/tickets/", views.get_tickets, name="api_tickets"),
-
-    # Chat
-    path("ticket/chat/<int:ticket_id>/", views.ticket_chat, name="ticket_chat"),
-    path("admin/ticket/chat/<int:ticket_id>/", views.admin_ticket_chat, name="admin_ticket_chat"),
+    # =========================
+    # 🔴 ADMIN AUTH
+    # =========================
+   path('admin-login/', views.admin_login, name='admin_login'),
+    path('admin-logout/', views.admin_logout, name='admin_logout'),
     
-    #Dashboard
+
+    # =========================
+    # 🔴 ADMIN DASHBOARD
+    # =========================
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('assign-ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
-    path('admin-login/', views.admin_login_view, name='admin_login'),
-    path('admin-logout/', views.admin_logout, name='logout'),
-    path('assign-ticket/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
-    path('update-ticket/<int:ticket_id>/', views.update_ticket_status, name='update_ticket'),
 
-    #chatsystem
-    path('admin-chat/', views.admin_chat_list, name='admin_chat'),
-   
-    path('dashboard/chat/<int:ticket_id>/', views.admin_ticket_chat, name='admin_ticket_chat'),
-    path('send-message/<int:user_id>/', views.send_admin_message, name='send_admin_message'),
-    path('dashboard/gallery/image/<int:ticket_id>/', views.view_image, name='view_image'),
-    path('view-ticket/<int:id>/', views.view_ticket, name='view_ticket'),
+   # =========================
+# 🔴 ADMIN TICKET (FIXED)
+# =========================
 
-    #staff
+    path('dashboard/ticket/view/<int:id>/', views.admin_view_ticket, name='admin_view_ticket'),
+    path('dashboard/ticket/chat/<int:ticket_id>/', views.admin_ticket_chat, name='admin_ticket_chat'),
+    path('dashboard/ticket/update/<int:ticket_id>/', views.update_ticket_status, name='admin_update_ticket'),
+    path('dashboard/ticket/assign/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
 
+# =========================
+# 🔴 ADMIN CHAT SYSTEM
+# =========================
+
+        path('admin/chat/', views.admin_chat_list, name='admin_chat'),
+        path('admin/chat/send/<int:user_id>/', views.send_admin_message, name='send_admin_message'),
+        
+
+# =========================
+# 🔴 ADMIN STAFF MANAGEMENT
+# =========================
+
+    path('admin-panel/staff/', views.admin_staff_list, name='admin_staff_list'),
+   # =========================
+# 🔴 STAFF MANAGEMENT (CLEAN)
+# =========================
+
+    path('dashboard/staff/', views.admin_staff_list, name='admin_staff_list'),
+
+    path('dashboard/staff/approve/<int:id>/', views.approve_staff, name='approve_staff'),
+
+    path('dashboard/staff/reject/<int:id>/', views.reject_staff, name='reject_staff'),
+
+    # =========================
+    # 🔵 STAFF AUTH
+    # =========================
     path('staff/register/', views.staff_register, name='staff_register'),
     path('staff/login/', views.staff_login, name='staff_login'),
-    path('staff/dashboard/', views.staff_dashboard, name='staff_dashboard'),
-
-    path('admin/staff/', views.admin_staff_list, name='admin_staff_list'),
-    path('approve/<int:id>/', views.approve_staff, name='approve_staff'),
-    path('reject/<int:id>/', views.reject_staff, name='reject_staff'),
-    path('dashboard/staff/', views.admin_staff_list, name='admin_staff_list'),
     path('staff/logout/', views.staff_logout, name='staff_logout'),
 
-    path('dashboard/staff/', views.admin_staff_list, name='admin_staff_list'),
-    path('dashboard/staff/approve/<int:id>/', views.approve_staff, name='approve_staff'),
-    path('dashboard/staff/reject/<int:id>/', views.reject_staff, name='reject_staff'),
-    
+    # =========================
+    # 🔵 STAFF DASHBOARD
+    # =========================
+    path('staff/dashboard/', views.staff_dashboard, name='staff_dashboard'),
 
-   
+    # =========================
+    # 🔵 STAFF TICKET
+    # =========================
+    path('staff/ticket/<int:id>/', views.staff_view_ticket, name='staff_view_ticket'),
+    path('staff/ticket/update/<int:id>/', views.update_ticket, name='staff_update_ticket'),
+    path('staff/ticket/chat/<int:ticket_id>/', views.staff_ticket_chat, name='staff_ticket_chat'),
+
 ]
 
-# Media files
+# =========================
+# 📁 MEDIA FILES
+# =========================
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

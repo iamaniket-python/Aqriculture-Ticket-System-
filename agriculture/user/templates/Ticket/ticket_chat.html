@@ -170,79 +170,92 @@
   </div>
 
   <!-- CHAT -->
-  <div class="chat-card">
-    <div class="chat-box">
-      {% for chat in chats %}
+ <div class="chat-card">
 
-      <div class="msg">
-        {% if chat.sender.is_staff %}
+  <!-- CHAT BOX -->
+  <div class="chat-box">
+    {% for chat in chats %}
 
-        <!-- ADMIN -->
-        <div>
-          <div style="font-size: 11px; color: #555; margin-bottom: 4px">
-            🔴 Admin ({{ chat.sender.username }})
-          </div>
-
-          <div
-            style="
-              background: rgba(255, 77, 77, 0.15);
-              backdrop-filter: blur(10px);
-              -webkit-backdrop-filter: blur(10px);
-              border: 1px solid rgba(255, 77, 77, 0.3);
-              color: #b30000;
-              padding: 10px 14px;
-              border-radius: 14px;
-              display: inline-block;
-              max-width: 70%;
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            "
-          >
-            {{ chat.message }}
-          </div>
+    {% if chat.sender.is_staff %}
+    <!-- 🔴 ADMIN (RIGHT) -->
+    <div style="display:flex; justify-content:flex-end; margin:10px 0;">
+      <div style="text-align:right;">
+        <div style="font-size:11px; color:#555; margin-bottom:4px;">
+          🔴 Admin ({{ chat.sender.username }})
         </div>
 
-        {% else %}
-
-        <!-- USER -->
-        <div>
-          <div style="font-size: 11px; color: #555; margin-bottom: 4px">
-            🟢 {{ chat.sender.username }}
-          </div>
-
-          <div
-            style="
-              backdrop-filter: blur(10px);
-              -webkit-backdrop-filter: blur(10px);
-
-              color: #1e7e34;
-              padding: 10px 14px;
-              border-radius: 14px;
-              display: inline-block;
-              max-width: 70%;
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            "
-          >
-            {{ chat.message }}
-          </div>
+        <div style="
+          background:#000;
+          color:#fff;
+          padding:10px 14px;
+          border-radius:18px;
+          border-bottom-right-radius:5px;
+          max-width:280px;
+          display:inline-block;
+        ">
+          {{ chat.message }}
         </div>
-
-        {% endif %}
       </div>
-
-      {% endfor %}
     </div>
-    <!-- INPUT -->
-    <form method="POST" class="input-box">
-      {% csrf_token %}
-      <input
-        type="text"
-        name="message"
-        placeholder="Write a message..."
-        required
-      />
-      <button type="submit">Send</button>
-    </form>
+
+    {% else %}
+    <!-- 🟢 USER (LEFT) -->
+    <div style="display:flex; justify-content:flex-start; margin:10px 0;">
+      <div style="text-align:left;">
+        <div style="font-size:11px; color:#555; margin-bottom:4px;">
+          🟢 {{ chat.sender.username }}
+        </div>
+
+        <div style="
+          background:#e5e5e5;
+          color:#000;
+          padding:10px 14px;
+          border-radius:18px;
+          border-bottom-left-radius:5px;
+          max-width:280px;
+          display:inline-block;
+        ">
+          {{ chat.message }}
+        </div>
+      </div>
+    </div>
+
+    {% endif %}
+
+    {% endfor %}
   </div>
+
+  <!-- ✅ INPUT BOX (Send Button YAHAN HAI) -->
+  <form method="POST" style="display:flex; gap:10px; margin-top:12px;">
+    {% csrf_token %}
+    
+    <input 
+      type="text" 
+      name="message" 
+      placeholder="Write a message..."
+      required
+      style="
+        flex:1;
+        padding:12px;
+        border-radius:12px;
+        border:1px solid #ddd;
+        outline:none;
+      "
+    >
+
+    <button type="submit" style="
+      background:#000;
+      color:#fff;
+      border:none;
+      padding:12px 18px;
+      border-radius:12px;
+      cursor:pointer;
+    ">
+      Send
+    </button>
+  </form>
+
+</div>
 </div>
 
 {% endblock %}

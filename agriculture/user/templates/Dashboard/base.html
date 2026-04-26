@@ -133,7 +133,7 @@
                 <div class="dropdown-divider"></div>
 
                 <!-- 🚪 LOGOUT -->
-                <a class="dropdown-item" href="{% url 'logout' %}">
+                <a class="dropdown-item" href="{% url 'admin_logout' %}">
                   <i class="mdi mdi-logout me-2 text-primary"></i> Logout
                 </a>
               </div>
@@ -177,7 +177,7 @@
     <div style="max-height:300px; overflow-y:auto;">
 
       {% for msg in unread_messages %}
-      <a href="{% url 'admin_ticket_chat' msg.ticket.id %}"
+     <a href="{% url 'admin_view_ticket' msg.ticket.id %}"
          style="display:flex; padding:12px 15px; text-decoration:none; color:black; border-bottom:1px solid #f1f1f1;">
 
         <!-- USER ICON -->
@@ -277,12 +277,12 @@
           <ul class="nav">
             <li class="nav-item">
               <a class="nav-link" href="{% url 'admin_dashboard' %}">
-                <span class="menu-title">Dashboard</span>
+                <span class="menu-title">Ticket</span>
                 <i class="mdi mdi-home menu-icon"></i>
               </a>
             </li>
            
-          <li class="nav-item">
+          <!-- <li class="nav-item">
   <a
     class="nav-link"
     data-bs-toggle="collapse"
@@ -311,7 +311,7 @@
 
     </ul>
   </div>
-</li>
+</li> -->
             <li class="nav-item">
   <a class="nav-link "
      data-bs-toggle="collapse"

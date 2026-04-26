@@ -1,0 +1,365 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Staff Dashboard</title>
+
+    <!-- CSS -->
+    <link
+      rel="stylesheet"
+      href="{% static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'assets/vendors/ti-icons/css/themify-icons.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'assets/vendors/font-awesome/css/font-awesome.min.css' %}"
+    />
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
+
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
+
+    <style>
+      .main-panel {
+        margin-left: 0 !important;
+        width: 100% !important;
+      }
+      .content-wrapper {
+        padding: 20px;
+        width: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav
+      class="navbar d-flex justify-content-between align-items-center px-4 py-2 shadow-sm"
+      style="background: #fff; position: sticky; top: 0; z-index: 999"
+    >
+      <!-- LEFT -->
+      <h5 style="margin: 0; font-weight: 600">Staff Dashboard</h5>
+
+      <!-- RIGHT -->
+      <div class="d-flex align-items-center gap-3">
+        <!-- 📩 MESSAGE ICON -->
+        <div class="dropdown">
+          <button class="btn position-relative" data-bs-toggle="dropdown">
+            <i class="mdi mdi-email-outline" style="font-size: 22px"></i>
+
+            {% if unread_messages_count > 0 %}
+            <span
+              style="
+                position: absolute;
+                top: 0;
+                right: 0;
+                background: red;
+                color: #fff;
+                font-size: 10px;
+                padding: 2px 6px;
+                border-radius: 50%;
+              "
+            >
+              {{ unread_messages_count }}
+            </span>
+            {% endif %}
+          </button>
+
+          <!-- MESSAGE DROPDOWN -->
+          <div
+            class="dropdown-menu dropdown-menu-end p-2"
+            style="width: 300px; border-radius: 10px"
+          >
+            <h6 class="px-2">Messages</h6>
+            <hr style="margin: 5px 0" />
+
+            {% for msg in recent_messages %}
+            <a
+              href="{% url 'staff_view_ticket' msg.ticket.id %}"
+              class="d-block p-2"
+              style="border-radius: 8px; text-decoration: none"
+            >
+              <div style="font-weight: 500; font-size: 14px">
+                {{ msg.ticket.user.username }}
+              </div>
+
+              <div style="font-size: 12px; color: gray">
+                {{ msg.message|truncatechars:30 }}
+              </div>
+            </a>
+            {% empty %}
+            <p class="text-center text-muted">No messages</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 🔔 NOTIFICATION -->
+        <div class="dropdown">
+          <button class="btn position-relative" data-bs-toggle="dropdown">
+            <i class="mdi mdi-bell-outline" style="font-size: 22px"></i>
+
+            {% if assigned_count > 0 %}
+            <span
+              style="
+                position: absolute;
+                top: 0;
+                right: 0;
+                background: orange;
+                color: #fff;
+                font-size: 10px;
+                padding: 2px 6px;
+                border-radius: 50%;
+              "
+            >
+              {{ assigned_count }}
+            </span>
+            {% endif %}
+          </button>
+
+          <div
+            class="dropdown-menu dropdown-menu-end p-2"
+            style="width: 280px; border-radius: 10px"
+          >
+            <h6 class="px-2">Notifications</h6>
+            <hr style="margin: 5px 0" />
+
+            {% for t in assigned_tickets %}
+            <a
+              href="{% url 'staff_view_ticket' t.id %}"
+              class="d-block p-2"
+              style="border-radius: 8px; text-decoration: none"
+            >
+              <div style="font-size: 14px; font-weight: 500">
+                New Ticket Assigned
+              </div>
+
+              <div style="font-size: 12px; color: gray">
+                {{ t.title|truncatechars:25 }}
+              </div>
+            </a>
+            {% empty %}
+            <p class="text-center text-muted">No notifications</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 👤 USER -->
+        <div class="dropdown">
+          <button
+            class="btn d-flex align-items-center"
+            data-bs-toggle="dropdown"
+          >
+            <div
+              style="
+                width: 35px;
+                height: 35px;
+                border-radius: 50%;
+                background: #6c63ff;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+              "
+            >
+              {{ request.user.username|slice:":1"|upper }}
+            </div>
+
+            <span style="margin-left: 8px">{{ request.user.username }}</span>
+          </button>
+
+          <div class="dropdown-menu dropdown-menu-end">
+            <a
+              class="dropdown-item text-danger"
+              href="{% url 'staff_logout' %}"
+            >
+              Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="main-panel">
+      <div class="content-wrapper">
+        <!-- HEADER -->
+        <div class="page-header mb-3">
+          <h3 class="page-title">
+            <span class="page-title-icon bg-gradient-primary text-white me-2">
+              <i class="mdi mdi-home"></i>
+            </span>
+            Dashboard
+          </h3>
+        </div>
+
+        <!-- STATS -->
+        <div class="row">
+          <div class="col-md-3 grid-margin">
+            <div class="card bg-gradient-danger text-white">
+              <div class="card-body">
+                <h6>Total</h6>
+                <h3>{{ total }}</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 grid-margin">
+            <div class="card bg-gradient-warning text-white">
+              <div class="card-body">
+                <h6>Pending</h6>
+                <h3>{{ pending }}</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 grid-margin">
+            <div class="card bg-gradient-info text-white">
+              <div class="card-body">
+                <h6>Progress</h6>
+                <h3>{{ in_progress }}</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 grid-margin">
+            <div class="card bg-gradient-success text-white">
+              <div class="card-body">
+                <h6>Resolved</h6>
+                <h3>{{ resolved }}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="row mt-4">
+          <div class="col-12 grid-margin">
+            <div class="card">
+              <div class="card-body">
+                <h4 class="card-title">🎫 Ticket Management</h4>
+
+                <div class="table-responsive">
+                  <table class="table table-hover text-center">
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Order ID</th>
+                        <th>Product</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Assign</th>
+                        <th>View</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {% for t in tickets %}
+                      <tr>
+                        <td><b>{{ t.user.username }}</b></td>
+                        <td>{{ t.purchase.purchase_id }}</td>
+                        <td>{{ t.purchase.product_name }}</td>
+                        <td>{{ t.title }}</td>
+
+                        <td>
+                          <div class="dropdown" style="position: static">
+                            <button
+                              class="btn btn-sm dropdown-toggle {% if t.status == 'pending' %}btn-warning {% elif t.status == 'in_progress' %}btn-info {% else %}btn-success{% endif %}"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                            >
+                              {{ t.status|title }}
+                            </button>
+
+                            <div class="dropdown-menu" style="z-index: 9999">
+                              <form
+                                method="POST"
+                                action="{% url 'staff_update_ticket' t.id %}"
+                              >
+                                {% csrf_token %}
+
+                                <button
+                                  type="submit"
+                                  name="status"
+                                  value="pending"
+                                  class="dropdown-item"
+                                >
+                                  Pending
+                                </button>
+
+                                <button
+                                  type="submit"
+                                  name="status"
+                                  value="in_progress"
+                                  class="dropdown-item"
+                                >
+                                  In Progress
+                                </button>
+
+                                <button
+                                  type="submit"
+                                  name="status"
+                                  value="resolved"
+                                  class="dropdown-item"
+                                >
+                                  Resolved
+                                </button>
+                              </form>
+                            </div>
+                          </div>
+                        </td>
+                        <!-- ASSIGN -->
+                        <td>
+                          {% if t.assigned_to %} {{ t.assigned_to.username }} 
+                          {% else %}
+                          <span class="text-muted">Unassigned</span>
+                          {% endif %}
+                        </td>
+
+                        <!-- VIEW -->
+                        <td>
+                          <a
+                            href="{% url 'staff_view_ticket' t.id %}"
+                            class="btn btn-dark btn-sm"
+                          >
+                            👁 View
+                          </a>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                      
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- plugins:js -->
+    <script src="{% static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
+
+    <!-- Plugin js for this page -->
+    <script src="{% static 'assets/vendors/select2/select2.min.js' %}"></script>
+    <script src="{% static 'assets/vendors/typeahead.js/typeahead.bundle.min.js' %}"></script>
+
+    <!-- inject:js -->
+    <script src="{% static 'assets/js/off-canvas.js' %}"></script>
+    <script src="{% static 'assets/js/misc.js' %}"></script>
+    <script src="{% static 'assets/js/settings.js' %}"></script>
+    <script src="{% static 'assets/js/todolist.js' %}"></script>
+    <script src="{% static 'assets/js/jquery.cookie.js' %}"></script>
+
+    <!-- Custom js for this page -->
+    <script src="{% static 'assets/js/file-upload.js' %}"></script>
+    <script src="{% static 'assets/js/typeahead.js' %}"></script>
+    <script src="{% static 'assets/js/select2.js' %}"></script>
+  </body>
+</html>

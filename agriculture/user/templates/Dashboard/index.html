@@ -196,7 +196,7 @@
                             </button>
 
                             <div class="dropdown-menu">
-                              <form method="POST" action="{% url 'update_ticket' t.id %}">
+                              <form method="POST" action="{% url 'admin_update_ticket' t.id %}">
                                 {% csrf_token %}
                                 <button class="dropdown-item" name="status" value="pending">Pending</button>
                                 <button class="dropdown-item" name="status" value="in_progress">In Progress</button>
@@ -232,7 +232,7 @@
                         </td>
 
                         <td>
-                          <a href="{% url 'view_ticket' t.id %}" class="btn btn-sm btn-dark">
+                          <a href="{% url 'admin_view_ticket' t.id %}" class="btn btn-sm btn-dark">
                             👁 View
                           </a>
                         </td>
