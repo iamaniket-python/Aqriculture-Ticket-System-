@@ -1,259 +1,576 @@
 {% extends 'Dashboard/base.html' %}
-
 {% block content %}
-
 {% load static %}
 
-<!-- partial -->
-<div class="main-panel" style="margin-left:0 !important; width:100% !important;">
-  <div class="content-wrapper" style="padding:20px; width:100%;">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-    <div class="page-header mb-3">
-      <h3 class="page-title">
-        <span class="page-title-icon bg-gradient-primary text-white me-2">
-          <i class="mdi mdi-home"></i>
-        </span>
-        Dashboard
-      </h3>
+  * { font-family: 'DM Sans', sans-serif; }
+
+  /* ── Page wrapper ── */
+  .dash-wrapper {
+    padding: 28px;
+    background: #f4f6fb;
+    min-height: 100vh;
+  }
+
+  /* ── Stat cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    border-radius: 18px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  .stat-card .icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+  .stat-card .value {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-card .label {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.65;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-card .blob {
+    position: absolute;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    opacity: 0.12;
+    right: -20px; bottom: -30px;
+  }
+
+  /* card colors */
+  .card-total    { background: #1a1a2e; color: #fff; }
+  .card-total .icon { background: rgba(255,255,255,0.15); }
+  .card-total .blob { background: #fff; }
+
+  .card-pending  { background: #fff7ed; color: #92400e; }
+  .card-pending .icon { background: #fde68a; }
+  .card-pending .blob { background: #f59e0b; }
+
+  .card-progress { background: #eff6ff; color: #1e40af; }
+  .card-progress .icon { background: #bfdbfe; }
+  .card-progress .blob { background: #3b82f6; }
+
+  .card-resolved { background: #f0fdf4; color: #166534; }
+  .card-resolved .icon { background: #bbf7d0; }
+  .card-resolved .blob { background: #22c55e; }
+
+  /* ── Table card ── */
+  .table-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f3f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .table-header h4 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .filter-row select {
+    padding: 8px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 13px;
+    background: #f9fafb;
+    color: #374151;
+    outline: none;
+    cursor: pointer;
+    min-width: 200px;
+    transition: border 0.2s;
+  }
+  .filter-row select:focus { border-color: #6366f1; }
+
+  .btn-search {
+    padding: 8px 18px;
+    background: #1a1a2e;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-search:hover { background: #2d2d4e; }
+
+  .btn-reset {
+    padding: 8px 14px;
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .btn-reset:hover { background: #e5e7eb; }
+
+  /* ── Table ── */
+  .premium-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1100px;
+  }
+
+  .premium-table thead tr {
+    background: #f8f9ff;
+    border-bottom: 2px solid #eef0f7;
+  }
+
+  .premium-table thead th {
+    padding: 13px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6b7280;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .premium-table tbody tr {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s;
+  }
+  .premium-table tbody tr:hover { background: #fafbff; }
+  .premium-table tbody tr:last-child { border-bottom: none; }
+
+  .premium-table tbody td {
+    padding: 14px 16px;
+    font-size: 13.5px;
+    color: #374151;
+    vertical-align: middle;
+  }
+
+  /* User avatar cell */
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .user-avatar {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .user-name { font-weight: 600; color: #1a1a2e; }
+
+  /* Order ID */
+  .order-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #374151;
+  }
+
+  /* Ticket image */
+  .ticket-img {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .ticket-img:hover { transform: scale(1.1); }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .status-pending  { background: #fef3c7; color: #92400e; }
+  .status-progress { background: #dbeafe; color: #1e40af; }
+  .status-resolved { background: #d1fae5; color: #065f46; }
+
+  /* Status dropdown */
+  .status-dropdown .dropdown-menu {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 6px;
+    min-width: 160px;
+  }
+  .status-dropdown .dropdown-item {
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  .status-dropdown .dropdown-item:hover {
+    background: #f3f4f6;
+  }
+
+  /* Assign dropdown */
+  .assign-btn {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .assign-btn:hover { border-color: #6366f1; color: #6366f1; }
+  .assign-btn.assigned { background: #ede9fe; border-color: #8b5cf6; color: #6d28d9; }
+
+  /* View btn */
+  .view-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: #1a1a2e;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .view-btn:hover { background: #2d2d4e; color: white; }
+
+  /* Doc btn */
+  .doc-btn {
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .doc-btn:hover { background: #dbeafe; }
+
+  /* Empty state */
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: #9ca3af;
+  }
+  .empty-state div { font-size: 40px; margin-bottom: 12px; }
+
+  /* Scrollable table */
+  .table-scroll { overflow-x: auto; }
+
+  /* Image popup */
+  .img-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+  }
+  .img-modal.active { display: flex; }
+  .img-modal img {
+    max-width: 80%; max-height: 80%;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  @media (max-width: 768px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .dash-wrapper { padding: 16px; }
+  }
+</style>
+
+<!-- Image Modal -->
+<div class="img-modal" id="imgModal" onclick="this.classList.remove('active')">
+  <img id="modalImg" src="">
+</div>
+
+<div class="dash-wrapper">
+
+  <!-- ── Page title ── -->
+  <div style="margin-bottom:24px;">
+    <h2 style="font-size:22px;font-weight:700;color:#1a1a2e;margin:0;">Dashboard</h2>
+    <p style="font-size:13px;color:#9ca3af;margin:4px 0 0;">Welcome back, {{ request.user.username }} 👋</p>
+  </div>
+
+  <!-- ── Stat Cards ── -->
+  <div class="stat-grid">
+
+    <div class="stat-card card-total">
+      <div class="icon">🎫</div>
+      <div class="value">{{ total }}</div>
+      <div class="label">Total Tickets</div>
+      <div class="blob"></div>
     </div>
 
-    <div class="row">
-
-      <!-- TOTAL -->
-      <div class="col-md-3 stretch-card grid-margin">
-        <div class="card bg-gradient-danger card-img-holder text-white shadow-sm" style="border-radius:12px; overflow:hidden;">
-          <div class="card-body">
-            <img src="{% static 'assets/images/dashboard/circle.svg' %}" class="card-img-absolute" />
-
-            <h4 class="font-weight-normal mb-3">
-              Total Tickets
-              <i class="mdi mdi-ticket mdi-24px float-end"></i>
-            </h4>
-
-            <h2 class="mb-5">{{ total }}</h2>
-          </div>
-        </div>
-      </div>
-
-      <!-- PENDING -->
-      <div class="col-md-3 stretch-card grid-margin">
-        <div class="card bg-gradient-warning card-img-holder text-white shadow-sm" style="border-radius:12px; overflow:hidden;">
-          <div class="card-body">
-            <img src="{% static 'assets/images/dashboard/circle.svg' %}" class="card-img-absolute" />
-
-            <h4 class="font-weight-normal mb-3">
-              Pending
-              <i class="mdi mdi-clock mdi-24px float-end"></i>
-            </h4>
-
-            <h2 class="mb-5">{{ pending }}</h2>
-          </div>
-        </div>
-      </div>
-
-      <!-- IN PROGRESS -->
-      <div class="col-md-3 stretch-card grid-margin">
-        <div class="card bg-gradient-info card-img-holder text-white shadow-sm" style="border-radius:12px; overflow:hidden;">
-          <div class="card-body">
-            <img src="{% static 'assets/images/dashboard/circle.svg' %}" class="card-img-absolute" />
-
-            <h4 class="font-weight-normal mb-3">
-              In Progress
-              <i class="mdi mdi-progress-clock mdi-24px float-end"></i>
-            </h4>
-
-            <h2 class="mb-5">{{ in_progress }}</h2>
-          </div>
-        </div>
-      </div>
-
-      <!-- RESOLVED -->
-      <div class="col-md-3 stretch-card grid-margin">
-        <div class="card bg-gradient-success card-img-holder text-white shadow-sm" style="border-radius:12px; overflow:hidden;">
-          <div class="card-body">
-            <img src="{% static 'assets/images/dashboard/circle.svg' %}" class="card-img-absolute" />
-
-            <h4 class="font-weight-normal mb-3">
-              Resolved
-              <i class="mdi mdi-check-circle mdi-24px float-end"></i>
-            </h4>
-
-            <h2 class="mb-5">{{ resolved }}</h2>
-          </div>
-        </div>
-      </div>
-
+    <div class="stat-card card-pending">
+      <div class="icon">⏳</div>
+      <div class="value">{{ pending }}</div>
+      <div class="label">Pending</div>
+      <div class="blob"></div>
     </div>
 
-    <!-- TABLE SECTION START -->
-    <div class="row mt-4">
-      <div class="col-12 grid-margin">
-        <div class="card shadow-sm" style="border-radius:12px;">
-          <div class="card-body">
+    <div class="stat-card card-progress">
+      <div class="icon">🔄</div>
+      <div class="value">{{ in_progress }}</div>
+      <div class="label">In Progress</div>
+      <div class="blob"></div>
+    </div>
 
-            <h4 class="card-title">All Tickets</h4>
-
-            <form method="GET" style="margin-bottom: 20px; display:flex; justify-content:flex-end;">
-              <div style="display:flex; gap:10px;">
-
-                <select name="user" class="form-control" style="width:250px; border-radius:8px;">
-                  <option value="">-- Search by User --</option>
-
-                  {% for u in users %}
-                    <option value="{{ u.id }}"
-                      {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>
-                      {{ u.username }}
-                    </option>
-                  {% endfor %}
-                </select>
-
-                <button type="submit" class="btn btn-primary">Search</button>
-
-                <a href="{% url 'admin_dashboard' %}" class="btn btn-light">Reset</a>
-
-              </div>
-            </form>
-
-            <!-- INNER CARD FIXED -->
-            <div class="card shadow-sm" style="border-radius:10px;">
-              <div class="card-body">
-
-                <h4 class="card-title mb-3">🎫 Ticket Management</h4>
-
-                <div class="table-responsive" style="overflow-x:auto;">
-
-                  <table class="table table-hover table-sm align-middle text-center" style="min-width:1200px;">
-
-                    <thead class="table-light">
-                      <tr>
-                        <th>Client</th>
-                        <th>Order ID</th>
-                        <th>Product</th>
-                        <th>Category</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Date</th>
-                        <th>Media</th>
-                        <th>Doc</th>
-                        <th>Status</th>
-                        <th>Assign</th>
-                        <th>View</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {% for t in tickets %}
-                      <tr>
-
-                        <td><b>{{ t.user.username }}</b></td>
-                        <td>{{ t.purchase.purchase_id }}</td>
-                        <td>{{ t.purchase.product_name }}</td>
-                        <td>{{ t.category|default:"-" }}</td>
-                        <td>{{ t.title|default:"-" }}</td>
-
-                        <td style="max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                          {{ t.description|truncatechars:20 }}
-                        </td>
-
-                        <td>{{ t.created_at|date:"d M Y" }}</td>
-
-                        <td>
-                          <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center;">
-
-                            {% if t.image %}
-                              <img src="{{ t.image.url }}" style="width:45px;height:45px;border-radius:8px;object-fit:cover;">
-                            {% endif %}
-
-                            {% for img in t.images.all %}
-                              <img src="{{ img.image.url }}" style="width:45px;height:45px;border-radius:8px;object-fit:cover;">
-                            {% endfor %}
-
-                            {% if not t.image and not t.images.exists %}
-                              <small style="color:#aaa;">No Image</small>
-                            {% endif %}
-
-                          </div>
-                        </td>
-
-                        <td>
-                          {% if t.document %}
-                            <a href="{{ t.document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                              View
-                            </a>
-                          {% else %}
-                            <span style="color:#aaa;">-</span>
-                          {% endif %}
-                        </td>
-
-                        <td>
-                          <div class="dropdown">
-                            <button class="btn btn-sm dropdown-toggle
-                              {% if t.status == 'pending' %}btn-warning
-                              {% elif t.status == 'in_progress' %}btn-info
-                              {% else %}btn-success{% endif %}"
-                              data-bs-toggle="dropdown">
-                              {{ t.status|title }}
-                            </button>
-
-                            <div class="dropdown-menu">
-                              <form method="POST" action="{% url 'admin_update_ticket' t.id %}">
-                                {% csrf_token %}
-                                <button class="dropdown-item" name="status" value="pending">Pending</button>
-                                <button class="dropdown-item" name="status" value="in_progress">In Progress</button>
-                                <button class="dropdown-item" name="status" value="resolved">Resolved</button>
-                              </form>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>
-                          <div class="dropdown">
-                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
-
-                              {% if t.assigned_to %}
-                                {{ t.assigned_to.username }}
-                              {% else %}
-                                Assign
-                              {% endif %}
-
-                            </button>
-
-                            <div class="dropdown-menu">
-                              {% for staff in staff_users %}
-                              <form method="POST" action="{% url 'assign_ticket' t.id %}">
-                                {% csrf_token %}
-                                <button class="dropdown-item" name="staff_id" value="{{ staff.id }}">
-                                  {{ staff.username }}
-                                </button>
-                              </form>
-                              {% endfor %}
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>
-                          <a href="{% url 'admin_view_ticket' t.id %}" class="btn btn-sm btn-dark">
-                            👁 View
-                          </a>
-                        </td>
-
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-
-                  </table>
-
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
+    <div class="stat-card card-resolved">
+      <div class="icon">✅</div>
+      <div class="value">{{ resolved }}</div>
+      <div class="label">Resolved</div>
+      <div class="blob"></div>
     </div>
 
   </div>
+
+  <!-- ── Table Card ── -->
+  <div class="table-card">
+
+    <!-- Header + Filter -->
+    <div class="table-header">
+      <h4>🎫 Ticket Management</h4>
+
+      <form method="GET" class="filter-row">
+        <select name="user">
+          <option value="">All Users</option>
+          {% for u in users %}
+            <option value="{{ u.id }}"
+              {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>
+              {{ u.username }}
+            </option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-search">🔍 Search</button>
+        <a href="{% url 'admin_dashboard' %}" class="btn-reset">Reset</a>
+      </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-scroll">
+      <table class="premium-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Order ID</th>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Images</th>
+            <th>Doc</th>
+            <th>Status</th>
+            <th>Assign</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tickets %}
+          <tr>
+
+            <!-- Client -->
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar">{{ t.user.username|slice:":1"|upper }}</div>
+                <div>
+                  <div class="user-name">{{ t.user.username }}</div>
+                  <div style="font-size:11px;color:#9ca3af;">{{ t.user.email|truncatechars:20 }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Order ID -->
+            <td><span class="order-id">{{ t.purchase.purchase_id|default:"-" }}</span></td>
+
+            <!-- Product -->
+            <td style="font-weight:500;color:#374151;">{{ t.purchase.product_name|default:"-"|truncatechars:18 }}</td>
+
+            <!-- Category -->
+            <td style="color:#6b7280;">{{ t.category|default:"-" }}</td>
+
+            <!-- Title -->
+            <td style="font-weight:600;color:#1a1a2e;">{{ t.title|default:"-"|truncatechars:20 }}</td>
+
+            <!-- Description -->
+            <td style="color:#9ca3af;font-size:13px;">{{ t.description|truncatechars:25 }}</td>
+
+            <!-- Date -->
+            <td style="font-size:12px;color:#6b7280;white-space:nowrap;">{{ t.created_at|date:"d M Y" }}</td>
+
+            <!-- Images -->
+            <td>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                {% for img in t.images.all %}
+                  <img src="{{ img.image.url }}" class="ticket-img"
+                       onclick="openImg('{{ img.image.url }}')">
+                {% empty %}
+                  <span style="font-size:12px;color:#d1d5db;">—</span>
+                {% endfor %}
+              </div>
+            </td>
+
+            <!-- Document -->
+            <td>
+              {% if t.document %}
+                <a href="{{ t.document.url }}" target="_blank" class="doc-btn">📄 View</a>
+              {% else %}
+                <span style="color:#d1d5db;">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Status dropdown -->
+            <td>
+              <div class="dropdown status-dropdown">
+                <button class="status-badge dropdown-toggle
+                  {% if t.status == 'pending' %}status-pending
+                  {% elif t.status == 'in_progress' %}status-progress
+                  {% else %}status-resolved{% endif %}"
+                  data-bs-toggle="dropdown" style="border:none;cursor:pointer;">
+                  {% if t.status == 'pending' %}⏳{% elif t.status == 'in_progress' %}🔄{% else %}✅{% endif %}
+                  {{ t.status|title }}
+                </button>
+                <div class="dropdown-menu">
+                  <form method="POST" action="{% url 'admin_update_ticket' t.id %}">
+                    {% csrf_token %}
+                    <button class="dropdown-item" name="status" value="pending">⏳ Pending</button>
+                    <button class="dropdown-item" name="status" value="in_progress">🔄 In Progress</button>
+                    <button class="dropdown-item" name="status" value="resolved">✅ Resolved</button>
+                  </form>
+                </div>
+              </div>
+            </td>
+
+            <!-- Assign -->
+            <td>
+              <div class="dropdown">
+                <button class="assign-btn {% if t.assigned_to %}assigned{% endif %} dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                  {% if t.assigned_to %}
+                    👤 {{ t.assigned_to.username }}
+                  {% else %}
+                    + Assign
+                  {% endif %}
+                </button>
+                <div class="dropdown-menu" style="border-radius:12px;border:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;">
+                  {% for staff in staff_users %}
+                  <form method="POST" action="{% url 'assign_ticket' t.id %}">
+                    {% csrf_token %}
+                    <button class="dropdown-item" name="staff_id" value="{{ staff.id }}"
+                      style="border-radius:8px;padding:8px 14px;font-size:13px;border:none;background:none;width:100%;text-align:left;cursor:pointer;">
+                      {{ staff.username }}
+                    </button>
+                  </form>
+                  {% empty %}
+                  <div style="padding:10px 14px;font-size:13px;color:#9ca3af;">No staff available</div>
+                  {% endfor %}
+                </div>
+              </div>
+            </td>
+
+            <!-- View -->
+            <td>
+              <a href="{% url 'admin_view_ticket' t.id %}" class="view-btn">👁 View</a>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="12">
+              <div class="empty-state">
+                <div>🎫</div>
+                <p style="font-weight:600;color:#374151;font-size:15px;margin:0 0 4px;">No tickets found</p>
+                <p style="font-size:13px;margin:0;">Try changing your search filter</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
 </div>
+
+<script>
+  function openImg(src) {
+    document.getElementById("modalImg").src = src;
+    document.getElementById("imgModal").classList.add("active");
+  }
+</script>
 
 {% endblock %}

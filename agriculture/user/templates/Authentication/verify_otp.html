@@ -12,7 +12,7 @@
   autoplay
   loop
 ></dotlottie-wc>
-        <p>Enter the 4-digit code sent to your mobile</p>
+        <p>Enter the 6-digit code sent to your mobile</p>
 
         <form method="POST">
             {% csrf_token %}
@@ -22,14 +22,13 @@
                 <input type="text" maxlength="1" class="otp-input" required>
                 <input type="text" maxlength="1" class="otp-input" required>
                 <input type="text" maxlength="1" class="otp-input" required>
+                <input type="text" maxlength="1" class="otp-input" required>
+                <input type="text" maxlength="1" class="otp-input" required>
             </div>
 
-            <!-- hidden real input -->
             <input type="hidden" name="otp" id="otpValue">
 
-            <button type="submit" class="verify-btn">
-                Verify OTP
-            </button>
+            <button type="submit" class="verify-btn">Verify OTP</button>
         </form>
 
         {% if error %}
@@ -38,9 +37,7 @@
 
         <div class="resend">
             Resend OTP in <span id="timer">60</span>s <br>
-            <a href="{% url 'resend_otp' %}" id="resendBtn" class="disabled">
-                Resend OTP
-            </a>
+            <a href="{% url 'resend_otp' %}" id="resendBtn" class="disabled">Resend OTP</a>
         </div>
 
     </div>
@@ -50,20 +47,18 @@
 let inputs = document.querySelectorAll(".otp-input");
 let hiddenInput = document.getElementById("otpValue");
 
-// auto move + combine OTP
 inputs.forEach((input, index) => {
     input.addEventListener("input", () => {
+        input.value = input.value.replace(/[^0-9]/g, '');
         if (input.value.length === 1 && index < inputs.length - 1) {
             inputs[index + 1].focus();
         }
-
         let otp = "";
         inputs.forEach(i => otp += i.value);
         hiddenInput.value = otp;
     });
 });
 
-// backspace support
 inputs.forEach((input, index) => {
     input.addEventListener("keydown", (e) => {
         if (e.key === "Backspace" && !input.value && index > 0) {
@@ -72,7 +67,16 @@ inputs.forEach((input, index) => {
     });
 });
 
-// timer
+inputs[0].addEventListener("paste", (e) => {
+    e.preventDefault();
+    let pasted = e.clipboardData.getData("text").replace(/[^0-9]/g, '').slice(0, 6);
+    pasted.split("").forEach((char, i) => {
+        if (inputs[i]) inputs[i].value = char;
+    });
+    hiddenInput.value = pasted;
+    if (inputs[pasted.length - 1]) inputs[pasted.length - 1].focus();
+});
+
 let timeLeft = 60;
 let timer = document.getElementById("timer");
 let resendBtn = document.getElementById("resendBtn");
@@ -80,7 +84,6 @@ let resendBtn = document.getElementById("resendBtn");
 let countdown = setInterval(() => {
     timeLeft--;
     timer.innerText = timeLeft;
-
     if (timeLeft <= 0) {
         clearInterval(countdown);
         timer.innerText = "0";

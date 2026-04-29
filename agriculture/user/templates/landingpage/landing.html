@@ -142,10 +142,10 @@ body {
 <div class="card">
 
     <div>
-       <img src="{% static 'image/log-in.png' %}" alt="Login" style="height:200px; width:200px;" />
+       <img src="{% static 'image/logo.png' %}" alt="Login" style="height:200px; width:200px;" />
 
         
-
+<br>
         <div class="buttons">
             <a href="{% url 'login' %}" class="btn btn-primary">User Login</a>
             <!-- <a href="{% url 'register' %}" class="btn btn-outline">User Signup</a> -->
@@ -153,7 +153,7 @@ body {
     </div>
 
     <div class="admin">
-        Admin access → <a href="#">Login</a>
+        Admin access → <a href="{% url 'admin_login' %}">Login</a>
     </div>
 
 </div>

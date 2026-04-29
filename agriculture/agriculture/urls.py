@@ -21,7 +21,7 @@ urlpatterns = [
     path('', views.landing_page, name='home'),
     path('login/', views.login_page, name='login'),
     path('register/', views.register, name='register'),
-    path('verify-otp/', views.verify_otp, name='verify_otp'),
+    path('verify-otp/', views.verify_otp_view, name='verify_otp'),
     path('resend-otp/', views.resend_otp, name='resend_otp'),
     path('logout/', views.logout_view, name='user_logout'),
 
@@ -78,9 +78,7 @@ urlpatterns = [
 # 🔴 ADMIN STAFF MANAGEMENT
 # =========================
 
-    path('admin-panel/staff/', views.admin_staff_list, name='admin_staff_list'),
-   # =========================
-# 🔴 STAFF MANAGEMENT (CLEAN)
+  
 # =========================
 
     path('dashboard/staff/', views.admin_staff_list, name='admin_staff_list'),
@@ -107,10 +105,13 @@ urlpatterns = [
     path('staff/ticket/<int:id>/', views.staff_view_ticket, name='staff_view_ticket'),
     path('staff/ticket/update/<int:id>/', views.update_ticket, name='staff_update_ticket'),
     path('staff/ticket/chat/<int:ticket_id>/', views.staff_ticket_chat, name='staff_ticket_chat'),
-
+    path('ticket/close/<int:ticket_id>/', views.close_ticket, name='close_ticket'),
+    path('admin/notifications/read/', views.mark_notifications_read, name='mark_notifications_read'),
 ]
 
 # =========================
 # 📁 MEDIA FILES
 # =========================
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'user' / 'static')
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,66 +1,36 @@
-import random, time
-from tokenize import Comment
-from django.shortcuts import get_object_or_404, redirect, render
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import AllowAny
-from django.contrib.auth.models import User
-import jwt
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
-import random
-from django.core.mail import send_mail
-from django.core.paginator import Paginator
-from django.conf import settings
-from django.contrib.auth.models import User
-from user.models import Ticket, TicketComment, TicketImage, StaffProfile
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
-from django.contrib.auth import authenticate, logout
-from .models import AdminChat, Profile, Purchase, TicketImage
-from .models import TrackingUser
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.http import require_POST
+import logging
+
 from django.contrib.auth import authenticate, login
-from django.db.models import Q
+from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 
+from rest_framework import generics
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
 
-# =============================================
-# ✅ CUSTOM DECORATORS
-# =============================================
+from user.models import (
+    AdminChat, Profile, Purchase,
+    Ticket, TicketComment, TicketImage, StaffProfile, TrackingUser,
+)
+from .serializers import RegisterSerializer
+from .decorators import admin_session_required, staff_session_required, login_required_token
+from .services.auth_service import (
+    get_user_from_token, set_auth_cookies, delete_auth_cookies,
+    generate_otp, verify_otp, can_resend_otp,
+)
+from .services.ticket_service import TicketService
 
-def admin_session_required(view_func):
-    """Admin ke liye — sirf wahi access kar sakta hai jisne admin login kiya ho"""
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect('admin_login')
-        if request.session.get('role') != 'admin':
-            return redirect('admin_login')
-        if not request.user.is_staff:
-            return redirect('admin_login')
-        return view_func(request, *args, **kwargs)
-    return wrapper
-
-
-def staff_session_required(view_func):
-    """Staff ke liye — sirf wahi access kar sakta hai jisne staff login kiya ho"""
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect('staff_login')
-        if request.session.get('role') != 'staff':
-            return redirect('staff_login')
-        profile = StaffProfile.objects.filter(user=request.user).first()
-        if not profile or not profile.is_approved:
-            return redirect('staff_login')
-        return view_func(request, *args, **kwargs)
-    return wrapper
+logger = logging.getLogger(__name__)
 
 
 # =============================================
 # 🔐 REGISTER VIEW (API)
 # =============================================
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
@@ -70,62 +40,21 @@ class RegisterView(generics.CreateAPIView):
 # =============================================
 # 🏠 LANDING PAGE
 # =============================================
+
 def landing_page(request):
     return render(request, 'landingpage/landing.html')
 
 
 # =============================================
-# 📱 USER LOGIN (OTP based)
+# 📱 USER REGISTER
 # =============================================
-def login_page(request):
-    if request.method == "POST":
-        mobile = request.POST.get("mobile", "").strip()
-
-        if not mobile:
-            return render(request, 'Authentication/login.html', {
-                "error": "Mobile number required"
-            })
-
-        # ✅ Sirf profile check karo
-        profile = Profile.objects.filter(mobile=mobile).first()
-
-        if not profile:
-            return render(request, 'Authentication/login.html', {
-                "error": "Mobile number registered nahi hai"
-            })
-
-        otp = random.randint(1000, 9999)
-        request.session['otp'] = str(otp)
-        request.session['mobile'] = mobile
-        request.session['otp_time'] = time.time()
-
-        print(f"OTP: {otp}")  
-
-        return redirect('verify_otp')
-
-    return render(request, 'Authentication/login.html')
-
-
-def get_user_from_token(request):
-    token = request.COOKIES.get('access')
-
-    if not token:
-        return None
-
-    try:
-        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        user_id = decoded.get("user_id")
-        return User.objects.get(id=user_id)
-    except:
-        return None
-
 
 def register(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        mobile = request.POST.get("mobile")
+        username = request.POST.get("username", "").strip()
+        email    = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        mobile   = request.POST.get("mobile", "").strip()
 
         if User.objects.filter(username=username).exists():
             return render(request, 'Authentication/register.html', {"error": "Username already exists"})
@@ -133,334 +62,301 @@ def register(request):
         if User.objects.filter(email=email).exists():
             return render(request, 'Authentication/register.html', {"error": "Email already exists"})
 
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
+        user = User.objects.create_user(username=username, email=email, password=password)
         Profile.objects.create(user=user, mobile=mobile)
-
         return redirect('login')
 
     return render(request, 'Authentication/register.html')
 
 
 # =============================================
+# 📱 USER LOGIN (OTP based)
+# =============================================
+
+def login_page(request):
+    if request.method == "POST":
+        mobile = request.POST.get("mobile", "").strip()
+
+        # Basic input validation
+        if not mobile or not mobile.isdigit() or len(mobile) != 10:
+            return render(request, 'Authentication/login.html', {
+                "error": "Valid 10-digit mobile number required"
+            })
+
+        if not Profile.objects.filter(mobile=mobile).exists():
+            return render(request, 'Authentication/login.html', {
+                "error": "Mobile number is Not registered"
+            })
+
+        otp = generate_otp(mobile)
+
+        # ✅ Production mein: send_otp_sms(mobile, otp)
+        # ❌ Never print OTP in production — sirf development ke liye
+     
+        print(f"OTP: {otp}")
+
+        # Session mein sirf mobile rakho — OTP nahi
+        request.session['pending_mobile'] = mobile
+        return redirect('verify_otp')
+
+    return render(request, 'Authentication/login.html')
+
+
+# =============================================
+# 🔢 OTP VERIFY
+# =============================================
+
+def verify_otp_view(request):
+    if request.method == "POST":
+        entered   = request.POST.get("otp", "").strip()
+        mobile    = request.session.get('pending_mobile')
+
+        if not mobile:
+            return render(request, 'Authentication/verify_otp.html', {
+                "error": "Session expired. Please login again."
+            })
+
+        success, error_msg = verify_otp(mobile, entered)
+
+        if not success:
+            return render(request, 'Authentication/verify_otp.html', {"error": error_msg})
+
+        # OTP verified — user fetch ya create karo
+        profile = Profile.objects.filter(mobile=mobile).first()
+        if profile:
+            user = profile.user
+        else:
+            user = User.objects.create(username=mobile)
+            Profile.objects.create(user=user, mobile=mobile)
+
+        # Session cleanup
+        request.session.pop('pending_mobile', None)
+
+        refresh  = RefreshToken.for_user(user)
+        response = redirect('profile')
+        set_auth_cookies(response, refresh)
+        return response
+
+    return render(request, 'Authentication/verify_otp.html')
+
+
+def resend_otp(request):
+    mobile = request.session.get('pending_mobile')
+
+    if not mobile:
+        return redirect('login')
+
+    if not can_resend_otp(mobile):
+        messages.error(request, "Please wait 60 seconds before requesting a new OTP.")
+        return redirect('verify_otp')
+
+    otp = generate_otp(mobile)
+
+    if __debug__:
+        logger.debug("DEV resend OTP for %s: %s", mobile, otp)
+
+    # Production: send_otp_sms(mobile, otp)
+    return redirect('verify_otp')
+
+
+# =============================================
 # 🚪 USER LOGOUT
 # =============================================
+
 def logout_view(request):
     response = redirect('login')
-    response.delete_cookie('access')
-    response.delete_cookie('refresh')
+    delete_auth_cookies(response)
     return response
 
 
 # =============================================
 # 👤 USER PROFILE
 # =============================================
+
+@login_required_token
 def profile(request):
-    user = get_user_from_token(request)
+    user          = request._token_user
+    product_query = request.GET.get('product', '')
+    date_from     = request.GET.get('date_from', '')
+    date_to       = request.GET.get('date_to', '')
+    has_purchase  = Purchase.objects.filter(user=user).exists()
 
-    if not user:
-        return redirect('login')
+    tickets = TicketService.get_user_tickets(
+        user,
+        product=product_query,
+        date_from=date_from,
+        date_to=date_to,
+    )
 
-    search_query = request.GET.get('search', '')
-    tickets = Ticket.objects.filter(user=user)
-    has_purchase = Purchase.objects.filter(user=user).exists()
-
-    if search_query:
-        tickets = tickets.filter(title__icontains=search_query)
-
-    paginator = Paginator(tickets, 50)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    paginator = Paginator(tickets, 10)  
+    page_obj  = paginator.get_page(request.GET.get('page'))
 
     return render(request, 'UserProfile/profile.html', {
-        "page_obj": page_obj,
-        "search_query": search_query,
-        "user": user,
-        'has_purchase': has_purchase
+        "page_obj":      page_obj,
+        "product_query": product_query,
+        "date_from":     date_from,
+        "date_to":       date_to,
+        "user":          user,
+        "has_purchase":  has_purchase,
     })
 
 
 # =============================================
 # 🎫 CREATE TICKET
 # =============================================
+
+@login_required_token
 def create_ticket(request):
-    user = get_user_from_token(request)
-
-    if not user:
-        return redirect('login')
-
+    user      = request._token_user
     purchases = Purchase.objects.filter(user=user).values('purchase_id').distinct()
+
     selected_purchase = request.GET.get('purchase')
     products = None
-
     if selected_purchase:
         products = Purchase.objects.filter(user=user, purchase_id=selected_purchase)
 
     if request.method == "POST":
-        purchase_id = request.POST.get("purchase")
-        product = request.POST.get("product")
-        images = request.FILES.getlist("images")
-        document = request.FILES.get("document")
-
-        purchase = Purchase.objects.get(
-            user=user,
-            purchase_id=purchase_id,
-            product_name=product
-        )
-
-        ticket = Ticket.objects.create(
-            user=user,
-            purchase=purchase,
-            title=request.POST.get("title"),
-            description=request.POST.get("description"),
-            category=request.POST.get("category"),
-            other=request.POST.get("other"),
-            document=document
-        )
-
-        for img in images:
-            TicketImage.objects.create(ticket=ticket, image=img)
-
-        messages.success(request, "Ticket created successfully!")
-        return redirect('profile')
+        try:
+            ticket = TicketService.create_ticket(
+                user=user,
+                data=request.POST,
+                images=request.FILES.getlist("images"),
+                document=request.FILES.get("document"),
+            )
+            messages.success(request, "Ticket created successfully!")
+            return redirect('profile')
+        except Purchase.DoesNotExist:
+            messages.error(request, "Invalid purchase selected.")
 
     return render(request, 'UserProfile/create_ticket.html', {
-        'purchases': purchases,
-        'products': products,
-        'selected_purchase': selected_purchase
+        'purchases':         purchases,
+        'products':          products,
+        'selected_purchase': selected_purchase,
     })
-
-
-# =============================================
-# 🔢 OTP VERIFY
-# =============================================
-def verify_otp(request):
-    if request.method == "POST":
-        entered_otp = request.POST.get("otp")
-        session_otp = request.session.get('otp')
-        mobile = request.session.get('mobile')
-
-        if not session_otp or not mobile:
-            return render(request, 'Authentication/verify_otp.html', {
-                "error": "Session expired. Please login again."
-            })
-
-        if entered_otp == session_otp:
-            profile = Profile.objects.filter(mobile=mobile).first()
-
-            if not profile:
-                user = User.objects.create(username=mobile)
-                profile = Profile.objects.create(user=user, mobile=mobile)
-            else:
-                user = profile.user
-
-            refresh = RefreshToken.for_user(user)
-
-            response = redirect('profile')
-            response.set_cookie('access', str(refresh.access_token), httponly=True)
-            response.set_cookie('refresh', str(refresh), httponly=True)
-
-            return response
-        else:
-            return render(request, 'Authentication/verify_otp.html', {
-                "error": "Invalid OTP"
-            })
-
-    return render(request, 'Authentication/verify_otp.html')
-
-
-def resend_otp(request):
-    mobile = request.session.get('mobile')
-
-    if not mobile:
-        return redirect('login')
-
-    otp = random.randint(1000, 9999)
-    request.session['otp'] = str(otp)
-    request.session['otp_time'] = time.time()
-
-    print("New OTP:", otp)
-
-    return redirect('verify_otp')
-
-
-# =============================================
-# 📦 TRACKING
-# =============================================
-def check_tracking(request):
-    if request.method == "POST":
-        tracking_id = request.POST.get("tracking_id")
-        user = TrackingUser.objects.filter(tracking_id=tracking_id).first()
-
-        if user:
-            request.session["tracking_verified"] = True
-            request.session["tracking_id"] = tracking_id
-            print("Verified successfully")
-            return redirect("profile")
-        else:
-            return render(request, "UserProfile/check_tracking.html", {
-                "error": "Invalid Tracking ID"
-            })
-
-    return render(request, "UserProfile/check_tracking.html")
-
-
-def get_tickets(request):
-    tickets = Ticket.objects.filter(user=request.user).order_by('-id')
-
-    data = []
-    for t in tickets:
-        data.append({
-            "title": t.title,
-            "description": t.description,
-            "status": t.status
-        })
-
-    return JsonResponse({"tickets": data})
 
 
 # =============================================
 # 💬 USER TICKET CHAT
 # =============================================
+
+@login_required_token
 def ticket_chat(request, ticket_id):
-    user = get_user_from_token(request)
-
-    if not user:
-        return redirect("login")
-
-    ticket = get_object_or_404(Ticket, id=ticket_id)
-    chats = TicketComment.objects.filter(ticket=ticket).order_by("created_at")
+    user   = request._token_user
+    ticket = get_object_or_404(Ticket, id=ticket_id, user=user)  # user ownership check
+    chats  = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
 
     if request.method == "POST":
-        message = request.POST.get("message")
-
+        message = request.POST.get("message", "").strip()
         if message:
-            TicketComment.objects.create(
-                ticket=ticket,
-                sender=get_user_from_token(request),
-                message=message
-            )
-
+            TicketService.add_comment(ticket, user, message)
         return redirect('user_ticket_chat', ticket_id=ticket.id)
 
     return render(request, "Ticket/ticket_chat.html", {
         "ticket": ticket,
-        "chats": chats
+        "chats":  chats,
     })
 
 
 # =============================================
-# 🔐 ADMIN LOGIN — role = 'admin' set hoga
+# 📦 TRACKING
 # =============================================
+
+def check_tracking(request):
+    if request.method == "POST":
+        tracking_id = request.POST.get("tracking_id", "").strip()
+
+        if TrackingUser.objects.filter(tracking_id=tracking_id).exists():
+            request.session["tracking_verified"] = True
+            request.session["tracking_id"]       = tracking_id
+            return redirect("profile")
+
+        return render(request, "UserProfile/check_tracking.html", {
+            "error": "Invalid Tracking ID"
+        })
+
+    return render(request, "UserProfile/check_tracking.html")
+
+
+# =============================================
+# 🔐 ADMIN LOGIN
+# =============================================
+
 def admin_login(request):
     if request.user.is_authenticated and request.session.get('role') == 'admin':
         return redirect('admin_dashboard')
 
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        user     = authenticate(request, username=username, password=password)
 
-        user = authenticate(request, username=username, password=password)
+        if user is not None and user.is_superuser:
+            login(request, user)
+            request.session['role'] = 'admin'
+            return redirect('admin_dashboard')
 
-        if user is not None:
-            # ✅ SIRF SUPERUSER — staff allowed nahi
-            if user.is_superuser:
-                login(request, user)
-                request.session['role'] = 'admin'
-                return redirect('admin_dashboard')
-            else:
-                return render(request, 'Dashboard/login.html', {
-                    "error": "You are not authorized to access admin dashboard"
-                })
-        else:
-            return render(request, 'Dashboard/login.html', {
-                "error": "Invalid username or password"
-            })
+        return render(request, 'Dashboard/login.html', {
+            "error": "Invalid credentials or insufficient permissions"
+        })
 
     return render(request, 'Dashboard/login.html')
 
 
 # =============================================
-# 📊 ADMIN DASHBOARD — sirf admin role wala access kar sakta hai
+# 📊 ADMIN DASHBOARD
 # =============================================
+
 @admin_session_required
 def admin_dashboard(request):
-
-    selected_user = request.GET.get('user')
+    selected_user     = request.GET.get('user')
     selected_purchase = request.GET.get('purchase_id')
 
-    tickets = Ticket.objects.all().order_by('-created_at')
+    # ✅ Ek query mein sab stats — N+1 fix
+    stats = TicketService.get_dashboard_stats(user_filter=selected_user)
 
+    # ✅ select_related — template mein N+1 queries nahi
+    tickets = Ticket.objects.select_related('user', 'purchase', 'assigned_to')\
+                             .order_by('-created_at')
     if selected_user:
         tickets = tickets.filter(user_id=selected_user)
 
-    total = tickets.count()
-    pending = tickets.filter(status='pending').count()
-    resolved = tickets.filter(status='resolved').count()
-    in_progress = tickets.filter(status='in_progress').count()
-
-    users = User.objects.filter(ticket__isnull=False).distinct()
+    users       = User.objects.filter(ticket__isnull=False).distinct()
     staff_users = User.objects.filter(is_staff=True)
-
     new_tickets = Ticket.objects.filter(status='pending').order_by('-created_at')[:5]
 
-    unread_messages = TicketComment.objects.filter(
-    is_read=False,
-    sender__is_staff=False,
-    sender__is_superuser=False
-    ).order_by('-created_at')[:5]
+    unread_filter = dict(is_read=False, sender__is_staff=False, sender__is_superuser=False)
+    unread_messages = TicketComment.objects.filter(**unread_filter)\
+                                          .select_related('ticket', 'sender')\
+                                          .order_by('-created_at')[:5]
+    unread_count    = TicketComment.objects.filter(**unread_filter).count()
 
-    unread_count = TicketComment.objects.filter(
-        is_read=False,
-        sender__is_staff=False,
-        sender__is_superuser=False
-    ).count()
-
-    tickets_with_messages = Ticket.objects.filter(
-        chats__sender__is_staff=False
-    ).distinct().order_by('-created_at')
-
-    if selected_user:
-        tickets_with_messages = tickets_with_messages.filter(user_id=selected_user)
-
-    gallery_tickets = Ticket.objects.all().order_by('-created_at')
-
+    gallery_tickets = Ticket.objects.select_related('user', 'purchase').order_by('-created_at')
     if selected_user:
         gallery_tickets = gallery_tickets.filter(user_id=selected_user)
-
     if selected_purchase:
         gallery_tickets = gallery_tickets.filter(purchase__purchase_id=selected_purchase)
 
-    if selected_user:
-        purchases = Purchase.objects.filter(user_id=selected_user).distinct()
-    else:
-        purchases = Purchase.objects.none()
+    purchases = Purchase.objects.filter(user_id=selected_user).distinct() if selected_user else Purchase.objects.none()
 
     return render(request, 'Dashboard/index.html', {
-        'total': total,
-        'pending': pending,
-        'resolved': resolved,
-        'in_progress': in_progress,
-        'tickets': tickets,
-        'staff_users': staff_users,
-        'new_tickets': new_tickets,
-        'unread_messages': unread_messages,
-        'unread_count': unread_count,
-        'tickets_with_messages': tickets_with_messages,
-        'users': users,
-        'purchases': purchases,
-        'selected_user': selected_user,
-        'selected_purchase': selected_purchase,
-        'gallery_tickets': gallery_tickets,
+        **stats,
+        'tickets':             tickets,
+        'staff_users':         staff_users,
+        'new_tickets':         new_tickets,
+        'unread_messages':     unread_messages,
+        'unread_count':        unread_count,
+        'users':               users,
+        'purchases':           purchases,
+        'selected_user':       selected_user,
+        'selected_purchase':   selected_purchase,
+        'gallery_tickets':     gallery_tickets,
     })
 
 
 # =============================================
-# 🚪 ADMIN LOGOUT — sirf admin ka session clear
+# 🚪 ADMIN LOGOUT
 # =============================================
+
 def admin_logout(request):
     request.session.flush()
     return redirect('admin_login')
@@ -469,180 +365,124 @@ def admin_logout(request):
 # =============================================
 # 🎟️ ADMIN TICKET VIEWS
 # =============================================
+
+@admin_session_required
 def admin_reply(request, ticket_id):
-    ticket = Ticket.objects.get(id=ticket_id)
-
+    ticket = get_object_or_404(Ticket, id=ticket_id)
     if request.method == "POST":
-        message = request.POST.get("message")
-
-        TicketComment.objects.create(
-            ticket=ticket,
-            sender=request.user,
-            message=message,
-            is_read=False
-        )
-
+        message = request.POST.get("message", "").strip()
+        if message:
+            TicketService.add_comment(ticket, request.user, message)
     return redirect("admin_dashboard")
 
 
 @admin_session_required
 def admin_ticket_chat(request, ticket_id):
-    ticket = get_object_or_404(Ticket, id=ticket_id)
-    tickets = Ticket.objects.all()
-    messages = TicketComment.objects.filter(ticket=ticket).order_by('created_at')
+    ticket   = get_object_or_404(Ticket, id=ticket_id)
+    tickets  = Ticket.objects.select_related('user').all()
+    comments = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
 
     if request.method == "POST":
-        msg = request.POST.get("message")
-
-        TicketComment.objects.create(
-            ticket=ticket,
-            message=msg,
-            sender=request.user
-        )
-
+        msg = request.POST.get("message", "").strip()
+        if msg:
+            TicketService.add_comment(ticket, request.user, msg)
         return redirect('admin_ticket_chat', ticket_id=ticket.id)
 
     return render(request, 'Dashboard/chat.html', {
-        'ticket': ticket,
-        'tickets': tickets,
-        'messages': messages
+        'ticket':   ticket,
+        'tickets':  tickets,
+        'messages': comments,
     })
 
 
 @admin_session_required
 def admin_view_ticket(request, id):
-    ticket = get_object_or_404(Ticket, id=id)
-    messages = TicketComment.objects.filter(ticket=ticket).order_by('created_at')
+    ticket   = get_object_or_404(Ticket, id=id)
+    comments = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
 
-
-    TicketComment.objects.filter(
-        ticket=ticket,
-        is_read=False,
-        sender__is_staff=False,
-        sender__is_superuser=False
-    ).update(is_read=True)
+    TicketService.mark_comments_read(ticket, exclude_staff=True)
 
     if request.method == "POST":
-        msg = request.POST.get("message")
-
+        msg = request.POST.get("message", "").strip()
         if msg:
-            TicketComment.objects.create(
-                ticket=ticket,
-                message=msg,
-                sender=request.user
-            )
-
+            TicketService.add_comment(ticket, request.user, msg)
         return redirect('admin_view_ticket', id=id)
 
     return render(request, 'Dashboard/view_ticket.html', {
-        't': ticket,
-        'messages': messages
+        't':        ticket,
+        'messages': comments,
     })
 
 
 @admin_session_required
-def view_image(request, ticket_id):
-    ticket = get_object_or_404(Ticket, id=ticket_id)
-
-    return render(request, 'Dashboard/index.html', {
-        'ticket': ticket
-    })
-
-
 def update_ticket_status(request, ticket_id):
-    if not request.user.is_staff or request.session.get('role') != 'admin':
-        return redirect('admin_login')
-
     ticket = get_object_or_404(Ticket, id=ticket_id)
-
     if request.method == "POST":
-        status = request.POST.get("status")
-
-        if status in ["pending", "in_progress", "resolved"]:
-            ticket.status = status
-            ticket.save()
-
+        TicketService.update_status(ticket, request.POST.get("status", ""))
     return redirect('admin_dashboard')
 
 
+@admin_session_required
 def assign_ticket(request, ticket_id):
-    if not request.user.is_superuser or request.session.get('role') != 'admin':
+    if not request.user.is_superuser:
         return redirect('admin_dashboard')
 
     ticket = get_object_or_404(Ticket, id=ticket_id)
-
     if request.method == "POST":
-        staff_id = request.POST.get("staff_id")
-        staff = User.objects.get(id=staff_id)
-
-        ticket.assigned_to = staff
-        ticket.status = "in_progress"
-        ticket.save()
-
+        staff = get_object_or_404(User, id=request.POST.get("staff_id"))
+        TicketService.assign_to_staff(ticket, staff)
         return redirect('admin_dashboard')
 
 
 # =============================================
 # 💬 ADMIN CHAT
 # =============================================
+
 @admin_session_required
 def admin_chat_list(request):
     users = User.objects.filter(is_staff=True).exclude(id=request.user.id)
-
-    return render(request, 'Dashboard/chat_list.html', {
-        'users': users
-    })
+    return render(request, 'Dashboard/chat_list.html', {'users': users})
 
 
 @admin_session_required
 def admin_chat_detail(request, user_id):
     other_user = get_object_or_404(User, id=user_id)
-
-    messages = AdminChat.objects.filter(
+    chat_messages = AdminChat.objects.filter(
         Q(sender=request.user, receiver=other_user) |
-        Q(sender=other_user, receiver=request.user)
+        Q(sender=other_user,   receiver=request.user)
     ).order_by('created_at')
 
     AdminChat.objects.filter(
-        sender=other_user,
-        receiver=request.user,
-        is_read=False
+        sender=other_user, receiver=request.user, is_read=False
     ).update(is_read=True)
 
     return render(request, 'Dashboard/chat_detail.html', {
-        'messages': messages,
-        'other_user': other_user
+        'messages':   chat_messages,
+        'other_user': other_user,
     })
 
 
+@admin_session_required
 def send_admin_message(request, user_id):
     if request.method == "POST":
-        msg = request.POST.get("message")
-        receiver = User.objects.get(id=user_id)
-
-        AdminChat.objects.create(
-            sender=request.user,
-            receiver=receiver,
-            message=msg
-        )
-
+        msg      = request.POST.get("message", "").strip()
+        receiver = get_object_or_404(User, id=user_id)
+        if msg:
+            AdminChat.objects.create(sender=request.user, receiver=receiver, message=msg)
     return redirect('admin_chat_detail', user_id=user_id)
 
 
 # =============================================
 # 👥 ADMIN STAFF MANAGEMENT
 # =============================================
+
 @admin_session_required
 def admin_staff_list(request):
-    staffs = StaffProfile.objects.all().order_by('-id')
-
-    pending_staff_count = StaffProfile.objects.filter(is_approved=False).count()
-    approved_staff_count = StaffProfile.objects.filter(is_approved=True).count()
-
+    staffs = StaffProfile.objects.select_related('user').order_by('-id')
     return render(request, "Dashboard/manage_staff.html", {
-        "staffs": staffs,
-        "pending_staff_count": pending_staff_count,
-        "approved_staff_count": approved_staff_count,
+        "staffs":               staffs,
+        "pending_staff_count":  staffs.filter(is_approved=False).count(),
+        "approved_staff_count": staffs.filter(is_approved=True).count(),
     })
 
 
@@ -652,11 +492,10 @@ def approve_staff(request, id):
         return redirect("admin_login")
 
     profile = get_object_or_404(StaffProfile, id=id)
-    profile.is_approved = True
+    profile.is_approved   = True
     profile.user.is_staff = True
-    profile.user.save()
-    profile.save()
-
+    profile.user.save(update_fields=['is_staff'])
+    profile.save(update_fields=['is_approved'])
     return redirect("admin_staff_list")
 
 
@@ -665,136 +504,108 @@ def reject_staff(request, id):
     if not request.user.is_superuser:
         return redirect("admin_login")
 
-    profile = get_object_or_404(StaffProfile, id=id)
-    profile.delete()
-
+    get_object_or_404(StaffProfile, id=id).delete()
     return redirect("admin_staff_list")
 
 
 # =============================================
 # 🧑‍💻 STAFF REGISTER
 # =============================================
+
 def staff_register(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
 
         if User.objects.filter(username=username).exists():
             return render(request, "Staff_dashboard/register.html", {
                 "error": "Username already exists"
             })
 
-        user = User.objects.create_user(username=username, password=password)
-        user.is_staff = False
-        user.is_superuser = False
-        user.save()
-
+        user = User.objects.create_user(username=username, password=password,
+                                        is_staff=False, is_superuser=False)
         StaffProfile.objects.create(user=user)
-
         return render(request, "Staff_dashboard/register.html", {
-            "msg": "✅ Request sent to admin"
+            "msg": "Request sent to admin for approval."
         })
 
     return render(request, "Staff_dashboard/register.html")
 
 
 # =============================================
-# 🔐 STAFF LOGIN — role = 'staff' set hoga
+# 🔐 STAFF LOGIN
 # =============================================
+
 def staff_login(request):
-    # ✅ Agar already staff session hai toh dashboard pe bhejo
     if request.user.is_authenticated and request.session.get('role') == 'staff':
         return redirect('staff_dashboard')
 
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        user     = authenticate(request, username=username, password=password)
 
-        user = authenticate(request, username=username, password=password)
-
-        if user is None:
-            return render(request, "staff_dashboard/login.html", {
-                "error": "Invalid credentials"
-            })
+        if not user:
+            return render(request, "staff_dashboard/login.html", {"error": "Invalid credentials"})
 
         if not user.is_staff:
-            return render(request, "staff_dashboard/login.html", {
-                "error": "Not a staff account"
-            })
+            return render(request, "staff_dashboard/login.html", {"error": "Not a staff account"})
 
-        profile = StaffProfile.objects.filter(user=user).first()
-
+        profile = StaffProfile.objects.filter(user=user, is_approved=True).first()
         if not profile:
             return render(request, "staff_dashboard/login.html", {
-                "error": "Profile not found"
-            })
-
-        if not profile.is_approved:
-            return render(request, "staff_dashboard/login.html", {
-                "error": "Waiting for admin approval"
+                "error": "Account not approved yet. Please wait for admin approval."
             })
 
         login(request, user)
-        # ✅ IMPORTANT: Staff ka role session mein save karo
         request.session['role'] = 'staff'
-
         return redirect("staff_dashboard")
 
     return render(request, "staff_dashboard/login.html")
 
 
 # =============================================
-# 📊 STAFF DASHBOARD — sirf staff role wala access kar sakta hai
+# 📊 STAFF DASHBOARD
 # =============================================
+
 @staff_session_required
 def staff_dashboard(request):
     user = request.user
 
-    try:
-        profile = StaffProfile.objects.get(user=user)
-    except StaffProfile.DoesNotExist:
-        return redirect("staff_login")
+    # Decorator already approved check karta hai — phir bhi safe fallback
+    profile = get_object_or_404(StaffProfile, user=user, is_approved=True)
 
-    if not profile.is_approved:
-        return redirect("staff_login")
+    tickets = Ticket.objects.filter(assigned_to=user)\
+                             .select_related("user", "purchase")\
+                             .order_by("-id")
 
-    tickets = Ticket.objects.filter(
-        assigned_to=user
-    ).select_related("user", "purchase").order_by("-id")
+    stats = tickets.aggregate(
+        total       = Count('id'),
+        pending     = Count('id', filter=Q(status='pending')),
+        in_progress = Count('id', filter=Q(status='in_progress')),
+        resolved    = Count('id', filter=Q(status='resolved')),
+    )
 
-    total = tickets.count()
-    pending = tickets.filter(status="pending").count()
-    in_progress = tickets.filter(status="in_progress").count()
-    resolved = tickets.filter(status="resolved").count()
+    recent_messages = TicketComment.objects.filter(ticket__assigned_to=user)\
+                                           .select_related("ticket", "ticket__user")\
+                                           .order_by("-id")[:5]
 
-    recent_messages = TicketComment.objects.filter(
-        ticket__assigned_to=user
-    ).select_related("ticket", "ticket__user").order_by("-id")[:5]
-
-    unread_messages_count = TicketComment.objects.filter(
-        ticket__assigned_to=user,
-        is_read=False
-    ).count()
-
-    assigned_tickets = tickets[:5]
-    assigned_count = tickets.count()
+    unread_count = TicketComment.objects.filter(ticket__assigned_to=user, is_read=False).count()
 
     return render(request, "staff_dashboard/staff_dashboard.html", {
-        "tickets": tickets,
-        "total": total,
-        "pending": pending,
-        "in_progress": in_progress,
-        "resolved": resolved,
-        "recent_messages": recent_messages,
-        "unread_messages_count": unread_messages_count,
-        "assigned_tickets": assigned_tickets,
-        "assigned_count": assigned_count,
+        **stats,
+        "tickets":              tickets,
+        "recent_messages":      recent_messages,
+        "unread_messages_count":unread_count,
+        "assigned_tickets":     tickets[:5],
+        "assigned_count":       tickets.count(),
     })
 
 
 # =============================================
-# 🚪 STAFF LOGOUT — sirf staff ka session clear
+# 🚪 STAFF LOGOUT
 # =============================================
+
 def staff_logout(request):
     request.session.flush()
     return redirect('staff_login')
@@ -803,25 +614,21 @@ def staff_logout(request):
 # =============================================
 # 🎟️ STAFF TICKET VIEWS
 # =============================================
+
 @staff_session_required
 def staff_ticket_chat(request, ticket_id):
-    ticket = Ticket.objects.get(id=ticket_id, assigned_to=request.user)
-    messages = TicketComment.objects.filter(ticket=ticket)
+    ticket   = get_object_or_404(Ticket, id=ticket_id, assigned_to=request.user)
+    comments = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
 
     if request.method == "POST":
-        msg = request.POST.get("message")
-
-        TicketComment.objects.create(
-            ticket=ticket,
-            sender=request.user,
-            message=msg
-        )
-
+        msg = request.POST.get("message", "").strip()
+        if msg:
+            TicketService.add_comment(ticket, request.user, msg)
         return redirect('staff_ticket_chat', ticket_id=ticket.id)
 
     return render(request, "staff_dashboard/staff_ticket_chat.html", {
-        "ticket": ticket,
-        "messages": messages
+        "ticket":   ticket,
+        "messages": comments,
     })
 
 
@@ -830,71 +637,70 @@ def staff_view_ticket(request, id):
     ticket = get_object_or_404(Ticket, id=id)
 
     if ticket.assigned_to != request.user:
-        return HttpResponseForbidden("Not allowed")
+        return HttpResponseForbidden("You are not assigned to this ticket.")
 
-    TicketComment.objects.filter(
-        ticket=ticket,
-        sender=ticket.user,
-        is_read=False
-    ).update(is_read=True)
+    TicketService.mark_comments_read(ticket, exclude_staff=False)
 
     if request.method == "POST":
-        msg = request.POST.get("message")
+        msg = request.POST.get("message", "").strip()
         if msg:
-            TicketComment.objects.create(
-                ticket=ticket,
-                sender=request.user,
-                message=msg
-            )
+            TicketService.add_comment(ticket, request.user, msg)
         return redirect("staff_view_ticket", id=id)
 
-    comments = TicketComment.objects.filter(ticket=ticket).order_by("created_at")
-
+    comments = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
     return render(request, 'staff_dashboard/view_ticket.html', {
-        'ticket': ticket,
+        'ticket':   ticket,
         'comments': comments,
     })
 
 
 @staff_session_required
 def update_ticket(request, id):
-    ticket = get_object_or_404(Ticket, id=id)
-
     if request.method != "POST":
-        return HttpResponseForbidden("Invalid request")
+        return HttpResponseForbidden("Invalid request method.")
 
-    if ticket.assigned_to != request.user:
-        return HttpResponseForbidden("Not allowed")
-
-    status = request.POST.get("status")
-    if status in ["pending", "in_progress", "resolved"]:
-        ticket.status = status
-        ticket.save()
-
+    ticket = get_object_or_404(Ticket, id=id, assigned_to=request.user)
+    TicketService.update_status(ticket, request.POST.get("status", ""))
     return redirect("staff_dashboard")
 
 
 # =============================================
-# 🛡️ HELPER DECORATORS (backup)
+# 🔌 API ENDPOINT
 # =============================================
-def staff_required(view_func):
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect("staff_login")
-        if not request.user.is_staff:
-            return redirect("staff_login")
-        if request.session.get('role') != 'staff':
-            return redirect("staff_login")
-        profile = StaffProfile.objects.filter(user=request.user).first()
-        if not profile or not profile.is_approved:
-            return redirect("staff_login")
-        return view_func(request, *args, **kwargs)
-    return wrapper
+
+@login_required_token
+def get_tickets(request):
+    tickets = TicketService.get_user_tickets(request._token_user)
+    data = [{"title": t.title, "description": t.description, "status": t.status}
+            for t in tickets]
+    return JsonResponse({"tickets": data})
+
+# =============================================
+# 🔌close Ticket
+# =============================================
+
+@login_required_token
+def close_ticket(request, ticket_id):
+    user   = request._token_user
+    ticket = get_object_or_404(Ticket, id=ticket_id, user=user)
+    
+    if request.method == "POST":
+        ticket.status = 'resolved'
+        ticket.save(update_fields=['status'])
+        messages.success(request, "Ticket closed successfully!")
+        return redirect('profile')
+    
+    return redirect('user_ticket_chat', ticket_id=ticket_id)
 
 
-def admin_only(view_func):
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_staff or request.session.get('role') != 'admin':
-            return HttpResponseForbidden("Access Denied")
-        return view_func(request, *args, **kwargs)
-    return wrapper
+@admin_session_required
+def mark_notifications_read(request):
+    """Notifications dekhi — sab read mark karo"""
+    if request.method == "POST":
+        TicketComment.objects.filter(
+            is_read=False,
+            sender__is_staff=False,
+            sender__is_superuser=False
+        ).update(is_read=True)
+        return JsonResponse({"status": "ok"})
+    return JsonResponse({"status": "error"})

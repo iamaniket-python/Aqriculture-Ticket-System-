@@ -1,240 +1,238 @@
 {% extends 'Dashboard/base.html' %}
 
 {% block content %}
-
 {% load static %}
 
 <style>
-.img-popup{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.8);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
+.img-popup {
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.8);display:none;
+  justify-content:center;align-items:center;z-index:9999;
 }
+.img-popup img { max-width:80%;max-height:80%;border-radius:10px; }
+.img-popup:target { display:flex; }
 
-.img-popup img{
-  max-width:80%;
-  max-height:80%;
-  border-radius:10px;
+/* Close modal */
+.modal-overlay {
+  display:none;position:fixed;top:0;left:0;
+  width:100%;height:100%;background:rgba(0,0,0,0.5);
+  backdrop-filter:blur(4px);z-index:9999;
+  justify-content:center;align-items:center;
 }
-
-.img-popup:target{
-  display:flex;
+.modal-box {
+  background:white;border-radius:18px;padding:28px 24px;
+  max-width:360px;width:90%;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);
 }
+.modal-box h5 { font-weight:700;margin-bottom:8px; }
+.modal-box p  { color:#6b7280;font-size:14px;margin-bottom:20px; }
+.modal-btns   { display:flex;gap:10px;justify-content:center; }
 </style>
+
+<!-- CLOSE CONFIRM MODAL -->
+<div class="modal-overlay" id="closeModal">
+  <div class="modal-box">
+    <div style="font-size:40px;margin-bottom:10px;">✅</div>
+    <h5>Close this ticket?</h5>
+    <p>Issue resolve ho gaya hai? Ticket closed mark ho jayega.</p>
+    <div class="modal-btns">
+      <button onclick="hideModal()"
+        style="padding:10px 20px;background:#f3f4f6;border:none;border-radius:10px;cursor:pointer;font-size:14px;">
+        Cancel
+      </button>
+      <form method="POST" action="{% url 'admin_update_ticket' t.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="status" value="resolved">
+        <button type="submit"
+          style="padding:10px 20px;background:#16a34a;color:white;border:none;border-radius:10px;cursor:pointer;font-size:14px;">
+          Yes, Close Ticket
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
 
 <div class="container-fluid px-3">
 
-  <!-- PAGE TITLE -->
-  <div class="page-header">
+  <!-- PAGE HEADER -->
+  <div class="page-header d-flex justify-content-between align-items-center">
     <h3 class="page-title">🎫 Ticket Details</h3>
+    <div style="display:flex;gap:8px;align-items:center;">
 
-    <a href="{% url 'admin_dashboard' %}" class="btn btn-light">
-      ⬅ Back
-    </a>
+      {% if t.status != 'resolved' %}
+      <button onclick="showModal()"
+        style="background:#16a34a;color:white;border:none;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:14px;">
+        ✅ Close Ticket
+      </button>
+      {% else %}
+      <span style="background:#dcfce7;color:#16a34a;padding:8px 16px;border-radius:10px;font-size:14px;font-weight:500;">
+        ✅ Ticket Closed
+      </span>
+      {% endif %}
+
+      <a href="{% url 'admin_dashboard' %}" class="btn btn-light">⬅ Back</a>
+    </div>
   </div>
 
   <!-- CARD -->
   <div class="card shadow-sm" style="border-radius:12px;">
     <div class="card-body">
 
-      <!-- (your full content SAME AS IT IS) -->
-
-
-        <!-- 👤 USER INFO -->
-        <h5 class="mb-3">👤 User Info</h5>
-
-        <div class="row mb-4">
-          <div class="col-md-6">
-            <p><b>Username:</b> {{ t.user.username }}</p>
-            <p><b>Email:</b> {{ t.user.email }}</p>
-          </div>
-          <div class="col-md-6">
-            <p><b>Order ID:</b> {{ t.purchase.purchase_id }}</p>
-            <p><b>Product:</b> {{ t.purchase.product_name }}</p>
-          </div>
+      <!-- USER INFO -->
+      <h5 class="mb-3">👤 User Info</h5>
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <p><b>Username:</b> {{ t.user.username }}</p>
+          <p><b>Email:</b> {{ t.user.email }}</p>
         </div>
-
-        <hr>
-
-        <!-- 📄 TICKET INFO -->
-        <h5 class="mb-3">📄 Ticket Info</h5>
-
-        <div class="row mb-4">
-          <div class="col-md-6">
-            <p><b>Category:</b> {{ t.category|default:"-" }}</p>
-            <p><b>Other:</b> {{ t.other|default:"-" }}</p>
-            <p><b>Title:</b> {{ t.title|default:"-" }}</p>
-          </div>
-
-          <div class="col-md-6">
-            <p><b>Status:</b>
-              <span class="badge 
-                {% if t.status == 'pending' %}bg-warning
-                {% elif t.status == 'in_progress' %}bg-info
-                {% else %}bg-success{% endif %}">
-                {{ t.status|title }}
-              </span>
-            </p>
-
-            <p><b>Date:</b> {{ t.created_at|date:"d M Y" }}</p>
-          </div>
+        <div class="col-md-6">
+          <p><b>Order ID:</b> {{ t.purchase.purchase_id }}</p>
+          <p><b>Product:</b> {{ t.purchase.product_name }}</p>
         </div>
+      </div>
 
-        <!-- 📝 DESCRIPTION -->
-        <div class="mb-4">
-          <h6>Description</h6>
-          <div style="
-            background:#f8f9fa;
-            padding:12px;
-            border-radius:8px;">
-            {{ t.description }}
-          </div>
+      <hr>
+
+      <!-- TICKET INFO -->
+      <h5 class="mb-3">📄 Ticket Info</h5>
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <p><b>Category:</b> {{ t.category|default:"-" }}</p>
+          <p><b>Other:</b> {{ t.other|default:"-" }}</p>
+          <p><b>Title:</b> {{ t.title|default:"-" }}</p>
         </div>
+        <div class="col-md-6">
+          <p><b>Status:</b>
+            <span class="badge
+              {% if t.status == 'pending' %}bg-warning
+              {% elif t.status == 'in_progress' %}bg-info
+              {% else %}bg-success{% endif %}">
+              {{ t.status|title }}
+            </span>
+          </p>
+          <p><b>Date:</b> {{ t.created_at|date:"d M Y" }}</p>
+        </div>
+      </div>
 
-        <hr>
+      <!-- DESCRIPTION -->
+      <div class="mb-4">
+        <h6>Description</h6>
+        <div style="background:#f8f9fa;padding:12px;border-radius:8px;">
+          {{ t.description }}
+        </div>
+      </div>
 
-        <!-- 🖼 IMAGES -->
-        <h5 class="mb-3">🖼 Images</h5>
+      <hr>
 
-        <div style="display:flex; flex-wrap:wrap; gap:10px;">
-
-  {% if t.image %}
-    <a href="#img-main-{{ t.id }}">
-      <img src="{{ t.image.url }}"
-           style="width:120px;height:120px;object-fit:cover;border-radius:8px;cursor:pointer;">
-    </a>
-  {% endif %}
-
-  {% for img in t.images.all %}
-    <a href="#img-sub-{{ img.id }}">
-      <img src="{{ img.image.url }}"
-           style="width:120px;height:120px;object-fit:cover;border-radius:8px;cursor:pointer;">
-    </a>
-  {% endfor %}
-
-</div>
-{% if t.image %}
-<div id="img-main-{{ t.id }}" class="img-popup">
-  <a href="#" class="close">&times;</a>
-  <img src="{{ t.image.url }}">
-</div>
-{% endif %}
-
-{% for img in t.images.all %}
-<div id="img-sub-{{ img.id }}" class="img-popup">
-  <a href="#" class="close">&times;</a>
-  <img src="{{ img.image.url }}">
-</div>
-{% endfor %}
-
-{% for img in t.images.all %}
-<div id="img{{ img.id }}" class="img-popup">
-  <a href="#" class="close">&times;</a>
-  <img src="{{ img.image.url }}">
-</div>
-{% endfor %}
-
-        <hr>
-
-        <!-- 📄 DOCUMENT -->
-        <h5 class="mb-3">📄 Document</h5>
-
-        {% if t.document %}
-          <a href="{{ t.document.url }}" target="_blank"
-             class="btn btn-outline-primary btn-sm">
-             View Document
+      <!-- IMAGES -->
+      <h5 class="mb-3">🖼 Images</h5>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        {% for img in t.images.all %}
+          <a href="#img-sub-{{ img.id }}">
+            <img src="{{ img.image.url }}"
+                 style="width:120px;height:120px;object-fit:cover;border-radius:8px;cursor:pointer;">
           </a>
-        {% else %}
-          <p style="color:#999;">No document uploaded</p>
-        {% endif %}
-
+        {% empty %}
+          <p style="color:#999;">No images uploaded</p>
+        {% endfor %}
       </div>
-    </div>
-<hr>
-
-<h5 class="mb-3">💬 Chat</h5>
-
-<!-- CHAT BOX -->
-<div style="
-  height:350px;
-  overflow-y:auto;
-  background:#f5f6fa;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:15px;
-">
-
-  {% for msg in messages %}
-
-    {% if not msg.sender.is_staff %}
-    <!-- USER MESSAGE -->
-    <div style="display:flex; justify-content:flex-start; margin-bottom:10px;">
-      <div style="max-width:65%;">
-        <div style="font-size:12px; color:#777;">{{ msg.sender.username }}</div>
-
-        <div style="
-          background:white;
-          padding:10px;
-          border-radius:10px;
-          border-top-left-radius:2px;
-          box-shadow:0 2px 5px rgba(0,0,0,0.05);
-        ">
-          {{ msg.message }}
-        </div>
+      {% for img in t.images.all %}
+      <div id="img-sub-{{ img.id }}" class="img-popup">
+        <a href="#" class="close">&times;</a>
+        <img src="{{ img.image.url }}">
       </div>
+      {% endfor %}
+
+      <hr>
+
+      <!-- DOCUMENT -->
+      <h5 class="mb-3">📄 Document</h5>
+      {% if t.document %}
+        <a href="{{ t.document.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+          View Document
+        </a>
+      {% else %}
+        <p style="color:#999;">No document uploaded</p>
+      {% endif %}
+
     </div>
-
-    {% else %}
-    <!-- ADMIN MESSAGE -->
-    <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-      <div style="max-width:65%; text-align:right;">
-        <div style="font-size:12px; color:#777;">Admin</div>
-
-        <div style="
-          background:#6c63ff;
-          color:white;
-          padding:10px;
-          border-radius:10px;
-          border-top-right-radius:2px;
-        ">
-          {{ msg.message }}
-        </div>
-      </div>
-    </div>
-
-    {% endif %}
-
-  {% empty %}
-    <p style="text-align:center; color:#999;">No messages yet</p>
-  {% endfor %}
-
-</div>
-
-<!-- SEND MESSAGE -->
-<form method="POST">
-  {% csrf_token %}
-  <div class="input-group">
-    <input type="text"
-           name="message"
-           class="form-control"
-           placeholder="Type message..."
-           required>
-
-    <button class="btn btn-gradient-primary">
-      Send
-    </button>
   </div>
-</form>
-  </div>
-</div>
 
+  <hr>
 
+  <!-- CHAT -->
+  <div class="card shadow-sm mt-3" style="border-radius:12px;">
+    <div class="card-body">
+      <h5 class="mb-3">💬 Chat</h5>
+
+      <!-- CHAT BOX -->
+      <div id="chatBox" style="
+        height:350px;overflow-y:auto;background:#f5f6fa;
+        padding:15px;border-radius:10px;margin-bottom:15px;">
+
+        {% for msg in messages %}
+          {% if not msg.sender.is_staff %}
+          <!-- USER -->
+          <div style="display:flex;justify-content:flex-start;margin-bottom:10px;">
+            <div style="max-width:65%;">
+              <div style="font-size:12px;color:#777;">{{ msg.sender.username }}</div>
+              <div style="background:white;padding:10px;border-radius:10px;border-top-left-radius:2px;box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                {{ msg.message }}
+              </div>
+            </div>
           </div>
+          {% else %}
+          <!-- ADMIN -->
+          <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+            <div style="max-width:65%;text-align:right;">
+              <div style="font-size:12px;color:#777;">Admin</div>
+              <div style="background:#6c63ff;color:white;padding:10px;border-radius:10px;border-top-right-radius:2px;">
+                {{ msg.message }}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        {% empty %}
+          <p style="text-align:center;color:#999;">No messages yet</p>
+        {% endfor %}
+
+      </div>
+
+      <!-- INPUT — resolved ho gayi toh disable -->
+      {% if t.status != 'resolved' %}
+      <form method="POST">
+        {% csrf_token %}
+        <div class="input-group">
+          <input type="text" name="message" class="form-control"
+                 placeholder="Type message..." required>
+          <button class="btn btn-gradient-primary">Send</button>
+        </div>
+      </form>
+      {% else %}
+      <div style="text-align:center;padding:12px;background:#f0fdf4;border-radius:12px;color:#16a34a;font-size:14px;">
+        ✅ Ticket closed — messaging disabled
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Auto scroll chat
+  let chatBox = document.getElementById("chatBox");
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  function showModal() {
+    document.getElementById("closeModal").style.display = "flex";
+  }
+  function hideModal() {
+    document.getElementById("closeModal").style.display = "none";
+  }
+  document.getElementById("closeModal").addEventListener("click", function(e) {
+    if (e.target === this) hideModal();
+  });
+</script>
+
 {% endblock %}

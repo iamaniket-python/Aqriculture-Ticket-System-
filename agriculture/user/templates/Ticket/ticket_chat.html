@@ -5,13 +5,7 @@
     background: #f2f2f2;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
   }
-
-  .wrapper {
-    max-width: 900px;
-    margin: auto;
-  }
-
-  /* TOP BAR */
+  .wrapper { max-width: 900px; margin: auto; }
   .top-bar {
     background: #fff;
     padding: 14px 18px;
@@ -22,12 +16,7 @@
     align-items: center;
     margin-bottom: 15px;
   }
-
-  .title {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
+  .title { font-size: 16px; font-weight: 600; }
   .back-btn {
     text-decoration: none;
     background: #000;
@@ -35,23 +24,15 @@
     padding: 8px 14px;
     border-radius: 10px;
     font-size: 13px;
-    transition: 0.2s;
   }
-
-  .back-btn:hover {
-    background: #333;
-  }
-
-  /* ORDER CARD */
   .order-card {
     background: #fff;
     border-radius: 18px;
     padding: 18px;
     border: 1px solid #e8e8e8;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     margin-bottom: 15px;
   }
-
   .order-row {
     display: flex;
     justify-content: space-between;
@@ -59,20 +40,14 @@
     font-size: 14px;
     color: #444;
   }
-
-  .label {
-    color: #888;
-  }
-
-  /* CHAT CARD */
+  .label { color: #888; }
   .chat-card {
     background: #fff;
     border-radius: 18px;
     border: 1px solid #e8e8e8;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     padding: 15px;
   }
-
   .chat-box {
     height: 450px;
     overflow-y: auto;
@@ -81,74 +56,90 @@
     border-radius: 14px;
   }
 
-  /* MSG */
-  .msg {
-    display: flex;
-    margin: 10px 0;
+  /* Close confirm modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
   }
-
-  .right {
-    justify-content: flex-end;
-  }
-  .left {
-    justify-content: flex-start;
-  }
-
-  .bubble {
-    max-width: 70%;
-    padding: 10px 14px;
+  .modal-box {
+    background: white;
     border-radius: 18px;
-    font-size: 14px;
-    line-height: 1.4;
-    word-break: break-word;
+    padding: 28px 24px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   }
-
-  .user {
-    background: #000;
-    color: #fff;
-    border-bottom-right-radius: 5px;
-  }
-
-  .admin {
-    background: #e9e9e9;
-    color: #000;
-    border-bottom-left-radius: 5px;
-  }
-
-  /* INPUT */
-  .input-box {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-  }
-
-  .input-box input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px solid #ddd;
-    outline: none;
-  }
-
-  .input-box button {
-    background: #000;
-    color: #fff;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 12px;
-    cursor: pointer;
-  }
-
-  .input-box button:hover {
-    background: #333;
-  }
+  .modal-box h5 { font-weight: 700; margin-bottom: 8px; }
+  .modal-box p  { color: #6b7280; font-size: 14px; margin-bottom: 20px; }
+  .modal-btns   { display: flex; gap: 10px; justify-content: center; }
 </style>
 
+<!-- CLOSE CONFIRM MODAL -->
+<div class="modal-overlay" id="closeModal">
+  <div class="modal-box">
+    <div style="font-size:40px; margin-bottom:10px;">✅</div>
+    <h5>Close this ticket?</h5>
+    <p>Issue resolve ho gaya hai? Ticket close karne ke baad reopen nahi hoga.</p>
+    <div class="modal-btns">
+      <button onclick="hideModal()"
+        style="padding:10px 20px;background:#f3f4f6;border:none;border-radius:10px;cursor:pointer;font-size:14px;">
+        Cancel
+      </button>
+      <form method="POST" action="{% url 'close_ticket' ticket.id %}">
+        {% csrf_token %}
+        <button type="submit"
+          style="padding:10px 20px;background:#16a34a;color:white;border:none;border-radius:10px;cursor:pointer;font-size:14px;">
+          Yes, Close Ticket
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="wrapper mt-4">
+
   <!-- TOP BAR -->
   <div class="top-bar">
     <div class="title">💬 Ticket Chat</div>
-    <a href="{% url 'profile' %}" class="back-btn">← Back</a>
+    <div style="display:flex; gap:8px;">
+
+      <!-- Close button — sirf tab dikhega jab ticket resolved nahi hai -->
+      {% if ticket.status != 'resolved' %}
+      <button onclick="showModal()"
+        style="
+          background:#16a34a;
+          color:white;
+          border:none;
+          padding:8px 14px;
+          border-radius:10px;
+          font-size:13px;
+          cursor:pointer;
+        ">
+        ✅ Close Ticket
+      </button>
+      {% else %}
+      <span style="
+        background:#dcfce7;
+        color:#16a34a;
+        padding:8px 14px;
+        border-radius:10px;
+        font-size:13px;
+        font-weight:500;
+      ">
+        ✅ Ticket Closed
+      </span>
+      {% endif %}
+
+      <a href="{% url 'profile' %}" class="back-btn">← Back</a>
+    </div>
   </div>
 
   <!-- ORDER INFO -->
@@ -157,105 +148,113 @@
       <span class="label">Order ID</span>
       <span><b>{{ ticket.purchase.purchase_id }}</b></span>
     </div>
-
     <div class="order-row">
       <span class="label">Product</span>
       <span>{{ ticket.purchase.product_name }}</span>
     </div>
-
     <div class="order-row">
       <span class="label">Status</span>
-      <span><b>{{ ticket.status }}</b></span>
+      <span>
+        {% if ticket.status == 'pending' %}
+          <span style="color:orange;">⏳ Pending</span>
+        {% elif ticket.status == 'resolved' %}
+          <span style="color:green;">✅ Resolved</span>
+        {% elif ticket.status == 'in_progress' %}
+          <span style="color:blue;">🔄 In Progress</span>
+        {% else %}
+          {{ ticket.status }}
+        {% endif %}
+      </span>
     </div>
   </div>
 
   <!-- CHAT -->
- <div class="chat-card">
+  <div class="chat-card">
+    <div class="chat-box" id="chatBox">
+      {% for chat in chats %}
 
-  <!-- CHAT BOX -->
-  <div class="chat-box">
-    {% for chat in chats %}
-
-    {% if chat.sender.is_staff %}
-    <!-- 🔴 ADMIN (RIGHT) -->
-    <div style="display:flex; justify-content:flex-end; margin:10px 0;">
-      <div style="text-align:right;">
-        <div style="font-size:11px; color:#555; margin-bottom:4px;">
-          🔴 Admin ({{ chat.sender.username }})
+        {% if chat.sender.is_staff %}
+        <!-- ADMIN -->
+        <div style="display:flex;justify-content:flex-end;margin:10px 0;">
+          <div style="text-align:right;">
+            <div style="font-size:11px;color:#555;margin-bottom:4px;">
+              🔴 Admin ({{ chat.sender.username }})
+            </div>
+            <div style="
+              background:#000;color:#fff;
+              padding:10px 14px;border-radius:18px;
+              border-bottom-right-radius:5px;
+              max-width:280px;display:inline-block;">
+              {{ chat.message }}
+            </div>
+          </div>
         </div>
 
-        <div style="
-          background:#000;
-          color:#fff;
-          padding:10px 14px;
-          border-radius:18px;
-          border-bottom-right-radius:5px;
-          max-width:280px;
-          display:inline-block;
-        ">
-          {{ chat.message }}
+        {% else %}
+        <!-- USER -->
+        <div style="display:flex;justify-content:flex-start;margin:10px 0;">
+          <div style="text-align:left;">
+            <div style="font-size:11px;color:#555;margin-bottom:4px;">
+              🟢 {{ chat.sender.username }}
+            </div>
+            <div style="
+              background:#e5e5e5;color:#000;
+              padding:10px 14px;border-radius:18px;
+              border-bottom-left-radius:5px;
+              max-width:280px;display:inline-block;">
+              {{ chat.message }}
+            </div>
+          </div>
         </div>
-      </div>
+        {% endif %}
+
+      {% empty %}
+        <p style="text-align:center;color:#999;margin-top:20px;">No messages yet</p>
+      {% endfor %}
     </div>
 
+    <!-- INPUT — resolved ho gayi toh disable -->
+    {% if ticket.status != 'resolved' %}
+    <form method="POST" style="display:flex;gap:10px;margin-top:12px;">
+      {% csrf_token %}
+      <input
+        type="text" name="message"
+        placeholder="Write a message..." required
+        style="flex:1;padding:12px;border-radius:12px;border:1px solid #ddd;outline:none;"
+      >
+      <button type="submit" style="
+        background:#000;color:#fff;border:none;
+        padding:12px 18px;border-radius:12px;cursor:pointer;">
+        Send
+      </button>
+    </form>
     {% else %}
-    <!-- 🟢 USER (LEFT) -->
-    <div style="display:flex; justify-content:flex-start; margin:10px 0;">
-      <div style="text-align:left;">
-        <div style="font-size:11px; color:#555; margin-bottom:4px;">
-          🟢 {{ chat.sender.username }}
-        </div>
-
-        <div style="
-          background:#e5e5e5;
-          color:#000;
-          padding:10px 14px;
-          border-radius:18px;
-          border-bottom-left-radius:5px;
-          max-width:280px;
-          display:inline-block;
-        ">
-          {{ chat.message }}
-        </div>
-      </div>
+    <div style="
+      text-align:center;margin-top:12px;
+      padding:12px;background:#f0fdf4;
+      border-radius:12px;color:#16a34a;font-size:14px;">
+      ✅ Ticket closed — messaging disabled
     </div>
-
     {% endif %}
 
-    {% endfor %}
   </div>
-
-  <!-- ✅ INPUT BOX (Send Button YAHAN HAI) -->
-  <form method="POST" style="display:flex; gap:10px; margin-top:12px;">
-    {% csrf_token %}
-    
-    <input 
-      type="text" 
-      name="message" 
-      placeholder="Write a message..."
-      required
-      style="
-        flex:1;
-        padding:12px;
-        border-radius:12px;
-        border:1px solid #ddd;
-        outline:none;
-      "
-    >
-
-    <button type="submit" style="
-      background:#000;
-      color:#fff;
-      border:none;
-      padding:12px 18px;
-      border-radius:12px;
-      cursor:pointer;
-    ">
-      Send
-    </button>
-  </form>
-
 </div>
-</div>
+
+<script>
+  // Auto scroll to bottom
+  let chatBox = document.getElementById("chatBox");
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  function showModal() {
+    document.getElementById("closeModal").style.display = "flex";
+  }
+  function hideModal() {
+    document.getElementById("closeModal").style.display = "none";
+  }
+  // Click outside modal to close
+  document.getElementById("closeModal").addEventListener("click", function(e) {
+    if (e.target === this) hideModal();
+  });
+</script>
 
 {% endblock %}

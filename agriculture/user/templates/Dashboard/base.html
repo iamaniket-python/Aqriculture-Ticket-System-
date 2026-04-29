@@ -2,137 +2,97 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <title>Purple Admin</title>
-    <!-- plugins:css -->
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/ti-icons/css/themify-icons.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/font-awesome/css/font-awesome.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css' %}"
-    />
-    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
-    <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>Admin</title>
+    <link rel="stylesheet" href="{% static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" href="{% static 'assets/vendors/ti-icons/css/themify-icons.css' %}"/>
+    <link rel="stylesheet" href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}"/>
+    <link rel="stylesheet" href="{% static 'assets/vendors/font-awesome/css/font-awesome.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}"/>
+    <link rel="shortcut icon" href="{% static 'image/logo.png' %}"/>
   </head>
+
   <style>
+    .img-popup {
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(0,0,0,0.8);display:none;
+      justify-content:center;align-items:center;z-index:9999;
+    }
+    .img-popup img { max-width:80%;max-height:80%;border-radius:10px; }
+    .img-popup .close { position:absolute;top:20px;right:30px;font-size:30px;color:white;text-decoration:none; }
+    .img-popup:target { display:flex; }
 
-.img-popup{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.8);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-}
+    @keyframes bellRing {
+      0%,100% { transform:rotate(0); }
+      20%      { transform:rotate(15deg); }
+      40%      { transform:rotate(-15deg); }
+      60%      { transform:rotate(10deg); }
+      80%      { transform:rotate(-10deg); }
+    }
+    .bell-ring { animation: bellRing 0.6s ease; }
 
-.img-popup img{
-  max-width:80%;
-  max-height:80%;
-  border-radius:10px;
-  box-shadow:0 8px 30px rgba(0,0,0,0.5);
-}
+    .notif-item {
+      display:flex;padding:12px 15px;text-decoration:none;
+      color:black;border-bottom:1px solid #f1f1f1;
+      transition:background 0.2s;cursor:pointer;
+    }
+    .notif-item:hover { background:#f8f9ff; }
 
-.img-popup .close{
-  position:absolute;
-  top:20px;
-  right:30px;
-  font-size:30px;
-  color:white;
-  text-decoration:none;
-}
+    .unread-dot {
+      width:8px;height:8px;background:#ff4d4f;
+      border-radius:50%;margin-top:10px;flex-shrink:0;
+    }
 
-.img-popup:target{
-  display:flex;
-}
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(255,77,79,0.7); }
+      70%  { box-shadow: 0 0 0 6px rgba(255,77,79,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,77,79,0); }
+    }
+    .badge-pulse { animation: pulse 1.5s infinite; }
 
-</style>
+    /* Fade out animation */
+    @keyframes fadeOut {
+      from { opacity:1; transform:translateX(0); }
+      to   { opacity:0; transform:translateX(20px); }
+    }
+    .fade-out {
+      animation: fadeOut 0.3s ease forwards;
+    }
+  </style>
+
   <body>
     <div class="container-scroller">
-      <!-- partial:partials/_navbar.html -->
-      <nav
-        class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row"
-      >
-        <div
-          class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start"
-        >
-          <a class="navbar-brand brand-logo" href="index.html"
-            ><img src="assets/images/logo.svg" alt="logo"
-          /></a>
-          <a class="navbar-brand brand-logo-mini" href="index.html"
-            ><img src="assets/images/logo-mini.svg" alt="logo"
-          /></a>
+
+      <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+        <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
+          <a class="navbar-brand brand-logo" href="{% url 'admin_dashboard' %}">
+            <img src="{% static 'image/ff.png' %}" alt="logo"/>
+          </a>
+          <a class="navbar-brand brand-logo-mini" href="{% url 'admin_dashboard' %}">
+            <img src="{% static 'image/logo.png' %}" alt="logo"/>
+          </a>
         </div>
+
         <div class="navbar-menu-wrapper d-flex align-items-stretch">
-          <button
-            class="navbar-toggler navbar-toggler align-self-center"
-            type="button"
-            data-toggle="minimize"
-          >
+          <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
             <span class="mdi mdi-menu"></span>
           </button>
-          <div class="search-field d-none d-md-block">
-            <form class="d-flex align-items-center h-100" action="#">
-              <div class="input-group">
-                <div class="input-group-prepend bg-transparent">
-                  <i class="input-group-text border-0 mdi mdi-magnify"></i>
-                </div>
-                <input
-                  type="text"
-                  class="form-control bg-transparent border-0"
-                  placeholder="Search projects"
-                />
-              </div>
-            </form>
-          </div>
+
           <ul class="navbar-nav navbar-nav-right">
+
             <!-- 👤 PROFILE -->
             <li class="nav-item nav-profile dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                id="profileDropdown"
-                href="#"
-                data-bs-toggle="dropdown"
-              >
-                <div class="nav-profile-img">
-                  <i class="fa-solid fa-user"></i>
-                  
-                </div>
-
-                
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                <div class="nav-profile-img"><i class="fa-solid fa-user"></i></div>
                 <div class="nav-profile-text">
                   <p class="mb-1 text-black">{{ request.user.username }}</p>
                 </div>
               </a>
-
               <div class="dropdown-menu navbar-dropdown">
-                
-
                 <div class="dropdown-divider"></div>
-
-                <!-- 🚪 LOGOUT -->
                 <a class="dropdown-item" href="{% url 'admin_logout' %}">
                   <i class="mdi mdi-logout me-2 text-primary"></i> Logout
                 </a>
@@ -140,139 +100,139 @@
             </li>
 
             <!-- 💬 MESSAGES -->
-          <li class="nav-item dropdown">
-  <a class="nav-link count-indicator dropdown-toggle"
-     data-bs-toggle="dropdown"
-     style="position:relative; cursor:pointer;">
+            <li class="nav-item dropdown">
+              <a class="nav-link count-indicator dropdown-toggle"
+                 id="msgDropdown"
+                 data-bs-toggle="dropdown"
+                 style="position:relative;cursor:pointer;"
+                 onclick="openMessages()">
+                <i class="mdi mdi-email-outline" style="font-size:22px;"></i>
+                {% if unread_count > 0 %}
+                <span class="badge-pulse" id="msgBadge" style="
+                  position:absolute;top:2px;right:2px;
+                  background:#ff4d4f;color:white;
+                  font-size:10px;padding:3px 6px;
+                  border-radius:50%;font-weight:600;">
+                  {{ unread_count }}
+                </span>
+                {% endif %}
+              </a>
 
-    <i class="mdi mdi-email-outline" style="font-size:22px;"></i>
+              <div class="dropdown-menu dropdown-menu-end navbar-dropdown" style="
+                width:340px;border-radius:12px;
+                box-shadow:0 6px 18px rgba(0,0,0,0.1);padding:0;">
 
-    <!-- 🔴 unread count -->
-    {% if unread_count > 0 %}
-    <span style="
-      position:absolute;
-      top:2px;
-      right:2px;
-      background:#ff4d4f;
-      color:white;
-      font-size:10px;
-      padding:3px 6px;
-      border-radius:50%;
-      font-weight:600;">
-      {{ unread_count }}
-    </span>
-    {% endif %}
-  </a>
+                <div style="padding:12px 15px;border-bottom:1px solid #eee;font-weight:600;display:flex;justify-content:space-between;align-items:center;">
+                  <span>💬 Messages</span>
+                  <span id="msgCountLabel" style="font-size:12px;color:#ff4d4f;font-weight:500;">
+                    {% if unread_count > 0 %}{{ unread_count }} unread{% endif %}
+                  </span>
+                </div>
 
-  <!-- DROPDOWN -->
-  <div class="dropdown-menu dropdown-menu-end navbar-dropdown"
-       style="width:340px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.1); padding:0;">
+                <div id="msgList" style="max-height:300px;overflow-y:auto;">
+                  {% for msg in unread_messages %}
+                  <a href="{% url 'admin_view_ticket' msg.ticket.id %}"
+                     class="notif-item msg-item"
+                     data-id="{{ msg.id }}"
+                     onclick="markMessageRead(event, this, {{ msg.id }})">
+                    <div style="
+                      height:40px;width:40px;border-radius:50%;
+                      background:#e6f0ff;display:flex;align-items:center;
+                      justify-content:center;font-weight:600;
+                      color:#3f6ad8;margin-right:10px;flex-shrink:0;">
+                      {{ msg.ticket.user.username|slice:":1"|upper }}
+                    </div>
+                    <div style="flex:1;">
+                      <div style="font-size:14px;font-weight:600;">{{ msg.ticket.user.username }}</div>
+                      <div style="font-size:12px;color:#777;">{{ msg.message|truncatechars:40 }}</div>
+                      <div style="font-size:11px;color:#aaa;margin-top:2px;">Ticket #{{ msg.ticket.id }}</div>
+                    </div>
+                    <div class="unread-dot" id="dot-msg-{{ msg.id }}"></div>
+                  </a>
+                  {% empty %}
+                  <div id="noMsgText" style="padding:20px;text-align:center;color:#888;">No new messages</div>
+                  {% endfor %}
+                </div>
 
-    <!-- HEADER -->
-    <div style="padding:12px 15px; border-bottom:1px solid #eee; font-weight:600;">
-      Messages
-    </div>
-
-    <!-- MESSAGE LIST -->
-    <div style="max-height:300px; overflow-y:auto;">
-
-      {% for msg in unread_messages %}
-     <a href="{% url 'admin_view_ticket' msg.ticket.id %}"
-         style="display:flex; padding:12px 15px; text-decoration:none; color:black; border-bottom:1px solid #f1f1f1;">
-
-        <!-- USER ICON -->
-        <div style="
-          height:40px;
-          width:40px;
-          border-radius:50%;
-          background:#e6f0ff;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          font-weight:600;
-          color:#3f6ad8;
-          margin-right:10px;">
-          {{ msg.ticket.user.username|slice:":1"|upper }}
-        </div>
-
-        <!-- MESSAGE CONTENT -->
-        <div style="flex:1;">
-
-          <div style="font-size:14px; font-weight:600;">
-            {{ msg.ticket.user.username }}
-          </div>
-
-          <div style="font-size:12px; color:#777;">
-            {{ msg.message|truncatechars:40 }}
-          </div>
-
-        </div>
-
-        <!-- 🔴 DOT -->
-        <div style="
-          width:8px;
-          height:8px;
-          background:#ff4d4f;
-          border-radius:50%;
-          margin-top:10px;">
-        </div>
-
-      </a>
-      {% empty %}
-      <div style="padding:20px; text-align:center; color:#888;">
-        No new messages
-      </div>
-      {% endfor %}
-
-    </div>
-
-  </div>
-</li>
+              </div>
+            </li>
 
             <!-- 🔔 NOTIFICATIONS -->
             <li class="nav-item dropdown">
-              <a
-                class="nav-link count-indicator dropdown-toggle"
-                data-bs-toggle="dropdown"
-              >
-                <i class="mdi mdi-bell-outline"></i>
-                <span class="count-symbol bg-danger"></span>
+              <a class="nav-link count-indicator dropdown-toggle"
+                 data-bs-toggle="dropdown"
+                 style="position:relative;cursor:pointer;">
+                <i class="mdi mdi-bell-outline" style="font-size:22px;" id="bellIcon"></i>
+                {% if new_tickets %}
+                <span class="badge-pulse" id="notifBadge" style="
+                  position:absolute;top:2px;right:2px;
+                  background:#ff4d4f;color:white;
+                  font-size:10px;padding:3px 6px;
+                  border-radius:50%;font-weight:600;">
+                  {{ new_tickets|length }}
+                </span>
+                {% endif %}
               </a>
 
-              <div class="dropdown-menu dropdown-menu-end navbar-dropdown">
-                <h6 class="p-3 mb-0">Notifications</h6>
+              <div class="dropdown-menu dropdown-menu-end navbar-dropdown" style="
+                width:360px;border-radius:12px;
+                box-shadow:0 6px 18px rgba(0,0,0,0.1);padding:0;">
 
-                {% for t in new_tickets %}
-                <a class="dropdown-item preview-item">
-                  <div class="preview-thumbnail">
-                    <div class="preview-icon bg-success">
-                      <i class="mdi mdi-ticket"></i>
+                <div style="padding:12px 15px;border-bottom:1px solid #eee;font-weight:600;display:flex;justify-content:space-between;align-items:center;">
+                  <span>🔔 Notifications</span>
+                  <span id="notifCountLabel" style="font-size:12px;color:#ff4d4f;font-weight:500;">
+                    {% if new_tickets %}{{ new_tickets|length }} new{% endif %}
+                  </span>
+                </div>
+
+                <div id="notifList" style="max-height:360px;overflow-y:auto;">
+                  {% for t in new_tickets %}
+                  <a href="{% url 'admin_view_ticket' t.id %}"
+                     class="notif-item notif-ticket-item"
+                     data-id="{{ t.id }}"
+                     onclick="markNotifRead(event, this, {{ t.id }})">
+                    <div style="
+                      height:40px;width:40px;border-radius:50%;
+                      background:#fff3e0;display:flex;align-items:center;
+                      justify-content:center;font-size:18px;
+                      margin-right:10px;flex-shrink:0;">
+                      🎫
                     </div>
+                    <div style="flex:1;">
+                      <div style="font-size:14px;font-weight:600;">New Ticket Created</div>
+                      <div style="font-size:12px;color:#555;">
+                        <b>{{ t.user.username }}</b> — {{ t.title|truncatechars:30 }}
+                      </div>
+                      <div style="font-size:11px;color:#aaa;margin-top:2px;">
+                        {{ t.created_at|date:"d M Y, H:i" }}
+                      </div>
+                    </div>
+                    <div class="unread-dot" style="background:#f59e0b;"></div>
+                  </a>
+                  {% empty %}
+                  <div id="noNotifText" style="padding:20px;text-align:center;color:#888;">
+                    No new notifications
                   </div>
+                  {% endfor %}
+                </div>
 
-                  <div class="preview-item-content">
-                    <h6 class="preview-subject">New Ticket</h6>
-                    <p class="text-gray">{{ t.user.username }}</p>
-                  </div>
-                </a>
-                {% empty %}
-                <p class="p-3">No notifications</p>
-                {% endfor %}
+              
+
               </div>
             </li>
+
           </ul>
-          <button
-            class="navbar-toggler navbar-toggler-right d-lg-none align-self-center"
-            type="button"
-            data-toggle="offcanvas"
-          >
+
+          <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center"
+                  type="button" data-toggle="offcanvas">
             <span class="mdi mdi-menu"></span>
           </button>
         </div>
       </nav>
-      <!-- partial -->
+
       <div class="container-fluid page-body-wrapper">
-        <!-- partial:partials/_sidebar.html -->
+
+        <!-- SIDEBAR -->
         <nav class="sidebar sidebar-offcanvas" id="sidebar">
           <ul class="nav">
             <li class="nav-item">
@@ -281,113 +241,145 @@
                 <i class="mdi mdi-home menu-icon"></i>
               </a>
             </li>
-           
-          <!-- <li class="nav-item">
-  <a
-    class="nav-link"
-    data-bs-toggle="collapse"
-    href="#chatMenu"
-  >
-    <span class="menu-title">Chats</span>
-    <i class="mdi mdi-chat-processing menu-icon"></i>
-  </a>
-
-  <div class="collapse" id="chatMenu">
-    <ul class="nav flex-column sub-menu">
-
-      {% for t in tickets_with_messages %}
-  {% if t.id %}
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'admin_ticket_chat' t.id %}">
-        {{ t.user.username }} (Ticket #{{ t.id }})
-      </a>
-    </li>
-  {% endif %}
-{% empty %}
-  <li class="nav-item">
-    <span class="nav-link">No chats yet</span>
-  </li>
-{% endfor %}
-
-    </ul>
-  </div>
-</li> -->
             <li class="nav-item">
-  <a class="nav-link "
-     data-bs-toggle="collapse"
-     href="#staffMenu"
-     aria-expanded="false"
-     aria-controls="staffMenu">
-
-    <span>
-     
-      
-      <span class="menu-title">Staff</span>
-      <i class="mdi mdi-account-group me-2"></i>
-    </span>
-
-    
-  </a>
-
-  <div class="collapse" id="staffMenu">
-    <ul class="nav flex-column sub-menu">
-
-      <!-- 🧑‍💼 Manage Staff -->
-      <li class="nav-item">
-        <a class="nav-link d-flex justify-content-between align-items-center"
-           href="{% url 'admin_staff_list' %}">
-
-          <span>
-            <i class="mdi mdi-account-multiple-outline me-2"></i>
-            Manage Staff
-          </span>
-
-          <!-- 🔴 Pending Badge -->
-          {% if pending_staff_count > 0 %}
-          <span class="badge bg-danger">
-            {{ pending_staff_count }}
-          </span>
-          {% endif %}
-
-        </a>
-      </li>
-
-    </ul>
-  </div>
-</li>
-          
+              <a class="nav-link" data-bs-toggle="collapse" href="#staffMenu">
+                <span class="menu-title">Staff</span>
+                <i class="mdi mdi-account-group me-2"></i>
+              </a>
+              <div class="collapse" id="staffMenu">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item">
+                    <a class="nav-link d-flex justify-content-between align-items-center"
+                       href="{% url 'admin_staff_list' %}">
+                      <span><i class="mdi mdi-account-multiple-outline me-2"></i>Manage Staff</span>
+                      {% if pending_staff_count > 0 %}
+                      <span class="badge bg-danger">{{ pending_staff_count }}</span>
+                      {% endif %}
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </li>
           </ul>
         </nav>
 
-    <!-- MAIN CONTENT -->
-    <div class="main-panel">
-      <div class="content-wrapper">
-
-        {% block content %}
-       
-        {% endblock %}
+        <!-- MAIN -->
+        <div class="main-panel">
+          <div class="content-wrapper">
+            {% block content %}{% endblock %}
+          </div>
+          <footer class="footer">
+            <div class="d-sm-flex justify-content-center justify-content-sm-between">
+              <span class="text-muted">© 2023 BootstrapDash</span>
+            </div>
+          </footer>
+        </div>
 
       </div>
-
-      <!-- FOOTER -->
-      <footer class="footer">
-        <div class="d-sm-flex justify-content-center justify-content-sm-between">
-          <span class="text-muted">© 2023 BootstrapDash</span>
-        </div>
-      </footer>
-
     </div>
 
-  </div>
-</div>
+    <script src="{% static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
+    <script src="{% static 'assets/js/off-canvas.js' %}"></script>
+    <script src="{% static 'assets/js/misc.js' %}"></script>
 
-<!-- JS -->
-<script src="{% static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
-<script src="{% static 'assets/js/off-canvas.js' %}"></script>
-<script src="{% static 'assets/js/misc.js' %}"></script>
+    <script>
+      const CSRF = "{{ csrf_token }}";
 
-{% block extra_js %}{% endblock %}
+      // ─── Bell ring animation ───────────────────────────────
+      {% if new_tickets %}
+      let bell = document.getElementById("bellIcon");
+      if (bell) {
+        setInterval(() => {
+          bell.classList.add("bell-ring");
+          setTimeout(() => bell.classList.remove("bell-ring"), 600);
+        }, 4000);
+      }
+      {% endif %}
 
-</body>
+      // ─── Message — dropdown open hone pe sab read mark karo ───
+      function openMessages() {
+        let badge = document.getElementById("msgBadge");
+        let label = document.getElementById("msgCountLabel");
+        if (!badge) return;  // already no unread
+
+        fetch("{% url 'mark_notifications_read' %}", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": CSRF,
+            "Content-Type": "application/json"
+          }
+        }).then(res => res.json()).then(data => {
+          if (data.status === "ok") {
+            // Badge hatao
+            badge.style.animation = "fadeOut 0.3s ease forwards";
+            setTimeout(() => badge.remove(), 300);
+
+            // Label update
+            if (label) label.textContent = "";
+
+            // Sab dots hatao
+            document.querySelectorAll(".msg-item .unread-dot").forEach(dot => dot.remove());
+          }
+        });
+      }
+
+      // ─── Single message click — sirf wahi gayab ho ───────────
+      function markMessageRead(event, el, msgId) {
+        // Fade out karo
+        el.classList.add("fade-out");
+        setTimeout(() => {
+          el.remove();
+          updateMsgCount();
+        }, 300);
+        // Normal navigation continue karo (href pe jaaye)
+      }
+
+      function updateMsgCount() {
+        let remaining = document.querySelectorAll(".msg-item").length;
+        let badge = document.getElementById("msgBadge");
+        let label = document.getElementById("msgCountLabel");
+
+        if (remaining === 0) {
+          if (badge) badge.remove();
+          if (label) label.textContent = "";
+          let list = document.getElementById("msgList");
+          if (list) list.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No new messages</div>';
+        } else {
+          if (badge) badge.textContent = remaining;
+          if (label) label.textContent = remaining + " unread";
+        }
+      }
+
+      // ─── Notification click — sirf wahi gayab ho ─────────────
+      function markNotifRead(event, el, ticketId) {
+        el.classList.add("fade-out");
+        setTimeout(() => {
+          el.remove();
+          updateNotifCount();
+        }, 300);
+        
+      }
+
+      function updateNotifCount() {
+        let remaining = document.querySelectorAll(".notif-ticket-item").length;
+        let badge = document.getElementById("notifBadge");
+        let label = document.getElementById("notifCountLabel");
+
+        if (remaining === 0) {
+          if (badge) badge.remove();
+          if (label) label.textContent = "";
+          let list = document.getElementById("notifList");
+          if (list) list.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No new notifications</div>';
+        } else {
+          if (badge) badge.textContent = remaining;
+          if (label) label.textContent = remaining + " new";
+        }
+      }
+
+      // ─── Auto refresh har 60s — new notifications ke liye ────
+      setTimeout(() => location.reload(), 60000);
+    </script>
+
+    {% block extra_js %}{% endblock %}
+  </body>
 </html>
-{}

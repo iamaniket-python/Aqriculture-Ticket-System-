@@ -35,13 +35,15 @@
             <div class="col-lg-4 mx-auto">
               <div class="auth-form-light text-left p-5">
                 <!-- LOGO -->
-                <div class="brand-logo">
-                  <img src="{% static 'assets/images/logo.svg' %}" />
+                <div class="brand-logo text-center">
+                  <img src="{% static 'image/logo.png' %}" />
                 </div>
-
-                <h4>Hello! let's get started</h4>
+                <div class="text-center">
+                  <h4>Hello! let's get started</h4>
                 <h6 class="font-weight-light">Admin Sign in</h6>
 
+                </div>
+                
                 <!-- ✅ ERROR MESSAGE -->
                 {% if error %}
                 <p style="color: red">{{ error }}</p>
@@ -80,10 +82,10 @@
                     </button>
                   </div>
                 </form>
-                <!-- REGISTER LINK -->
+                <!-- LOGIN LINK -->
                 <div class="text-center mt-4 font-weight-light">
-                 Are You Staff
-                  <a href="{% url 'staff_register' %}" class="text-primary">
+                  Are You Staff
+                  <a href="{% url 'staff_login' %}" class="text-primary">
                     Login here
                   </a>
                 </div>
