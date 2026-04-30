@@ -1,365 +1,540 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Staff Dashboard</title>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Staff Dashboard</title>
+  <link rel="stylesheet" href="{% static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/vendors/ti-icons/css/themify-icons.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/vendors/font-awesome/css/font-awesome.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/css/style.css' %}"/>
+  <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
 
-    <!-- CSS -->
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/ti-icons/css/themify-icons.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/font-awesome/css/font-awesome.min.css' %}"
-    />
-    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
+<style>
+  :root {
+    --navbar-h: 62px;
+    --accent: #6366f1;
+    --page-bg: #f4f6fb;
+  }
 
-    <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
+  * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+  body { background: var(--page-bg); margin: 0; }
 
-    <style>
-      .main-panel {
-        margin-left: 0 !important;
-        width: 100% !important;
-      }
-      .content-wrapper {
-        padding: 20px;
-        width: 100%;
-      }
-    </style>
-  </head>
+  /* ══ NAVBAR ══ */
+  .staff-navbar {
+    position: sticky; top: 0; z-index: 999;
+    height: var(--navbar-h);
+    background: #fff;
+    border-bottom: 1px solid #eef0f6;
+    box-shadow: 0 1px 16px rgba(0,0,0,0.06);
+    display: flex; align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
 
-  <body>
-    <nav
-      class="navbar d-flex justify-content-between align-items-center px-4 py-2 shadow-sm"
-      style="background: #fff; position: sticky; top: 0; z-index: 999"
-    >
-      <!-- LEFT -->
-      <h5 style="margin: 0; font-weight: 600">Staff Dashboard</h5>
+  .navbar-brand {
+    font-size: 16px; font-weight: 800; color: #0f1117;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .brand-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px;
+  }
 
-      <!-- RIGHT -->
-      <div class="d-flex align-items-center gap-3">
-        <!-- 📩 MESSAGE ICON -->
-        <div class="dropdown">
-          <button class="btn position-relative" data-bs-toggle="dropdown">
-            <i class="mdi mdi-email-outline" style="font-size: 22px"></i>
+  .navbar-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 6px;
+  }
 
-            {% if unread_messages_count > 0 %}
-            <span
-              style="
-                position: absolute;
-                top: 0;
-                right: 0;
-                background: red;
-                color: #fff;
-                font-size: 10px;
-                padding: 2px 6px;
-                border-radius: 50%;
-              "
-            >
-              {{ unread_messages_count }}
-            </span>
-            {% endif %}
-          </button>
+  /* Icon btn */
+  .nav-icon-btn {
+    position: relative; width: 38px; height: 38px;
+    border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer;
+    background: none; border: none; color: #374151;
+    font-size: 18px; transition: background 0.15s;
+  }
+  .nav-icon-btn:hover { background: #f3f4f6; }
 
-          <!-- MESSAGE DROPDOWN -->
-          <div
-            class="dropdown-menu dropdown-menu-end p-2"
-            style="width: 300px; border-radius: 10px"
-          >
-            <h6 class="px-2">Messages</h6>
-            <hr style="margin: 5px 0" />
+  .nav-badge {
+    position: absolute; top: 4px; right: 4px;
+    min-width: 16px; height: 16px;
+    background: #ef4444; color: white;
+    font-size: 9px; font-weight: 700;
+    border-radius: 20px; padding: 0 4px;
+    display: flex; align-items: center; justify-content: center;
+    animation: badgePulse 2s infinite;
+  }
+  .nav-badge.orange { background: #f59e0b; }
 
-            {% for msg in recent_messages %}
-            <a
-              href="{% url 'staff_view_ticket' msg.ticket.id %}"
-              class="d-block p-2"
-              style="border-radius: 8px; text-decoration: none"
-            >
-              <div style="font-weight: 500; font-size: 14px">
-                {{ msg.ticket.user.username }}
-              </div>
+  @keyframes badgePulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+    50%      { box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+  }
 
-              <div style="font-size: 12px; color: gray">
-                {{ msg.message|truncatechars:30 }}
-              </div>
-            </a>
-            {% empty %}
-            <p class="text-center text-muted">No messages</p>
-            {% endfor %}
-          </div>
-        </div>
+  .nav-divider { width: 1px; height: 24px; background: #e5e7eb; margin: 0 4px; }
 
-        <!-- 🔔 NOTIFICATION -->
-        <div class="dropdown">
-          <button class="btn position-relative" data-bs-toggle="dropdown">
-            <i class="mdi mdi-bell-outline" style="font-size: 22px"></i>
+  /* Profile */
+  .profile-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 5px 10px 5px 5px; border-radius: 12px;
+    cursor: pointer; border: none; background: none;
+    transition: background 0.15s;
+  }
+  .profile-btn:hover { background: #f3f4f6; }
 
-            {% if assigned_count > 0 %}
-            <span
-              style="
-                position: absolute;
-                top: 0;
-                right: 0;
-                background: orange;
-                color: #fff;
-                font-size: 10px;
-                padding: 2px 6px;
-                border-radius: 50%;
-              "
-            >
-              {{ assigned_count }}
-            </span>
-            {% endif %}
-          </button>
+  .profile-avatar {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .profile-name { font-size: 13px; font-weight: 600; color: #1f2937; }
+  .profile-role { font-size: 11px; color: #9ca3af; }
 
-          <div
-            class="dropdown-menu dropdown-menu-end p-2"
-            style="width: 280px; border-radius: 10px"
-          >
-            <h6 class="px-2">Notifications</h6>
-            <hr style="margin: 5px 0" />
+  /* Dropdown panels */
+  .nav-panel {
+    position: absolute; top: calc(var(--navbar-h) + 8px); right: 0;
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.14);
+    border: 1px solid #eef0f6;
+    display: none; z-index: 2000; overflow: hidden;
+    animation: slideDown 0.18s ease; width: 320px;
+  }
+  .nav-panel.open { display: block; }
+  .nav-panel.wide { width: 300px; }
 
-            {% for t in assigned_tickets %}
-            <a
-              href="{% url 'staff_view_ticket' t.id %}"
-              class="d-block p-2"
-              style="border-radius: 8px; text-decoration: none"
-            >
-              <div style="font-size: 14px; font-weight: 500">
-                New Ticket Assigned
-              </div>
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-              <div style="font-size: 12px; color: gray">
-                {{ t.title|truncatechars:25 }}
-              </div>
-            </a>
-            {% empty %}
-            <p class="text-center text-muted">No notifications</p>
-            {% endfor %}
-          </div>
-        </div>
+  .panel-head {
+    padding: 14px 16px; border-bottom: 1px solid #f3f4f6;
+    font-size: 14px; font-weight: 700; color: #0f1117;
+  }
+  .panel-scroll { max-height: 300px; overflow-y: auto; }
 
-        <!-- 👤 USER -->
-        <div class="dropdown">
-          <button
-            class="btn d-flex align-items-center"
-            data-bs-toggle="dropdown"
-          >
-            <div
-              style="
-                width: 35px;
-                height: 35px;
-                border-radius: 50%;
-                background: #6c63ff;
-                color: #fff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 600;
-              "
-            >
-              {{ request.user.username|slice:":1"|upper }}
+  .panel-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 16px; border-bottom: 1px solid #f9fafb;
+    text-decoration: none; color: inherit;
+    transition: background 0.15s; cursor: pointer;
+  }
+  .panel-item:hover { background: #fafbff; }
+
+  .p-avatar {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .p-avatar.blue   { background: #eff6ff; color: #1d4ed8; }
+  .p-avatar.purple { background: #f3e8ff; color: #7c3aed; font-size: 16px; }
+
+  .p-content { flex: 1; min-width: 0; }
+  .p-name { font-size: 13px; font-weight: 600; color: #1f2937; }
+  .p-msg  { font-size: 12px; color: #6b7280; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .panel-empty {
+    padding: 28px 16px; text-align: center;
+    color: #9ca3af; font-size: 13px;
+  }
+  .panel-empty div { font-size: 28px; margin-bottom: 6px; }
+
+  /* Profile panel */
+  .profile-panel { width: 180px; }
+  .profile-panel .panel-item { color: #ef4444; font-size: 13px; font-weight: 600; }
+
+  /* ══ MAIN ══ */
+  .staff-main { padding: 28px; }
+
+  /* Page title */
+  .page-title-area { margin-bottom: 24px; }
+  .page-title-area h3 { font-size: 20px; font-weight: 800; color: #0f1117; margin: 0; }
+  .page-title-area p  { font-size: 13px; color: #9ca3af; margin: 4px 0 0; }
+
+  /* ══ STAT CARDS ══ */
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; margin-bottom: 24px;
+  }
+
+  .stat-card {
+    border-radius: 16px; padding: 20px 22px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.1); }
+
+  .stat-card .s-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 14px;
+    background: rgba(255,255,255,0.15);
+  }
+  .stat-card .s-val   { font-size: 32px; font-weight: 800; line-height: 1; }
+  .stat-card .s-label { font-size: 12px; font-weight: 600; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .stat-card .s-blob  { position: absolute; width: 90px; height: 90px; border-radius: 50%; opacity: 0.1; right: -14px; bottom: -20px; }
+
+  .sc-total    { background: #1a1a2e; color: #fff; }
+  .sc-total .s-blob { background: #fff; }
+
+  .sc-pending  { background: #fffbeb; color: #92400e; }
+  .sc-pending .s-icon { background: #fde68a; }
+  .sc-pending .s-blob { background: #f59e0b; }
+
+  .sc-progress { background: #eff6ff; color: #1e40af; }
+  .sc-progress .s-icon { background: #bfdbfe; }
+  .sc-progress .s-blob { background: #3b82f6; }
+
+  .sc-resolved { background: #f0fdf4; color: #166534; }
+  .sc-resolved .s-icon { background: #bbf7d0; }
+  .sc-resolved .s-blob { background: #22c55e; }
+
+  /* ══ TABLE CARD ══ */
+  .table-card {
+    background: #fff; border-radius: 16px;
+    border: 1px solid #f0f0f5;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+
+  .table-head {
+    padding: 18px 22px; border-bottom: 1px solid #f3f4f6;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .table-head h4 { font-size: 15px; font-weight: 700; color: #0f1117; margin: 0; }
+
+  .premium-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+
+  .premium-table thead tr { background: #f8f9ff; border-bottom: 2px solid #eef0f7; }
+  .premium-table thead th {
+    padding: 12px 16px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: #6b7280; text-align: left; white-space: nowrap;
+  }
+
+  .premium-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.15s; }
+  .premium-table tbody tr:hover { background: #fafbff; }
+  .premium-table tbody tr:last-child { border-bottom: none; }
+  .premium-table tbody td { padding: 13px 16px; font-size: 13.5px; color: #374151; vertical-align: middle; }
+
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .user-av {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .user-name { font-weight: 600; color: #1a1a2e; }
+  .user-sub  { font-size: 11px; color: #9ca3af; }
+
+  .order-mono {
+    font-family: monospace; background: #f3f4f6;
+    padding: 3px 8px; border-radius: 6px; font-size: 12px;
+  }
+
+  /* Status pill */
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 700; border: none; cursor: pointer;
+  }
+  .pill-pending  { background: #fef3c7; color: #92400e; }
+  .pill-progress { background: #dbeafe; color: #1e40af; }
+  .pill-resolved { background: #d1fae5; color: #065f46; }
+
+  .status-dropdown .dropdown-menu {
+    border-radius: 12px; border: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 6px; min-width: 160px;
+  }
+  .status-dropdown .dropdown-item {
+    border-radius: 8px; padding: 8px 14px;
+    font-size: 13px; font-weight: 500;
+    border: none; background: none; width: 100%;
+    text-align: left; cursor: pointer; transition: background 0.15s;
+  }
+  .status-dropdown .dropdown-item:hover { background: #f3f4f6; }
+
+  /* View btn */
+  .view-btn {
+    padding: 6px 14px; border-radius: 8px;
+    background: #1a1a2e; color: white;
+    font-size: 12px; font-weight: 600;
+    text-decoration: none; transition: background 0.15s; white-space: nowrap;
+  }
+  .view-btn:hover { background: #2d2d4e; color: white; }
+
+  /* Assigned tag */
+  .assigned-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    background: #ede9fe; color: #6d28d9;
+    font-size: 12px; font-weight: 600;
+  }
+
+  /* Empty */
+  .empty-row td { padding: 60px 20px; text-align: center; color: #9ca3af; }
+  .empty-row .e-icon { font-size: 36px; margin-bottom: 10px; }
+
+  @media (max-width: 768px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .staff-main { padding: 16px; }
+  }
+</style>
+
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="staff-navbar">
+
+  <div class="navbar-brand">
+    <div class="brand-icon">🎫</div>
+    Staff Dashboard
+  </div>
+
+  <div class="navbar-right">
+
+    <!-- Messages -->
+    <div style="position:relative;">
+      <button class="nav-icon-btn" onclick="togglePanel('msgPanel')">
+        <i class="mdi mdi-email-outline"></i>
+        {% if unread_messages_count > 0 %}
+        <span class="nav-badge">{{ unread_messages_count }}</span>
+        {% endif %}
+      </button>
+      <div class="nav-panel" id="msgPanel">
+        <div class="panel-head">💬 Messages</div>
+        <div class="panel-scroll">
+          {% for msg in recent_messages %}
+          <a href="{% url 'staff_view_ticket' msg.ticket.id %}" class="panel-item">
+            <div class="p-avatar blue">{{ msg.ticket.user.username|slice:":1"|upper }}</div>
+            <div class="p-content">
+              <div class="p-name">{{ msg.ticket.user.username }}</div>
+              <div class="p-msg">{{ msg.message|truncatechars:35 }}</div>
             </div>
-
-            <span style="margin-left: 8px">{{ request.user.username }}</span>
-          </button>
-
-          <div class="dropdown-menu dropdown-menu-end">
-            <a
-              class="dropdown-item text-danger"
-              href="{% url 'staff_logout' %}"
-            >
-              Logout
-            </a>
-          </div>
-        </div>
-      </div>
-    </nav>
-    <div class="main-panel">
-      <div class="content-wrapper">
-        <!-- HEADER -->
-        <div class="page-header mb-3">
-          <h3 class="page-title">
-            <span class="page-title-icon bg-gradient-primary text-white me-2">
-              <i class="mdi mdi-home"></i>
-            </span>
-            Dashboard
-          </h3>
-        </div>
-
-        <!-- STATS -->
-        <div class="row">
-          <div class="col-md-3 grid-margin">
-            <div class="card bg-gradient-danger text-white">
-              <div class="card-body">
-                <h6>Total</h6>
-                <h3>{{ total }}</h3>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-3 grid-margin">
-            <div class="card bg-gradient-warning text-white">
-              <div class="card-body">
-                <h6>Pending</h6>
-                <h3>{{ pending }}</h3>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-3 grid-margin">
-            <div class="card bg-gradient-info text-white">
-              <div class="card-body">
-                <h6>Progress</h6>
-                <h3>{{ in_progress }}</h3>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-3 grid-margin">
-            <div class="card bg-gradient-success text-white">
-              <div class="card-body">
-                <h6>Resolved</h6>
-                <h3>{{ resolved }}</h3>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TABLE -->
-        <div class="row mt-4">
-          <div class="col-12 grid-margin">
-            <div class="card">
-              <div class="card-body">
-                <h4 class="card-title">🎫 Ticket Management</h4>
-
-                <div class="table-responsive">
-                  <table class="table table-hover text-center">
-                    <thead>
-                      <tr>
-                        <th>User</th>
-                        <th>Order ID</th>
-                        <th>Product</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Assign</th>
-                        <th>View</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {% for t in tickets %}
-                      <tr>
-                        <td><b>{{ t.user.username }}</b></td>
-                        <td>{{ t.purchase.purchase_id }}</td>
-                        <td>{{ t.purchase.product_name }}</td>
-                        <td>{{ t.title }}</td>
-
-                        <td>
-                          <div class="dropdown" style="position: static">
-                            <button
-                              class="btn btn-sm dropdown-toggle {% if t.status == 'pending' %}btn-warning {% elif t.status == 'in_progress' %}btn-info {% else %}btn-success{% endif %}"
-                              type="button"
-                              data-bs-toggle="dropdown"
-                            >
-                              {{ t.status|title }}
-                            </button>
-
-                            <div class="dropdown-menu" style="z-index: 9999">
-                              <form
-                                method="POST"
-                                action="{% url 'staff_update_ticket' t.id %}"
-                              >
-                                {% csrf_token %}
-
-                                <button
-                                  type="submit"
-                                  name="status"
-                                  value="pending"
-                                  class="dropdown-item"
-                                >
-                                  Pending
-                                </button>
-
-                                <button
-                                  type="submit"
-                                  name="status"
-                                  value="in_progress"
-                                  class="dropdown-item"
-                                >
-                                  In Progress
-                                </button>
-
-                                <button
-                                  type="submit"
-                                  name="status"
-                                  value="resolved"
-                                  class="dropdown-item"
-                                >
-                                  Resolved
-                                </button>
-                              </form>
-                            </div>
-                          </div>
-                        </td>
-                        <!-- ASSIGN -->
-                        <td>
-                          {% if t.assigned_to %} {{ t.assigned_to.username }} 
-                          {% else %}
-                          <span class="text-muted">Unassigned</span>
-                          {% endif %}
-                        </td>
-
-                        <!-- VIEW -->
-                        <td>
-                          <a
-                            href="{% url 'staff_view_ticket' t.id %}"
-                            class="btn btn-dark btn-sm"
-                          >
-                            👁 View
-                          </a>
-                        </td>
-                      </tr>
-                      {% endfor %}
-                      
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
+          </a>
+          {% empty %}
+          <div class="panel-empty"><div>📭</div>No new messages</div>
+          {% endfor %}
         </div>
       </div>
     </div>
 
-    <!-- plugins:js -->
-    <script src="{% static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
+    <!-- Notifications -->
+    <div style="position:relative;">
+      <button class="nav-icon-btn" onclick="togglePanel('notifPanel')">
+        <i class="mdi mdi-bell-outline"></i>
+        {% if assigned_count > 0 %}
+        <span class="nav-badge orange">{{ assigned_count }}</span>
+        {% endif %}
+      </button>
+      <div class="nav-panel" id="notifPanel">
+        <div class="panel-head">🔔 Notifications</div>
+        <div class="panel-scroll">
+          {% for t in assigned_tickets %}
+          <a href="{% url 'staff_view_ticket' t.id %}" class="panel-item">
+            <div class="p-avatar purple">🎫</div>
+            <div class="p-content">
+              <div class="p-name">New Ticket Assigned</div>
+              <div class="p-msg">{{ t.title|truncatechars:30 }}</div>
+            </div>
+          </a>
+          {% empty %}
+          <div class="panel-empty"><div>🔕</div>No notifications</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
 
-    <!-- Plugin js for this page -->
-    <script src="{% static 'assets/vendors/select2/select2.min.js' %}"></script>
-    <script src="{% static 'assets/vendors/typeahead.js/typeahead.bundle.min.js' %}"></script>
+    <div class="nav-divider"></div>
 
-    <!-- inject:js -->
-    <script src="{% static 'assets/js/off-canvas.js' %}"></script>
-    <script src="{% static 'assets/js/misc.js' %}"></script>
-    <script src="{% static 'assets/js/settings.js' %}"></script>
-    <script src="{% static 'assets/js/todolist.js' %}"></script>
-    <script src="{% static 'assets/js/jquery.cookie.js' %}"></script>
+    <!-- Profile -->
+    <div style="position:relative;">
+      <button class="profile-btn" onclick="togglePanel('profilePanel')">
+        <div class="profile-avatar">{{ request.user.username|slice:":1"|upper }}</div>
+        <div>
+          <div class="profile-name">{{ request.user.username }}</div>
+          <div class="profile-role">Staff Member</div>
+        </div>
+        <i class="mdi mdi-chevron-down" style="color:#9ca3af;font-size:14px;"></i>
+      </button>
+      <div class="nav-panel profile-panel" id="profilePanel">
+        <div class="panel-scroll">
+          <a href="{% url 'staff_logout' %}" class="panel-item" style="color:#ef4444;font-weight:600;font-size:13px;">
+            <i class="mdi mdi-logout" style="font-size:16px;"></i> Logout
+          </a>
+        </div>
+      </div>
+    </div>
 
-    <!-- Custom js for this page -->
-    <script src="{% static 'assets/js/file-upload.js' %}"></script>
-    <script src="{% static 'assets/js/typeahead.js' %}"></script>
-    <script src="{% static 'assets/js/select2.js' %}"></script>
-  </body>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<div class="staff-main">
+
+  <!-- Title -->
+  <div class="page-title-area">
+    <h3>Dashboard</h3>
+    <p>Welcome back, {{ request.user.username }} 👋 — Here are your assigned tickets</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card sc-total">
+      <div class="s-icon">🎫</div>
+      <div class="s-val">{{ total }}</div>
+      <div class="s-label">Total</div>
+      <div class="s-blob"></div>
+    </div>
+    <div class="stat-card sc-pending">
+      <div class="s-icon">⏳</div>
+      <div class="s-val">{{ pending }}</div>
+      <div class="s-label">Pending</div>
+      <div class="s-blob"></div>
+    </div>
+    <div class="stat-card sc-progress">
+      <div class="s-icon">🔄</div>
+      <div class="s-val">{{ in_progress }}</div>
+      <div class="s-label">In Progress</div>
+      <div class="s-blob"></div>
+    </div>
+    <div class="stat-card sc-resolved">
+      <div class="s-icon">✅</div>
+      <div class="s-val">{{ resolved }}</div>
+      <div class="s-label">Resolved</div>
+      <div class="s-blob"></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-head">
+      <h4>🎫 Ticket Management</h4>
+      <span style="font-size:12px;color:#9ca3af;">{{ total }} assigned</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="premium-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Order ID</th>
+            <th>Product</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Assigned</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tickets %}
+          <tr>
+
+            <!-- User -->
+            <td>
+              <div class="user-cell">
+                <div class="user-av">{{ t.user.username|slice:":1"|upper }}</div>
+                <div>
+                  <div class="user-name">{{ t.user.username }}</div>
+                  <div class="user-sub">{{ t.user.email|truncatechars:20 }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Order ID -->
+            <td><span class="order-mono">{{ t.purchase.purchase_id|default:"-" }}</span></td>
+
+            <!-- Product -->
+            <td style="font-weight:500;">{{ t.purchase.product_name|default:"-"|truncatechars:18 }}</td>
+
+            <!-- Title -->
+            <td style="font-weight:600;color:#1a1a2e;">{{ t.title|truncatechars:22 }}</td>
+
+            <!-- Status -->
+            <td>
+              <div class="dropdown status-dropdown">
+                <button class="status-pill dropdown-toggle
+                  {% if t.status == 'pending' %}pill-pending
+                  {% elif t.status == 'in_progress' %}pill-progress
+                  {% else %}pill-resolved{% endif %}"
+                  data-bs-toggle="dropdown">
+                  {% if t.status == 'pending' %}⏳{% elif t.status == 'in_progress' %}🔄{% else %}✅{% endif %}
+                  {{ t.status|title }}
+                </button>
+                <div class="dropdown-menu">
+                  <form method="POST" action="{% url 'staff_update_ticket' t.id %}">
+                    {% csrf_token %}
+                    <button class="dropdown-item" name="status" value="pending">⏳ Pending</button>
+                    <button class="dropdown-item" name="status" value="in_progress">🔄 In Progress</button>
+                    <button class="dropdown-item" name="status" value="resolved">✅ Resolved</button>
+                  </form>
+                </div>
+              </div>
+            </td>
+
+            <!-- Assigned -->
+            <td>
+              {% if t.assigned_to %}
+              <span class="assigned-tag">👤 {{ t.assigned_to.username }}</span>
+              {% else %}
+              <span style="color:#d1d5db;font-size:13px;">—</span>
+              {% endif %}
+            </td>
+
+            <!-- View -->
+            <td>
+              <a href="{% url 'staff_view_ticket' t.id %}" class="view-btn">👁 View</a>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr class="empty-row">
+            <td colspan="7">
+              <div class="e-icon">🎫</div>
+              <p style="font-weight:600;color:#374151;margin:0 0 4px;">No tickets assigned</p>
+              <span style="font-size:13px;">Tickets assigned to you will appear here</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="{% static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
+<script src="{% static 'assets/js/off-canvas.js' %}"></script>
+<script src="{% static 'assets/js/misc.js' %}"></script>
+
+<script>
+  function togglePanel(id) {
+    const all = ['msgPanel', 'notifPanel', 'profilePanel'];
+    all.forEach(p => {
+      const el = document.getElementById(p);
+      if (el) el.classList.toggle('open', p === id && !el.classList.contains('open'));
+    });
+  }
+  document.addEventListener('click', function(e) {
+    const nb = document.querySelector('.navbar-right');
+    if (nb && !nb.contains(e.target)) {
+      ['msgPanel','notifPanel','profilePanel'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('open');
+      });
+    }
+  });
+</script>
+
+</body>
 </html>

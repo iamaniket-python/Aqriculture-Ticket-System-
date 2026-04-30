@@ -34,12 +34,17 @@
           <div class="row flex-grow">
             <div class="col-lg-4 mx-auto">
               <div class="auth-form-light text-left p-5">
-                <div class="brand-logo">
+                <div class="brand-logo text-center">
                   <img src="{% static 'image/logo.png' %}" />
                 </div>
+                <div class="text-center">
+                  <h4>Staff Login</h4>
+                  <h6 class="font-weight-light">
+                    Login only after admin approval
+                  </h6>
+                </div>
 
-                <h4>Staff Login</h4>
-                <p class="text-muted">Login only after admin approval</p>
+                <p class="text-muted"></p>
 
                 {% if error %}
                 <div style="color: red; margin-bottom: 10px">{{ error }}</div>
