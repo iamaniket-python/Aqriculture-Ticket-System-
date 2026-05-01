@@ -63,7 +63,7 @@ def generate_otp(mobile: str) -> str:
     Cryptographically secure 6-digit OTP generate karo aur cache mein store karo.
     Returns OTP — caller SMS service ko bheje.
     """
-    otp = str(secrets.randbelow(900_000) + 100_000)   # 100000–999999
+    otp = str(secrets.randbelow(900_000) + 100_000)  
     cache.set(_otp_cache_key(mobile), {
         "otp":      otp,
         "attempts": 0,
