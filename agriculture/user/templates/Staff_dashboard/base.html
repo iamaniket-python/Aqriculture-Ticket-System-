@@ -1,0 +1,147 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}Staff Dashboard{% endblock %}</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{% static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/vendors/ti-icons/css/themify-icons.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/vendors/font-awesome/css/font-awesome.min.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/css/style.css' %}"/>
+  <link rel="stylesheet" href="{% static 'css/staff.css' %}"/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="{% static 'image/logo.png' %}"/>
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="staff-navbar">
+
+  <div class="navbar-brand">
+    <div class="brand-icon">🎫</div>
+    Staff Dashboard
+  </div>
+
+  <div class="navbar-right">
+
+    <!-- ================= MESSAGES ================= -->
+    <div class="nav-wrapper">
+      <button class="nav-icon-btn" onclick="togglePanel('msgPanel')">
+        <i class="mdi mdi-email-outline"></i>
+        {% if unread_messages_count %}
+          <span class="nav-badge">{{ unread_messages_count }}</span>
+        {% endif %}
+      </button>
+
+      <div class="nav-panel" id="msgPanel">
+        <div class="panel-head">💬 Messages</div>
+        <div class="panel-scroll">
+          {% for msg in recent_messages %}
+          <a href="{% url 'staff_view_ticket' msg.ticket.id %}" class="panel-item">
+            <div class="p-avatar blue">
+              {{ msg.ticket.user.username|slice:":1"|upper }}
+            </div>
+            <div class="p-content">
+              <div class="p-name">{{ msg.ticket.user.username }}</div>
+              <div class="p-msg">{{ msg.message|truncatechars:35 }}</div>
+            </div>
+          </a>
+          {% empty %}
+          <div class="panel-empty">
+            <div>📭</div>No new messages
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= NOTIFICATIONS ================= -->
+    <div class="nav-wrapper">
+      <button class="nav-icon-btn" onclick="togglePanel('notifPanel')">
+        <i class="mdi mdi-bell-outline"></i>
+        {% if assigned_count %}
+          <span class="nav-badge orange">{{ assigned_count }}</span>
+        {% endif %}
+      </button>
+
+      <div class="nav-panel" id="notifPanel">
+        <div class="panel-head">🔔 Notifications</div>
+        <div class="panel-scroll">
+          {% for t in assigned_tickets %}
+          <a href="{% url 'staff_view_ticket' t.id %}" class="panel-item">
+            <div class="p-avatar purple">🎫</div>
+            <div class="p-content">
+              <div class="p-name">New Ticket Assigned</div>
+              <div class="p-msg">{{ t.title|truncatechars:30 }}</div>
+            </div>
+          </a>
+          {% empty %}
+          <div class="panel-empty">
+            <div>🔕</div>No notifications
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <!-- ================= PROFILE ================= -->
+    <div class="nav-wrapper">
+      <button class="profile-btn" onclick="togglePanel('profilePanel')">
+        <div class="profile-avatar">
+          {{ request.user.username|slice:":1"|upper }}
+        </div>
+        <div>
+          <div class="profile-name">{{ request.user.username }}</div>
+          <div class="profile-role">Staff Member</div>
+        </div>
+        <i class="mdi mdi-chevron-down"></i>
+      </button>
+
+      <div class="nav-panel profile-panel" id="profilePanel">
+        <div class="panel-scroll">
+          <a href="{% url 'staff_logout' %}" class="panel-item logout">
+            <i class="mdi mdi-logout"></i> Logout
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+<!-- ================= MAIN CONTENT ================= -->
+<div class="main-content">
+  {% block content %}{% endblock %}
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer class="admin-footer">
+  © 2026 Managed by Agrizfarm — All rights reserved
+</footer>
+
+<!-- ================= JS ================= -->
+<script src="{% static 'assets/vendors/js/vendor.bundle.base.js' %}"></script>
+<script src="{% static 'assets/js/off-canvas.js' %}"></script>
+<script src="{% static 'assets/js/misc.js' %}"></script>
+
+<!-- MAIN STAFF JS -->
+<script src="{% static 'js/staff.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>
