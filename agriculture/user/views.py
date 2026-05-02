@@ -7,7 +7,9 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-
+from django.views.decorators.http import require_POST      
+from django.views.decorators.cache import never_cache  
+from .decorators import  clear_staff_cache
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -56,14 +58,30 @@ def register(request):
         password = request.POST.get("password", "")
         mobile   = request.POST.get("mobile", "").strip()
 
+        # ✅ Basic input validation
+        if not username or not email or not password or not mobile:
+            return render(request, 'Authentication/register.html', {
+                "error": "All fields are required."
+            })
+
+        if not mobile.isdigit() or len(mobile) != 10:
+            return render(request, 'Authentication/register.html', {
+                "error": "Enter a valid 10-digit mobile number."
+            })
+
         if User.objects.filter(username=username).exists():
-            return render(request, 'Authentication/register.html', {"error": "Username already exists"})
+            return render(request, 'Authentication/register.html', {
+                "error": "Username already exists"
+            })
 
         if User.objects.filter(email=email).exists():
-            return render(request, 'Authentication/register.html', {"error": "Email already exists"})
+            return render(request, 'Authentication/register.html', {
+                "error": "Email already exists"
+            })
 
         user = User.objects.create_user(username=username, email=email, password=password)
         Profile.objects.create(user=user, mobile=mobile)
+        messages.success(request, "Account created! Please login.")
         return redirect('login')
 
     return render(request, 'Authentication/register.html')
@@ -73,11 +91,11 @@ def register(request):
 # 📱 USER LOGIN (OTP based)
 # =============================================
 
+@never_cache   # ✅ Prevent browser from caching login page
 def login_page(request):
     if request.method == "POST":
         mobile = request.POST.get("mobile", "").strip()
 
-        # Basic input validation
         if not mobile or not mobile.isdigit() or len(mobile) != 10:
             return render(request, 'Authentication/login.html', {
                 "error": "Valid 10-digit mobile number required"
@@ -85,17 +103,17 @@ def login_page(request):
 
         if not Profile.objects.filter(mobile=mobile).exists():
             return render(request, 'Authentication/login.html', {
-                "error": "Mobile number is Not registered"
+                "error": "Mobile number is not registered"
             })
 
-        otp = generate_otp(mobile)
+        try:
+            otp = generate_otp(mobile)
+        except PermissionError as e:
+            return render(request, 'Authentication/login.html', {"error": str(e)})
 
-        # ✅ Production mein: send_otp_sms(mobile, otp)
-        # ❌ Never print OTP in production — sirf development ke liye
-     
-        print(f"OTP: {otp}")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("DEV OTP for %s: %s", mobile, otp)
 
-        # Session mein sirf mobile rakho — OTP nahi
         request.session['pending_mobile'] = mobile
         return redirect('verify_otp')
 
@@ -106,14 +124,21 @@ def login_page(request):
 # 🔢 OTP VERIFY
 # =============================================
 
+@never_cache
 def verify_otp_view(request):
     if request.method == "POST":
-        entered   = request.POST.get("otp", "").strip()
-        mobile    = request.session.get('pending_mobile')
+        entered = request.POST.get("otp", "").strip()
+        mobile  = request.session.get('pending_mobile')
 
         if not mobile:
             return render(request, 'Authentication/verify_otp.html', {
                 "error": "Session expired. Please login again."
+            })
+
+        # ✅ Validate OTP format before checking
+        if not entered or not entered.isdigit():
+            return render(request, 'Authentication/verify_otp.html', {
+                "error": "Invalid OTP format."
             })
 
         success, error_msg = verify_otp(mobile, entered)
@@ -121,7 +146,6 @@ def verify_otp_view(request):
         if not success:
             return render(request, 'Authentication/verify_otp.html', {"error": error_msg})
 
-        # OTP verified — user fetch ya create karo
         profile = Profile.objects.filter(mobile=mobile).first()
         if profile:
             user = profile.user
@@ -129,7 +153,6 @@ def verify_otp_view(request):
             user = User.objects.create(username=mobile)
             Profile.objects.create(user=user, mobile=mobile)
 
-        # Session cleanup
         request.session.pop('pending_mobile', None)
 
         refresh  = RefreshToken.for_user(user)
@@ -152,10 +175,11 @@ def resend_otp(request):
 
     otp = generate_otp(mobile)
 
-    if __debug__:
+    if logger.isEnabledFor(logging.DEBUG):
         logger.debug("DEV resend OTP for %s: %s", mobile, otp)
 
     # Production: send_otp_sms(mobile, otp)
+    messages.success(request, "OTP resent successfully.")
     return redirect('verify_otp')
 
 
@@ -181,14 +205,14 @@ def profile(request):
     date_to       = request.GET.get('date_to', '')
     has_purchase  = Purchase.objects.filter(user=user).exists()
 
-    tickets = TicketService.get_user_tickets(
+    tickets  = TicketService.get_user_tickets(
         user,
         product=product_query,
         date_from=date_from,
         date_to=date_to,
     )
 
-    paginator = Paginator(tickets, 10)  
+    paginator = Paginator(tickets, 10)
     page_obj  = paginator.get_page(request.GET.get('page'))
 
     return render(request, 'UserProfile/profile.html', {
@@ -217,7 +241,7 @@ def create_ticket(request):
 
     if request.method == "POST":
         try:
-            ticket = TicketService.create_ticket(
+            TicketService.create_ticket(
                 user=user,
                 data=request.POST,
                 images=request.FILES.getlist("images"),
@@ -227,6 +251,10 @@ def create_ticket(request):
             return redirect('profile')
         except Purchase.DoesNotExist:
             messages.error(request, "Invalid purchase selected.")
+        except Exception as e:
+            # ✅ Log unexpected errors, show generic message to user
+            logger.error("Ticket creation failed for user %s: %s", user.id, str(e))
+            messages.error(request, "Something went wrong. Please try again.")
 
     return render(request, 'UserProfile/create_ticket.html', {
         'purchases':         purchases,
@@ -242,13 +270,16 @@ def create_ticket(request):
 @login_required_token
 def ticket_chat(request, ticket_id):
     user   = request._token_user
-    ticket = get_object_or_404(Ticket, id=ticket_id, user=user)  # user ownership check
-    chats  = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
+    ticket = get_object_or_404(Ticket, id=ticket_id, user=user)
+    chats  = TicketComment.objects.filter(ticket=ticket)\
+                                  .select_related('sender')\
+                                  .order_by('created_at')
 
     if request.method == "POST":
         message = request.POST.get("message", "").strip()
+        image   = request.FILES.get("image")   # ✅ handle image upload in chat
         if message:
-            TicketService.add_comment(ticket, user, message)
+            TicketService.add_comment(ticket, user, message, image=image)
         return redirect('user_ticket_chat', ticket_id=ticket.id)
 
     return render(request, "Ticket/ticket_chat.html", {
@@ -265,11 +296,18 @@ def check_tracking(request):
     if request.method == "POST":
         tracking_id = request.POST.get("tracking_id", "").strip()
 
+        if not tracking_id:
+            return render(request, "UserProfile/check_tracking.html", {
+                "error": "Please enter a tracking ID."
+            })
+
         if TrackingUser.objects.filter(tracking_id=tracking_id).exists():
             request.session["tracking_verified"] = True
             request.session["tracking_id"]       = tracking_id
             return redirect("profile")
 
+        # ✅ Log failed tracking attempts for monitoring
+        logger.warning("Failed tracking attempt: %s", tracking_id)
         return render(request, "UserProfile/check_tracking.html", {
             "error": "Invalid Tracking ID"
         })
@@ -281,6 +319,7 @@ def check_tracking(request):
 # 🔐 ADMIN LOGIN
 # =============================================
 
+@never_cache
 def admin_login(request):
     if request.user.is_authenticated and request.session.get('role') == 'admin':
         return redirect('admin_dashboard')
@@ -293,8 +332,14 @@ def admin_login(request):
         if user is not None and user.is_superuser:
             login(request, user)
             request.session['role'] = 'admin'
+            # ✅ Log successful admin logins for audit trail
+            logger.info("Admin login: %s from IP %s", username,
+                        request.META.get('REMOTE_ADDR'))
             return redirect('admin_dashboard')
 
+        # ✅ Log failed admin login attempts
+        logger.warning("Failed admin login attempt: %s from IP %s",
+                       username, request.META.get('REMOTE_ADDR'))
         return render(request, 'Dashboard/login.html', {
             "error": "Invalid credentials or insufficient permissions"
         })
@@ -311,20 +356,22 @@ def admin_dashboard(request):
     selected_user     = request.GET.get('user')
     selected_purchase = request.GET.get('purchase_id')
 
-    # ✅ Ek query mein sab stats — N+1 fix
     stats = TicketService.get_dashboard_stats(user_filter=selected_user)
 
-    # ✅ select_related — template mein N+1 queries nahi
     tickets = Ticket.objects.select_related('user', 'purchase', 'assigned_to')\
                              .order_by('-created_at')
     if selected_user:
         tickets = tickets.filter(user_id=selected_user)
 
+    # ✅ Paginate admin ticket list — prevents crash with large data
+    paginator = Paginator(tickets, 20)
+    page_obj  = paginator.get_page(request.GET.get('page'))
+
     users       = User.objects.filter(ticket__isnull=False).distinct()
     staff_users = User.objects.filter(is_staff=True)
     new_tickets = Ticket.objects.filter(status='pending').order_by('-created_at')[:5]
 
-    unread_filter = dict(is_read=False, sender__is_staff=False, sender__is_superuser=False)
+    unread_filter   = dict(is_read=False, sender__is_staff=False, sender__is_superuser=False)
     unread_messages = TicketComment.objects.filter(**unread_filter)\
                                           .select_related('ticket', 'sender')\
                                           .order_by('-created_at')[:5]
@@ -336,20 +383,22 @@ def admin_dashboard(request):
     if selected_purchase:
         gallery_tickets = gallery_tickets.filter(purchase__purchase_id=selected_purchase)
 
-    purchases = Purchase.objects.filter(user_id=selected_user).distinct() if selected_user else Purchase.objects.none()
+    purchases = Purchase.objects.filter(user_id=selected_user).distinct() \
+                if selected_user else Purchase.objects.none()
 
     return render(request, 'Dashboard/index.html', {
         **stats,
-        'tickets':             tickets,
-        'staff_users':         staff_users,
-        'new_tickets':         new_tickets,
-        'unread_messages':     unread_messages,
-        'unread_count':        unread_count,
-        'users':               users,
-        'purchases':           purchases,
-        'selected_user':       selected_user,
-        'selected_purchase':   selected_purchase,
-        'gallery_tickets':     gallery_tickets,
+        'page_obj':          page_obj,        # ✅ paginated
+        'tickets':           page_obj,        # keep template compat
+        'staff_users':       staff_users,
+        'new_tickets':       new_tickets,
+        'unread_messages':   unread_messages,
+        'unread_count':      unread_count,
+        'users':             users,
+        'purchases':         purchases,
+        'selected_user':     selected_user,
+        'selected_purchase': selected_purchase,
+        'gallery_tickets':   gallery_tickets,
     })
 
 
@@ -367,20 +416,12 @@ def admin_logout(request):
 # =============================================
 
 @admin_session_required
-def admin_reply(request, ticket_id):
-    ticket = get_object_or_404(Ticket, id=ticket_id)
-    if request.method == "POST":
-        message = request.POST.get("message", "").strip()
-        if message:
-            TicketService.add_comment(ticket, request.user, message)
-    return redirect("admin_dashboard")
-
-
-@admin_session_required
 def admin_ticket_chat(request, ticket_id):
     ticket   = get_object_or_404(Ticket, id=ticket_id)
     tickets  = Ticket.objects.select_related('user').all()
-    comments = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
+    comments = TicketComment.objects.filter(ticket=ticket)\
+                                    .select_related('sender')\
+                                    .order_by('created_at')
 
     if request.method == "POST":
         msg = request.POST.get("message", "").strip()
@@ -398,7 +439,9 @@ def admin_ticket_chat(request, ticket_id):
 @admin_session_required
 def admin_view_ticket(request, id):
     ticket   = get_object_or_404(Ticket, id=id)
-    comments = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
+    comments = TicketComment.objects.filter(ticket=ticket)\
+                                    .select_related('sender')\
+                                    .order_by('created_at')
 
     TicketService.mark_comments_read(ticket, exclude_staff=True)
 
@@ -415,23 +458,27 @@ def admin_view_ticket(request, id):
 
 
 @admin_session_required
+@require_POST   
 def update_ticket_status(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
-    if request.method == "POST":
+    try:
         TicketService.update_status(ticket, request.POST.get("status", ""))
+        messages.success(request, "Status updated successfully.")
+    except ValueError as e:
+        messages.error(request, str(e))
     return redirect('admin_dashboard')
 
 
 @admin_session_required
+@require_POST   # ✅ Only allow POST
 def assign_ticket(request, ticket_id):
     if not request.user.is_superuser:
         return redirect('admin_dashboard')
 
     ticket = get_object_or_404(Ticket, id=ticket_id)
-    if request.method == "POST":
-        staff = get_object_or_404(User, id=request.POST.get("staff_id"))
-        TicketService.assign_to_staff(ticket, staff)
-        return redirect('admin_dashboard')
+    staff  = get_object_or_404(User, id=request.POST.get("staff_id"))
+    TicketService.assign_to_staff(ticket, staff)
+    return redirect('admin_dashboard')
 
 
 # =============================================
@@ -446,7 +493,7 @@ def admin_chat_list(request):
 
 @admin_session_required
 def admin_chat_detail(request, user_id):
-    other_user = get_object_or_404(User, id=user_id)
+    other_user    = get_object_or_404(User, id=user_id)
     chat_messages = AdminChat.objects.filter(
         Q(sender=request.user, receiver=other_user) |
         Q(sender=other_user,   receiver=request.user)
@@ -463,12 +510,12 @@ def admin_chat_detail(request, user_id):
 
 
 @admin_session_required
+@require_POST   # ✅ Only allow POST
 def send_admin_message(request, user_id):
-    if request.method == "POST":
-        msg      = request.POST.get("message", "").strip()
-        receiver = get_object_or_404(User, id=user_id)
-        if msg:
-            AdminChat.objects.create(sender=request.user, receiver=receiver, message=msg)
+    msg      = request.POST.get("message", "").strip()
+    receiver = get_object_or_404(User, id=user_id)
+    if msg:
+        AdminChat.objects.create(sender=request.user, receiver=receiver, message=msg)
     return redirect('admin_chat_detail', user_id=user_id)
 
 
@@ -487,24 +534,28 @@ def admin_staff_list(request):
 
 
 @admin_session_required
+@require_POST
 def approve_staff(request, id):
     if not request.user.is_superuser:
         return redirect("admin_login")
 
-    profile = get_object_or_404(StaffProfile, id=id)
+    profile               = get_object_or_404(StaffProfile, id=id)
     profile.is_approved   = True
     profile.user.is_staff = True
     profile.user.save(update_fields=['is_staff'])
     profile.save(update_fields=['is_approved'])
+    messages.success(request, "Staff approved successfully.")
     return redirect("admin_staff_list")
 
 
 @admin_session_required
+@require_POST
 def reject_staff(request, id):
     if not request.user.is_superuser:
         return redirect("admin_login")
 
     get_object_or_404(StaffProfile, id=id).delete()
+    messages.success(request, "Staff rejected and removed.")
     return redirect("admin_staff_list")
 
 
@@ -517,14 +568,21 @@ def staff_register(request):
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
 
+        if not username or not password:
+            return render(request, "Staff_dashboard/register.html", {
+                "error": "Username and password are required."
+            })
+
         if User.objects.filter(username=username).exists():
             return render(request, "Staff_dashboard/register.html", {
                 "error": "Username already exists"
             })
 
-        user = User.objects.create_user(username=username, password=password,
-                                        is_staff=False, is_superuser=False)
-        StaffProfile.objects.create(user=user)
+        User.objects.create_user(
+            username=username, password=password,
+            is_staff=False, is_superuser=False
+        )
+        StaffProfile.objects.create(user=User.objects.get(username=username))
         return render(request, "Staff_dashboard/register.html", {
             "msg": "Request sent to admin for approval."
         })
@@ -536,6 +594,7 @@ def staff_register(request):
 # 🔐 STAFF LOGIN
 # =============================================
 
+@never_cache
 def staff_login(request):
     if request.user.is_authenticated and request.session.get('role') == 'staff':
         return redirect('staff_dashboard')
@@ -546,10 +605,16 @@ def staff_login(request):
         user     = authenticate(request, username=username, password=password)
 
         if not user:
-            return render(request, "staff_dashboard/login.html", {"error": "Invalid credentials"})
+            logger.warning("Failed staff login: %s from IP %s",
+                           username, request.META.get('REMOTE_ADDR'))
+            return render(request, "staff_dashboard/login.html", {
+                "error": "Invalid credentials"
+            })
 
         if not user.is_staff:
-            return render(request, "staff_dashboard/login.html", {"error": "Not a staff account"})
+            return render(request, "staff_dashboard/login.html", {
+                "error": "Not a staff account"
+            })
 
         profile = StaffProfile.objects.filter(user=user, is_approved=True).first()
         if not profile:
@@ -570,15 +635,14 @@ def staff_login(request):
 
 @staff_session_required
 def staff_dashboard(request):
-    user = request.user
-
-    # Decorator already approved check karta hai — phir bhi safe fallback
+    user    = request.user
     profile = get_object_or_404(StaffProfile, user=user, is_approved=True)
 
     tickets = Ticket.objects.filter(assigned_to=user)\
                              .select_related("user", "purchase")\
                              .order_by("-id")
 
+    # ✅ Single query for all stats — no duplicate count()
     stats = tickets.aggregate(
         total       = Count('id'),
         pending     = Count('id', filter=Q(status='pending')),
@@ -590,15 +654,17 @@ def staff_dashboard(request):
                                            .select_related("ticket", "ticket__user")\
                                            .order_by("-id")[:5]
 
-    unread_count = TicketComment.objects.filter(ticket__assigned_to=user, is_read=False).count()
+    unread_count = TicketComment.objects.filter(
+        ticket__assigned_to=user, is_read=False
+    ).count()
 
     return render(request, "staff_dashboard/staff_dashboard.html", {
         **stats,
-        "tickets":              tickets,
-        "recent_messages":      recent_messages,
-        "unread_messages_count":unread_count,
-        "assigned_tickets":     tickets[:5],
-        "assigned_count":       tickets.count(),
+        "tickets":               tickets,
+        "recent_messages":       recent_messages,
+        "unread_messages_count": unread_count,
+        "assigned_tickets":      tickets[:5],
+        "assigned_count":        stats['total'],  # ✅ reuse from aggregate, no extra query
     })
 
 
@@ -618,7 +684,9 @@ def staff_logout(request):
 @staff_session_required
 def staff_ticket_chat(request, ticket_id):
     ticket   = get_object_or_404(Ticket, id=ticket_id, assigned_to=request.user)
-    comments = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
+    comments = TicketComment.objects.filter(ticket=ticket)\
+                                    .select_related('sender')\
+                                    .order_by('created_at')
 
     if request.method == "POST":
         msg = request.POST.get("message", "").strip()
@@ -647,7 +715,9 @@ def staff_view_ticket(request, id):
             TicketService.add_comment(ticket, request.user, msg)
         return redirect("staff_view_ticket", id=id)
 
-    comments = TicketComment.objects.filter(ticket=ticket).select_related('sender').order_by('created_at')
+    comments = TicketComment.objects.filter(ticket=ticket)\
+                                    .select_related('sender')\
+                                    .order_by('created_at')
     return render(request, 'staff_dashboard/view_ticket.html', {
         'ticket':   ticket,
         'comments': comments,
@@ -655,52 +725,97 @@ def staff_view_ticket(request, id):
 
 
 @staff_session_required
+@require_POST   # ✅ Only POST allowed
 def update_ticket(request, id):
-    if request.method != "POST":
-        return HttpResponseForbidden("Invalid request method.")
-
     ticket = get_object_or_404(Ticket, id=id, assigned_to=request.user)
     TicketService.update_status(ticket, request.POST.get("status", ""))
     return redirect("staff_dashboard")
 
 
 # =============================================
-# 🔌 API ENDPOINT
+# 🔌 API ENDPOINTS
 # =============================================
 
 @login_required_token
 def get_tickets(request):
     tickets = TicketService.get_user_tickets(request._token_user)
-    data = [{"title": t.title, "description": t.description, "status": t.status}
-            for t in tickets]
-    return JsonResponse({"tickets": data})
 
-# =============================================
-# 🔌close Ticket
-# =============================================
+    # ✅ Paginate API response — never return all records at once
+    paginator = Paginator(tickets, 20)
+    page      = paginator.get_page(request.GET.get('page', 1))
+
+    data = [
+        {"title": t.title, "description": t.description, "status": t.status}
+        for t in page
+    ]
+    return JsonResponse({
+        "tickets":  data,
+        "page":     page.number,
+        "pages":    paginator.num_pages,
+        "has_next": page.has_next(),
+    })
+
 
 @login_required_token
+@require_POST
 def close_ticket(request, ticket_id):
     user   = request._token_user
     ticket = get_object_or_404(Ticket, id=ticket_id, user=user)
-    
-    if request.method == "POST":
-        ticket.status = 'resolved'
-        ticket.save(update_fields=['status'])
-        messages.success(request, "Ticket closed successfully!")
-        return redirect('profile')
-    
-    return redirect('user_ticket_chat', ticket_id=ticket_id)
+    ticket.status = 'resolved'
+    ticket.save(update_fields=['status'])
+    messages.success(request, "Ticket closed successfully!")
+    return redirect('profile')
 
 
 @admin_session_required
+@require_POST
 def mark_notifications_read(request):
-    """Notifications dekhi — sab read mark karo"""
-    if request.method == "POST":
-        TicketComment.objects.filter(
-            is_read=False,
-            sender__is_staff=False,
-            sender__is_superuser=False
-        ).update(is_read=True)
-        return JsonResponse({"status": "ok"})
-    return JsonResponse({"status": "error"})
+    TicketComment.objects.filter(
+        is_read=False,
+        sender__is_staff=False,
+        sender__is_superuser=False
+    ).update(is_read=True)
+    return JsonResponse({"status": "ok"})
+
+
+# =============================================
+# ❌ ERROR PAGES
+# =============================================
+
+def error_404(request, exception):
+    return render(request, 'errors/404.html', status=404)
+
+def error_500(request):
+    return render(request, 'errors/500.html', status=500)
+
+
+@admin_session_required
+@require_POST
+def approve_staff(request, id):
+    if not request.user.is_superuser:
+        return redirect("admin_login")
+
+    profile               = get_object_or_404(StaffProfile, id=id)
+    profile.is_approved   = True
+    profile.user.is_staff = True
+    profile.user.save(update_fields=['is_staff'])
+    profile.save(update_fields=['is_approved'])
+
+    clear_staff_cache(profile.user.id)   # ✅ clear stale cache immediately
+
+    messages.success(request, "Staff approved successfully.")
+    return redirect("admin_staff_list")
+
+
+@admin_session_required
+@require_POST
+def reject_staff(request, id):
+    if not request.user.is_superuser:
+        return redirect("admin_login")
+
+    profile = get_object_or_404(StaffProfile, id=id)
+    clear_staff_cache(profile.user.id)   # ✅ clear cache before delete
+    profile.delete()
+
+    messages.success(request, "Staff rejected and removed.")
+    return redirect("admin_staff_list")

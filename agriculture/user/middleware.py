@@ -1,56 +1,103 @@
+import logging
+
 from django.shortcuts import redirect
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from django.contrib.auth.models import User
+
+logger = logging.getLogger(__name__)
 
 
 class JWTAuthMiddleware:
+    """
+    JWT cookie-based auth middleware.
+    Public paths bypass check. Protected paths require valid access token.
+    """
+
     def __init__(self, get_response):
         self.get_response = get_response
 
-    # Ye paths bina login ke accessible hain
+    # ✅ Paths accessible without login
     PUBLIC_PATHS = [
         '/',
         '/login/',
         '/register/',
         '/verify-otp/',
-        '/resend-otp/',         # ✅ Add kiya — pehle missing tha
+        '/resend-otp/',
         '/check-tracking/',
         '/admin-login/',
         '/admin-logout/',
-        '/staff/login/',        # ✅ Fix kiya — pehle '/staff-login/' tha (wrong)
-        '/staff/register/',     # ✅ Fix kiya — pehle '/staff-register/' tha (wrong)
-        '/staff/logout/',       # ✅ Add kiya
-        '/api/',                # ✅ Add kiya — API block ho rahi thi
-        '/admin/',              # Django admin panel
+        '/staff/login/',
+        '/staff/register/',
+        '/staff/logout/',
+        '/api/',                  # API has its own JWT auth via DRF
+        '/django-admin/',         # ✅ Fixed — was '/admin/' but urls.py uses '/django-admin/'
     ]
 
+    # ✅ Path prefixes → their login redirect name
+    STAFF_PREFIXES  = ('/staff/',)
+    ADMIN_PREFIXES  = ('/admin-dashboard/', '/dashboard/')
+
     def __call__(self, request):
-        # Public path hai toh check mat karo
-        is_public = any(request.path.startswith(path) for path in self.PUBLIC_PATHS)
+        path      = request.path
+        is_public = any(path.startswith(p) for p in self.PUBLIC_PATHS)
 
-        if not is_public:
-            token = request.COOKIES.get('access')
+        if is_public:
+            return self.get_response(request)
 
-            if not token:
-                # Staff ya admin path pe hai toh unke login pe bhejo
-                if request.path.startswith('/staff/'):
-                    return redirect('staff_login')
-                if request.path.startswith('/admin-dashboard/') or request.path.startswith('/dashboard/'):
-                    return redirect('admin_login')
-                return redirect('login')
+        token = request.COOKIES.get('access')
 
-            # ✅ Token properly validate karo — simplejwt se
-            try:
-                validated = AccessToken(token)
-                user_id = validated['user_id']
-                request._jwt_user_id = user_id   # views mein use kar sakte ho
-            except (TokenError, InvalidToken, KeyError):
-                # Invalid/expired token — login pe bhejo
-                response = redirect('login')
-                response.delete_cookie('access')
-                response.delete_cookie('refresh')
-                return response
+        if not token:
+            return self._redirect_to_login(request, reason="no_token")
 
-        response = self.get_response(request)
+        try:
+            validated            = AccessToken(token)
+            request._jwt_user_id = validated['user_id']   # available to views if needed
+
+        except (TokenError, InvalidToken, KeyError):
+            logger.warning(
+                "Invalid/expired JWT on path '%s' from IP %s",
+                path,
+                request.META.get('REMOTE_ADDR'),
+            )
+            return self._redirect_to_login(request, reason="invalid_token", clear_cookies=True)
+
+        return self.get_response(request)
+
+    def _redirect_to_login(self, request, reason="", clear_cookies=False):
+        """
+        Redirect to correct login page based on path.
+        Optionally clear bad cookies.
+        """
+        path = request.path
+
+        # ✅ Route to the right login page based on path prefix
+        if any(path.startswith(p) for p in self.STAFF_PREFIXES):
+            login_url = 'staff_login'
+        elif any(path.startswith(p) for p in self.ADMIN_PREFIXES):
+            login_url = 'admin_login'
+        else:
+            login_url = 'login'
+
+        logger.info(
+            "Auth redirect → '%s' | path='%s' | reason='%s' | IP=%s",
+            login_url,
+            path,
+            reason,
+            request.META.get('REMOTE_ADDR'),
+        )
+
+        response = redirect(login_url)
+
+        if clear_cookies:
+            # ✅ Force-expire cookies properly
+            for cookie in ('access', 'refresh'):
+                response.delete_cookie(cookie, samesite='Lax')
+                response.set_cookie(
+                    cookie, '',
+                    max_age=0,
+                    httponly=True,
+                    secure=not __import__('django.conf', fromlist=['settings']).settings.DEBUG,
+                    samesite='Lax',
+                )
+
         return response

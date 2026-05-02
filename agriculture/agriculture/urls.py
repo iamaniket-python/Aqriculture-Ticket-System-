@@ -8,12 +8,16 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+# ✅ Custom error pages (create these templates later)
+handler404 = 'user.views.error_404'
+handler500 = 'user.views.error_500'
+
 urlpatterns = [
 
     # =========================
     # 🔧 DJANGO ADMIN PANEL
     # =========================
-    path('admin/', admin.site.urls),
+    path('django-admin/', admin.site.urls),   # ✅ Renamed from 'admin/' — harder to find by bots
 
     # =========================
     # 👤 USER AUTH
@@ -40,51 +44,46 @@ urlpatterns = [
     # =========================
     # ⚙️ API
     # =========================
-    path('api/auth/register/', views.RegisterView.as_view(), name="auth_register"),
+    path('api/auth/register/', views.RegisterView.as_view(), name='auth_register'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/tickets/', views.get_tickets, name="api_tickets"),
+    path('api/tickets/', views.get_tickets, name='api_tickets'),
 
     # =========================
     # 🔴 ADMIN AUTH
     # =========================
-   path('admin-login/', views.admin_login, name='admin_login'),
+    path('admin-login/', views.admin_login, name='admin_login'),
     path('admin-logout/', views.admin_logout, name='admin_logout'),
-    
 
     # =========================
     # 🔴 ADMIN DASHBOARD
     # =========================
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
 
-   # =========================
-# 🔴 ADMIN TICKET (FIXED)
-# =========================
-
+    # =========================
+    # 🔴 ADMIN TICKET
+    # =========================
     path('dashboard/ticket/view/<int:id>/', views.admin_view_ticket, name='admin_view_ticket'),
     path('dashboard/ticket/chat/<int:ticket_id>/', views.admin_ticket_chat, name='admin_ticket_chat'),
     path('dashboard/ticket/update/<int:ticket_id>/', views.update_ticket_status, name='admin_update_ticket'),
     path('dashboard/ticket/assign/<int:ticket_id>/', views.assign_ticket, name='assign_ticket'),
 
-# =========================
-# 🔴 ADMIN CHAT SYSTEM
-# =========================
+    # =========================
+    # 🔴 ADMIN CHAT SYSTEM
+    # =========================
+    path('dashboard/chat/', views.admin_chat_list, name='admin_chat'),                          # ✅ moved from admin/chat/
+    path('dashboard/chat/send/<int:user_id>/', views.send_admin_message, name='send_admin_message'),  # ✅ moved
 
-        path('admin/chat/', views.admin_chat_list, name='admin_chat'),
-        path('admin/chat/send/<int:user_id>/', views.send_admin_message, name='send_admin_message'),
-        
+    # =========================
+    # 🔴 ADMIN NOTIFICATIONS
+    # =========================
+    path('dashboard/notifications/read/', views.mark_notifications_read, name='mark_notifications_read'),  # ✅ moved
 
-# =========================
-# 🔴 ADMIN STAFF MANAGEMENT
-# =========================
-
-  
-# =========================
-
+    # =========================
+    # 🔴 ADMIN STAFF MANAGEMENT
+    # =========================
     path('dashboard/staff/', views.admin_staff_list, name='admin_staff_list'),
-
     path('dashboard/staff/approve/<int:id>/', views.approve_staff, name='approve_staff'),
-
     path('dashboard/staff/reject/<int:id>/', views.reject_staff, name='reject_staff'),
 
     # =========================
@@ -106,12 +105,17 @@ urlpatterns = [
     path('staff/ticket/update/<int:id>/', views.update_ticket, name='staff_update_ticket'),
     path('staff/ticket/chat/<int:ticket_id>/', views.staff_ticket_chat, name='staff_ticket_chat'),
     path('ticket/close/<int:ticket_id>/', views.close_ticket, name='close_ticket'),
-    path('admin/notifications/read/', views.mark_notifications_read, name='mark_notifications_read'),
 ]
 
+
 # =========================
-# 📁 MEDIA FILES
+# 📁 STATIC & MEDIA FILES
 # =========================
 if settings.DEBUG:
+    # Local development only
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'user' / 'static')
+else:
+    # ✅ Production: serve media files via Django
+    # (For large projects, use AWS S3 instead — ask me about it)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
