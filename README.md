@@ -17,7 +17,7 @@ This project allows users to create tickets, communicate with staff, and manage 
 🛠️ Tech Stack
 Backend: Django, Django REST Framework
 Authentication: JWT (SimpleJWT)
-Database: PostgreSQL / SQLite
+Database: PostgreSQL
 Frontend: HTML, CSS, Bootstrap
 Others: Pillow, psycopg2
 
