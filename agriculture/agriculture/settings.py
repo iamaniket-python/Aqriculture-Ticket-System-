@@ -301,3 +301,6 @@ LOGGING = {
         },
     },
 }
+
+
+FAST2SMS_API_KEY = os.getenv('FAST2SMS_API_KEY')
