@@ -379,7 +379,7 @@ def admin_dashboard(request):
     paginator = Paginator(tickets, 20)
     page_obj  = paginator.get_page(request.GET.get('page'))
 
-    users       = User.objects.filter(ticket__isnull=False).distinct()
+    users = User.objects.filter(tickets__isnull=False).distinct()
     staff_users = User.objects.filter(is_staff=True)
     new_tickets = Ticket.objects.filter(status='pending').order_by('-created_at')[:5]
 
