@@ -357,7 +357,7 @@ def admin_login(request):
         logger.warning("Failed admin login: %s from IP %s",
                        username, request.META.get('REMOTE_ADDR'))
         return render(request, 'Dashboard/login.html', {
-            "error": "Invalid credentials or insufficient permissions"
+            "error": "Username or Password is Incorrect"
         })
 
     return render(request, 'Dashboard/login.html')
