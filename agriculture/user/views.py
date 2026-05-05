@@ -624,18 +624,18 @@ def staff_login(request):
         if not user:
             logger.warning("Failed staff login: %s from IP %s",
                            username, request.META.get('REMOTE_ADDR'))
-            return render(request, "staff_dashboard/login.html", {
+            return render(request, "Staff_dashboard/login.html", {
                 "error": "Invalid credentials"
             })
 
         if not user.is_staff:
-            return render(request, "staff_dashboard/login.html", {
+            return render(request, "Staff_dashboard/login.html", {
                 "error": "Not a staff account"
             })
 
         profile = StaffProfile.objects.filter(user=user, is_approved=True).first()
         if not profile:
-            return render(request, "staff_dashboard/login.html", {
+            return render(request, "Staff_dashboard/login.html", {
                 "error": "Account not approved yet. Please wait for admin approval."
             })
 
@@ -643,7 +643,7 @@ def staff_login(request):
         request.session['role'] = 'staff'
         return redirect("staff_dashboard")
 
-    return render(request, "staff_dashboard/login.html")
+    return render(request, "Staff_dashboard/login.html")
 
 
 # =============================================
@@ -674,7 +674,7 @@ def staff_dashboard(request):
         ticket__assigned_to=user, is_read=False
     ).count()
 
-    return render(request, "staff_dashboard/staff_dashboard.html", {
+    return render(request, "Staff_dashboard/staff_dashboard.html", {
         **stats,
         "tickets":               tickets,
         "recent_messages":       recent_messages,
@@ -710,7 +710,7 @@ def staff_ticket_chat(request, ticket_id):
             TicketService.add_comment(ticket, request.user, msg)
         return redirect('staff_ticket_chat', ticket_id=ticket.id)
 
-    return render(request, "staff_dashboard/staff_ticket_chat.html", {
+    return render(request, "Staff_dashboard/staff_ticket_chat.html", {
         "ticket":   ticket,
         "messages": comments,
     })
@@ -734,7 +734,7 @@ def staff_view_ticket(request, id):
     comments = TicketComment.objects.filter(ticket=ticket)\
                                     .select_related('sender')\
                                     .order_by('created_at')
-    return render(request, 'staff_dashboard/view_ticket.html', {
+    return render(request, 'Staff_dashboard/view_ticket.html', {
         'ticket':   ticket,
         'comments': comments,
     })
