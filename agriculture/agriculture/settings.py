@@ -311,9 +311,9 @@ FAST2SMS_API_KEY = os.getenv('FAST2SMS_API_KEY')
 import cloudinary
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('dhaq2g9ht'),
-    'API_KEY': os.getenv('151516687977788'),
-    'API_SECRET': os.getenv('Sp2qnAMQryQmLnNs06YMQ9q6tUc'),
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),  
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),       
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'), 
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
