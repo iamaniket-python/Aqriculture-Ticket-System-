@@ -103,30 +103,25 @@ def login_page(request):
                 "error": "Valid 10-digit mobile number required"
             })
 
+
+        # if not Profile.objects.filter(mobile=mobile).exists():
+        #     return render(request, 'Authentication/login.html', {
+        #         "error": "Mobile number is not registered"
+        #     })
+
+
         if not Profile.objects.filter(mobile=mobile).exists():
             return render(request, 'Authentication/login.html', {
                 "error": "Mobile number is not registered"
             })
 
-        try:
-            generate_otp(mobile)
-            # ✅ Fast2SMS handles SMS delivery inside generate_otp()
-            # DEBUG=True  → OTP printed in terminal
-            # DEBUG=False → Real SMS sent to mobile via Fast2SMS
-
-        except PermissionError as e:
-            # Mobile is locked out after too many attempts
-            return render(request, 'Authentication/login.html', {
-                "error": str(e)
-            })
-        except RuntimeError:
-            # ✅ Fast2SMS failed to send SMS
-            return render(request, 'Authentication/login.html', {
-                "error": "Could not send OTP. Please try again in a moment."
-            })
-
-        request.session['pending_mobile'] = mobile
-        return redirect('verify_otp')
+        # ✅ TEMPORARY: Skip OTP for testing
+        profile = Profile.objects.filter(mobile=mobile).first()
+        user = profile.user
+        refresh = RefreshToken.for_user(user)
+        response = redirect('profile')
+        set_auth_cookies(response, refresh)
+        return response
 
     return render(request, 'Authentication/login.html')
 
