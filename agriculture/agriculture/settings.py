@@ -283,7 +283,7 @@ LOGGING = {
             # ✅ Logs saved to file in production for debugging
             'class':     'logging.handlers.RotatingFileHandler',
             'filename':  LOGS_DIR / 'django.log',
-            'maxBytes':  1024 * 1024 * 5,   # 5 MB max per log file
+            'maxBytes':  1024 * 1024 * 5,    # 5 MB max per log file
             'backupCount': 3,                # keep last 3 log files
             'formatter': 'verbose',
         },
