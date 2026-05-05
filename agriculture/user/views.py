@@ -267,7 +267,7 @@ def create_ticket(request):
             logger.error("Ticket creation failed for user %s: %s", user.id, str(e))
             messages.error(request, "Something went wrong. Please try again.")
 
-    return render(request, 'UserProfile/create_ticket.html', {
+        return render(request, 'UserProfile/create_ticket.html', {
         'purchases':         purchases,
         'products':          products,
         'selected_purchase': selected_purchase,
