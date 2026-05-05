@@ -261,18 +261,27 @@ def create_ticket(request):
             )
             messages.success(request, "Ticket created successfully!")
             return redirect('profile')
+
         except Purchase.DoesNotExist:
             messages.error(request, "Invalid purchase selected.")
+
         except Exception as e:
             logger.error("Ticket creation failed for user %s: %s", user.id, str(e))
             messages.error(request, "Something went wrong. Please try again.")
 
+        # 🔥 IMPORTANT: error ke baad bhi return hona chahiye
         return render(request, 'UserProfile/create_ticket.html', {
-        'purchases':         purchases,
-        'products':          products,
+            'purchases': purchases,
+            'products': products,
+            'selected_purchase': selected_purchase,
+        })
+
+    # GET request ke liye
+    return render(request, 'UserProfile/create_ticket.html', {
+        'purchases': purchases,
+        'products': products,
         'selected_purchase': selected_purchase,
     })
-
 
 # =============================================
 # 💬 USER TICKET CHAT
