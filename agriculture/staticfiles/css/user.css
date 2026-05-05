@@ -1,0 +1,62 @@
+.upload-btn {
+    margin-top: 10px;
+    padding: 8px 14px;
+    border: none;
+    background: #6366f1;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .preview-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .preview-item {
+    position: relative;
+  }
+
+  .preview-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .remove-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* Other box animation */
+  #otherBox {
+    display: none;
+    margin-top: 10px;
+    animation: slideDown 0.3s ease forwards;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
