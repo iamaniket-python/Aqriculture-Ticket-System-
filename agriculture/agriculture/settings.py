@@ -304,3 +304,16 @@ LOGGING = {
 
 
 FAST2SMS_API_KEY = os.getenv('FAST2SMS_API_KEY')
+
+
+import cloudinary
+
+INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('dhaq2g9ht'),
+    'API_KEY': os.getenv('151516687977788'),
+    'API_SECRET': os.getenv('Sp2qnAMQryQmLnNs06YMQ9q6tUc'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
