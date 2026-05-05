@@ -310,8 +310,6 @@ FAST2SMS_API_KEY = os.getenv('FAST2SMS_API_KEY')
 
 import cloudinary
 
-INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
-
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('dhaq2g9ht'),
     'API_KEY': os.getenv('151516687977788'),
