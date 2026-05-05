@@ -104,16 +104,13 @@ def login_page(request):
             })
 
 
+       
+
+
         # if not Profile.objects.filter(mobile=mobile).exists():
         #     return render(request, 'Authentication/login.html', {
         #         "error": "Mobile number is not registered"
         #     })
-
-
-        if not Profile.objects.filter(mobile=mobile).exists():
-            return render(request, 'Authentication/login.html', {
-                "error": "Mobile number is not registered"
-            })
 
         # ✅ TEMPORARY: Skip OTP for testing
         profile = Profile.objects.filter(mobile=mobile).first()
