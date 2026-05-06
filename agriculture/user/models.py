@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from cloudinary.models import CloudinaryField
 
 
 class Purchase(models.Model):
@@ -95,7 +96,7 @@ class TrackingUser(models.Model):
 
 class TicketImage(models.Model):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='tickets/images/')
+    image = CloudinaryField('image')
     uploaded_at = models.DateTimeField(auto_now_add=True) 
 
     class Meta:
@@ -109,7 +110,7 @@ class TicketComment(models.Model):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='chats')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     message = models.TextField()
-    image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
+    image = CloudinaryField('image', blank=True, null=True) 
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
