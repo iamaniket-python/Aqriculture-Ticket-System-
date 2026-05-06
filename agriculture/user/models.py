@@ -41,7 +41,7 @@ class Ticket(models.Model):
     description = models.TextField()
 
     # Removed image from here — use TicketImage model instead (cleaner)
-    document = models.FileField(upload_to='tickets/docs/', blank=True, null=True)
+    document = CloudinaryField(resource_type='raw', blank=True, null=True)
     purchase = models.ForeignKey(
         Purchase, on_delete=models.SET_NULL,  # SET_NULL is safer than CASCADE
         blank=True, null=True, related_name='tickets'
