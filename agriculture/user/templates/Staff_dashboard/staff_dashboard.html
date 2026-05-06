@@ -1,14 +1,12 @@
-{% extends 'Staff_dashboard/base.html' %}
-
-{% block title %}Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'Staff_dashboard/base.html' %} {% block title %}Dashboard{% endblock %} {% block content %}
 <div class="staff-main">
-
   <!-- Title -->
   <div class="page-title-area">
     <h3>Dashboard</h3>
-    <p>Welcome back, {{ request.user.username }} 👋 — Here are your assigned tickets</p>
+    <p>
+      Welcome back, {{ request.user.username }} 👋 — Here are your assigned
+      tickets
+    </p>
   </div>
 
   <!-- Stats -->
@@ -43,9 +41,49 @@
   <div class="table-card">
     <div class="table-head">
       <h4>🎫 Ticket Management</h4>
-      <span style="font-size:12px;color:#9ca3af;">{{ total }} assigned</span>
+      <form
+        method="GET"
+        style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"
+      >
+        <input
+          type="text"
+          name="search"
+          value="{{ search }}"
+          placeholder="🔍 Search title, user..."
+          style="
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            font-size: 13px;
+          "
+        />
+        <input
+          type="date"
+          name="date_from"
+          value="{{ date_from }}"
+          style="
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            font-size: 13px;
+          "
+        />
+        <input
+          type="date"
+          name="date_to"
+          value="{{ date_to }}"
+          style="
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            font-size: 13px;
+          "
+        />
+        <button type="submit" class="btn-search">Search</button>
+        <a href="{% url 'staff_dashboard' %}" class="btn-reset">Reset</a>
+      </form>
     </div>
-    <div style="overflow-x:auto;">
+    <div style="overflow-x: auto">
       <table class="premium-table">
         <thead>
           <tr>
@@ -61,44 +99,71 @@
         <tbody>
           {% for t in tickets %}
           <tr>
-
             <!-- User -->
             <td>
               <div class="user-cell">
-                <div class="user-av">{{ t.user.username|slice:":1"|upper }}</div>
+                <div class="user-av">
+                  {{ t.user.username|slice:":1"|upper }}
+                </div>
                 <div>
                   <div class="user-name">{{ t.user.username }}</div>
-                  <div class="user-sub">{{ t.user.email|truncatechars:20 }}</div>
+                  <div class="user-sub">
+                    {{ t.user.email|truncatechars:20 }}
+                  </div>
                 </div>
               </div>
             </td>
 
             <!-- Order ID -->
-            <td><span class="order-mono">{{ t.purchase.purchase_id|default:"-" }}</span></td>
+            <td>
+              <span class="order-mono"
+                >{{ t.purchase.purchase_id|default:"-" }}</span
+              >
+            </td>
 
             <!-- Product -->
-            <td style="font-weight:500;">{{ t.purchase.product_name|default:"-"|truncatechars:18 }}</td>
+            <td style="font-weight: 500">
+              {{ t.purchase.product_name|default:"-"|truncatechars:18 }}
+            </td>
 
             <!-- Title -->
-            <td style="font-weight:600;color:#1a1a2e;">{{ t.title|truncatechars:22 }}</td>
+            <td style="font-weight: 600; color: #1a1a2e">
+              {{ t.title|truncatechars:22 }}
+            </td>
 
             <!-- Status -->
             <td>
               <div class="dropdown status-dropdown">
-                <button class="status-pill dropdown-toggle
-                  {% if t.status == 'pending' %}pill-pending
-                  {% elif t.status == 'in_progress' %}pill-progress
-                  {% else %}pill-resolved{% endif %}"
-                  data-bs-toggle="dropdown">
-                  {% if t.status == 'pending' %}⏳{% elif t.status == 'in_progress' %}🔄{% else %}✅{% endif %}
-                  {{ t.status|title }}
+                <button
+                  class="status-pill dropdown-toggle {% if t.status == 'pending' %}pill-pending {% elif t.status == 'in_progress' %}pill-progress {% else %}pill-resolved{% endif %}"
+                  data-bs-toggle="dropdown"
+                >
+                  {% if t.status == 'pending' %}⏳{% elif t.status ==
+                  'in_progress' %}🔄{% else %}✅{% endif %} {{ t.status|title }}
                 </button>
                 <div class="dropdown-menu">
-                  <form method="POST" action="{% url 'staff_update_ticket' t.id %}">
+                  <form
+                    method="POST"
+                    action="{% url 'staff_update_ticket' t.id %}"
+                  >
                     {% csrf_token %}
-                    <button class="dropdown-item" name="status" value="pending">⏳ Pending</button>
-                    <button class="dropdown-item" name="status" value="in_progress">🔄 In Progress</button>
-                    <button class="dropdown-item" name="status" value="resolved">✅ Resolved</button>
+                    <button class="dropdown-item" name="status" value="pending">
+                      ⏳ Pending
+                    </button>
+                    <button
+                      class="dropdown-item"
+                      name="status"
+                      value="in_progress"
+                    >
+                      🔄 In Progress
+                    </button>
+                    <button
+                      class="dropdown-item"
+                      name="status"
+                      value="resolved"
+                    >
+                      ✅ Resolved
+                    </button>
                   </form>
                 </div>
               </div>
@@ -109,29 +174,74 @@
               {% if t.assigned_to %}
               <span class="assigned-tag">👤 {{ t.assigned_to.username }}</span>
               {% else %}
-              <span style="color:#d1d5db;font-size:13px;">—</span>
+              <span style="color: #d1d5db; font-size: 13px">—</span>
               {% endif %}
             </td>
 
             <!-- View -->
             <td>
-              <a href="{% url 'staff_view_ticket' t.id %}" class="view-btn">👁 View</a>
+              <a href="{% url 'staff_view_ticket' t.id %}" class="view-btn"
+                >👁 View</a
+              >
             </td>
-
           </tr>
           {% empty %}
           <tr class="empty-row">
             <td colspan="7">
               <div class="e-icon">🎫</div>
-              <p style="font-weight:600;color:#374151;margin:0 0 4px;">No tickets assigned</p>
-              <span style="font-size:13px;">Tickets assigned to you will appear here</span>
+              <p style="font-weight: 600; color: #374151; margin: 0 0 4px">
+                No tickets assigned
+              </p>
+              <span style="font-size: 13px"
+                >Tickets assigned to you will appear here</span
+              >
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+    <!-- Pagination -->
+    <div
+      style="display: flex; justify-content: center; gap: 8px; margin-top: 20px"
+    >
+      {% if page_obj.has_previous %}
+      <a
+        href="?page={{ page_obj.previous_page_number }}&search={{ search }}"
+        style="
+          padding: 8px 16px;
+          border-radius: 8px;
+          background: #f3f4f6;
+          color: #374151;
+          text-decoration: none;
+        "
+        >← Prev</a
+      >
+      {% endif %}
+      <span
+        style="
+          padding: 8px 16px;
+          border-radius: 8px;
+          background: #6366f1;
+          color: white;
+        "
+      >
+        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+      </span>
+      {% if page_obj.has_next %}
+      <a
+        href="?page={{ page_obj.next_page_number }}&search={{ search }}"
+        style="
+          padding: 8px 16px;
+          border-radius: 8px;
+          background: #f3f4f6;
+          color: #374151;
+          text-decoration: none;
+        "
+        >Next →</a
+      >
+      {% endif %}
+    </div>
   </div>
-
 </div>
 {% endblock %}

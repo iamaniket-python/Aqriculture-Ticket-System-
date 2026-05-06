@@ -372,19 +372,36 @@ def admin_login(request):
 def admin_dashboard(request):
     selected_user     = request.GET.get('user')
     selected_purchase = request.GET.get('purchase_id')
+    search            = request.GET.get('search', '')
+    date_from         = request.GET.get('date_from', '')
+    date_to           = request.GET.get('date_to', '')
 
     stats = TicketService.get_dashboard_stats(user_filter=selected_user)
 
-    # ✅ Optimized — only needed fields
     tickets = TicketService.get_dashboard_tickets(user_filter=selected_user)
+
+    # ✅ Search filter
+    if search:
+        tickets = tickets.filter(
+            Q(user__username__icontains=search) |
+            Q(title__icontains=search) |
+            Q(description__icontains=search) |
+            Q(purchase__purchase_id__icontains=search)
+        )
+
+    # ✅ Date filter
+    if date_from:
+        tickets = tickets.filter(created_at__date__gte=date_from)
+    if date_to:
+        tickets = tickets.filter(created_at__date__lte=date_to)
+
     paginator = Paginator(tickets, 20)
     page_obj  = paginator.get_page(request.GET.get('page'))
 
-    users = User.objects.filter(tickets__isnull=False).distinct()
+    users       = User.objects.filter(tickets__isnull=False).distinct()
     staff_users = User.objects.filter(is_staff=True)
     new_tickets = Ticket.objects.filter(status='pending').order_by('-created_at')[:5]
 
-    # ✅ Cached unread count — no DB hit every page load
     unread_count    = TicketService.get_unread_count_cached()
     unread_messages = TicketComment.objects.filter(
         is_read=False,
@@ -414,8 +431,10 @@ def admin_dashboard(request):
         'selected_user':     selected_user,
         'selected_purchase': selected_purchase,
         'gallery_tickets':   gallery_tickets,
+        'search':            search,
+        'date_from':         date_from,
+        'date_to':           date_to,
     })
-
 
 # =============================================
 # 🚪 ADMIN LOGOUT
@@ -650,15 +669,31 @@ def staff_login(request):
 # =============================================
 # 📊 STAFF DASHBOARD
 # =============================================
-
 @staff_session_required
 def staff_dashboard(request):
-    user    = request.user
-    profile = get_object_or_404(StaffProfile, user=user, is_approved=True)
+    user      = request.user
+    profile   = get_object_or_404(StaffProfile, user=user, is_approved=True)
+    search    = request.GET.get('search', '')
+    date_from = request.GET.get('date_from', '')
+    date_to   = request.GET.get('date_to', '')
 
     tickets = Ticket.objects.filter(assigned_to=user)\
                              .select_related("user", "purchase")\
                              .order_by("-id")
+
+    # ✅ Search filter
+    if search:
+        tickets = tickets.filter(
+            Q(user__username__icontains=search) |
+            Q(title__icontains=search) |
+            Q(purchase__purchase_id__icontains=search)
+        )
+
+    # ✅ Date filter
+    if date_from:
+        tickets = tickets.filter(created_at__date__gte=date_from)
+    if date_to:
+        tickets = tickets.filter(created_at__date__lte=date_to)
 
     stats = tickets.aggregate(
         total       = Count('id'),
@@ -666,6 +701,9 @@ def staff_dashboard(request):
         in_progress = Count('id', filter=Q(status='in_progress')),
         resolved    = Count('id', filter=Q(status='resolved')),
     )
+
+    paginator = Paginator(tickets, 10)
+    page_obj  = paginator.get_page(request.GET.get('page'))
 
     recent_messages = TicketComment.objects.filter(ticket__assigned_to=user)\
                                            .select_related("ticket", "ticket__user")\
@@ -675,13 +713,17 @@ def staff_dashboard(request):
         ticket__assigned_to=user, is_read=False
     ).count()
 
-    return render(request, "Staff_dashboard/staff_dashboard.html", {
+    return render(request, "staff_dashboard/staff_dashboard.html", {
         **stats,
-        "tickets":               tickets,
+        "tickets":               page_obj,
+        "page_obj":              page_obj,
         "recent_messages":       recent_messages,
         "unread_messages_count": unread_count,
-        "assigned_tickets":      tickets[:5],
+        "assigned_tickets":      page_obj,
         "assigned_count":        stats['total'],
+        "search":                search,
+        "date_from":             date_from,
+        "date_to":               date_to,
     })
 
 
