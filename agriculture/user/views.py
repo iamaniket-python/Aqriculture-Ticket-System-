@@ -395,7 +395,7 @@ def admin_dashboard(request):
     if date_to:
         tickets = tickets.filter(created_at__date__lte=date_to)
 
-    paginator = Paginator(tickets, 20)
+    paginator = Paginator(tickets, 10)
     page_obj  = paginator.get_page(request.GET.get('page'))
 
     users       = User.objects.filter(tickets__isnull=False).distinct()
@@ -802,7 +802,7 @@ def update_ticket(request, id):
 @login_required_token
 def get_tickets(request):
     tickets   = TicketService.get_user_tickets(request._token_user)
-    paginator = Paginator(tickets, 20)
+    paginator = Paginator(tickets, 10)
     page      = paginator.get_page(request.GET.get('page', 1))
 
     data = [
