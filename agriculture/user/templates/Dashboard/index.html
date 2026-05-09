@@ -58,22 +58,11 @@
   <h4>🎫 Ticket Management</h4>
 
   <form method="GET" class="filter-row">
-    <input type="text" name="search" value="{{ search }}" 
-           placeholder="🔍 Search by name, title..." 
-           style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
+
     <input type="date" name="date_from" value="{{ date_from }}"
            style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
     <input type="date" name="date_to" value="{{ date_to }}"
            style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
-    <select name="user" style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
-      <option value="">All Users</option>
-      {% for u in users %}
-        <option value="{{ u.id }}"
-          {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>
-          {{ u.username }}
-        </option>
-      {% endfor %}
-    </select>
     <select name="status" style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
       <option value="">All Status</option>
       <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
