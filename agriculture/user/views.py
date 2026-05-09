@@ -216,15 +216,18 @@ def profile(request):
     date_from     = request.GET.get('date_from', '')
     date_to       = request.GET.get('date_to', '')
 
-    # Greeting Logic
+   
     hour = datetime.now().hour
 
     if hour < 12:
-        greeting = "Good Morning"
+       greeting = "Good Morning"
+       emoji = "☀️"
     elif hour < 18:
         greeting = "Good Afternoon"
+        emoji = "🌤️"
     else:
         greeting = "Good Evening"
+        emoji = "🌙"
 
     has_purchase  = Purchase.objects.filter(user=user).exists()
 
