@@ -399,13 +399,31 @@ def admin_login(request):
 
 @admin_session_required
 def admin_dashboard(request):
-    selected_user     = request.GET.get('user')
-    selected_purchase = request.GET.get('purchase_id')
-    search            = request.GET.get('search', '')
-    date_from         = request.GET.get('date_from', '')
-    date_to           = request.GET.get('date_to', '')
-    selected_status   = request.GET.get('status', '')
-    selected_assigned = request.GET.get('assigned', '')
+    # ✅ Save filters to session
+    if request.method == 'GET' and any(k in request.GET for k in ['search', 'status', 'user', 'date_from', 'date_to', 'assigned']):
+        request.session['admin_filters'] = {
+            'search':            request.GET.get('search', ''),
+            'status':            request.GET.get('status', ''),
+            'selected_user':     request.GET.get('user', ''),
+            'date_from':         request.GET.get('date_from', ''),
+            'date_to':           request.GET.get('date_to', ''),
+            'selected_assigned': request.GET.get('assigned', ''),
+            'selected_purchase': request.GET.get('purchase_id', ''),
+        }
+
+    # ✅ Reset filters
+    if 'reset' in request.GET:
+        request.session.pop('admin_filters', None)
+
+    # ✅ Load filters from session
+    filters = request.session.get('admin_filters', {})
+    search            = filters.get('search', '')
+    selected_status   = filters.get('status', '')
+    selected_user     = filters.get('selected_user', '')
+    date_from         = filters.get('date_from', '')
+    date_to           = filters.get('date_to', '')
+    selected_assigned = filters.get('selected_assigned', '')
+    selected_purchase = filters.get('selected_purchase', '')
 
     stats   = TicketService.get_dashboard_stats(user_filter=selected_user)
     tickets = TicketService.get_dashboard_tickets(user_filter=selected_user)
