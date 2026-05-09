@@ -9,7 +9,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
-
+from datetime import datetime
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -215,6 +215,17 @@ def profile(request):
     product_query = request.GET.get('product', '')
     date_from     = request.GET.get('date_from', '')
     date_to       = request.GET.get('date_to', '')
+
+    # Greeting Logic
+    hour = datetime.now().hour
+
+    if hour < 12:
+        greeting = "Good Morning"
+    elif hour < 18:
+        greeting = "Good Afternoon"
+    else:
+        greeting = "Good Evening"
+
     has_purchase  = Purchase.objects.filter(user=user).exists()
 
     tickets = TicketService.get_user_tickets_cached(
@@ -234,6 +245,7 @@ def profile(request):
         "date_to":       date_to,
         "user":          user,
         "has_purchase":  has_purchase,
+        "greeting":      greeting,
     })
 
 
