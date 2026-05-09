@@ -17,7 +17,7 @@ urlpatterns = [
     # =========================
     # 🔧 DJANGO ADMIN PANEL
     # =========================
-    path('django-admin/', admin.site.urls),   # ✅ Renamed from 'admin/' — harder to find by bots
+    path('django-admin/', admin.site.urls),  
 
     # =========================
     # 👤 USER AUTH
@@ -71,13 +71,13 @@ urlpatterns = [
     # =========================
     # 🔴 ADMIN CHAT SYSTEM
     # =========================
-    path('dashboard/chat/', views.admin_chat_list, name='admin_chat'),                          # ✅ moved from admin/chat/
-    path('dashboard/chat/send/<int:user_id>/', views.send_admin_message, name='send_admin_message'),  # ✅ moved
+    path('dashboard/chat/', views.admin_chat_list, name='admin_chat'),                         
+    path('dashboard/chat/send/<int:user_id>/', views.send_admin_message, name='send_admin_message'),
 
     # =========================
     # 🔴 ADMIN NOTIFICATIONS
     # =========================
-    path('dashboard/notifications/read/', views.mark_notifications_read, name='mark_notifications_read'),  # ✅ moved
+    path('dashboard/notifications/read/', views.mark_notifications_read, name='mark_notifications_read'), 
 
     # =========================
     # 🔴 ADMIN STAFF MANAGEMENT
@@ -112,10 +112,7 @@ urlpatterns = [
 # 📁 STATIC & MEDIA FILES
 # =========================
 if settings.DEBUG:
-    # Local development only
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'user' / 'static')
 else:
-    # ✅ Production: serve media files via Django
-    # (For large projects, use AWS S3 instead — ask me about it)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
