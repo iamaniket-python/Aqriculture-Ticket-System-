@@ -6,7 +6,13 @@
 <div class="ticket-wrapper">
   <div class="ticket-card">
     <h2>🎫 Create Ticket</h2>
-
+{% if messages %}
+  {% for message in messages %}
+    <div style="background:#fef2f2;color:#991b1b;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:13px;font-weight:500;border:1px solid #fca5a5;">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
     <!-- STEP 1: ORDER SELECT -->
     <form method="GET">
       <label>Select Your Order ID <span style="color:red;">*</span></label>

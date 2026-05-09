@@ -1,259 +1,269 @@
 {% extends 'Base/base.html' %} {% block content %}
 
 <style>
-  body {
-    background: #f2f2f2;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-  }
-  .wrapper { max-width: 900px; margin: auto; }
-  .top-bar {
-    background: #fff;
-    padding: 14px 18px;
-    border-radius: 16px;
-    border: 1px solid #e8e8e8;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  .title { font-size: 16px; font-weight: 600; }
-  .back-btn {
-    text-decoration: none;
-    background: #000;
-    color: #fff;
-    padding: 8px 14px;
-    border-radius: 10px;
-    font-size: 13px;
-  }
-  .order-card {
-    background: #fff;
-    border-radius: 18px;
-    padding: 18px;
-    border: 1px solid #e8e8e8;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    margin-bottom: 15px;
-  }
-  .order-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-    font-size: 14px;
-    color: #444;
-  }
-  .label { color: #888; }
-  .chat-card {
-    background: #fff;
-    border-radius: 18px;
-    border: 1px solid #e8e8e8;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    padding: 15px;
-  }
-  .chat-box {
-    height: 450px;
-    overflow-y: auto;
-    padding: 12px;
-    background: #fafafa;
-    border-radius: 14px;
-  }
+.chat-wrapper{max-width:900px;margin:0 auto;padding:20px 0;}
 
-  /* Close confirm modal */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-  }
-  .modal-box {
-    background: white;
-    border-radius: 18px;
-    padding: 28px 24px;
-    max-width: 360px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  }
-  .modal-box h5 { font-weight: 700; margin-bottom: 8px; }
-  .modal-box p  { color: #6b7280; font-size: 14px; margin-bottom: 20px; }
-  .modal-btns   { display: flex; gap: 10px; justify-content: center; }
+/* Top Bar */
+.chat-topbar{
+  background:#fff;padding:14px 20px;border-radius:14px;
+  border:1px solid #e5e7eb;display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.chat-topbar .title{font-size:16px;font-weight:700;color:#111827;}
+.chat-topbar .actions{display:flex;gap:8px;align-items:center;}
+.btn-close-tkt{
+  background:#16a34a;color:#fff;border:none;padding:9px 16px;
+  border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  transition:background 0.2s;
+}
+.btn-close-tkt:hover{background:#15803d;}
+.tkt-closed-badge{
+  background:#dcfce7;color:#16a34a;padding:8px 14px;
+  border-radius:10px;font-size:13px;font-weight:600;
+}
+.btn-back-tkt{
+  background:#f3f4f6;color:#374151;padding:9px 16px;
+  border-radius:10px;font-size:13px;font-weight:600;
+  text-decoration:none;transition:background 0.2s;
+}
+.btn-back-tkt:hover{background:#e5e7eb;color:#374151;}
+
+/* Order Info */
+.order-info-card{
+  background:#fff;border-radius:14px;border:1px solid #e5e7eb;
+  padding:18px 20px;margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.order-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+.oi-item .oi-label{font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.oi-item .oi-val{font-size:14px;font-weight:600;color:#111827;}
+.oi-item .oi-val.mono{font-family:monospace;background:#f3f4f6;padding:3px 8px;border-radius:6px;font-size:13px;}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.s-pending{background:#fef3c7;color:#d97706;}
+.s-resolved{background:#dcfce7;color:#16a34a;}
+.s-progress{background:#dbeafe;color:#2563eb;}
+
+/* Chat Card */
+.chat-card{
+  background:#fff;border-radius:14px;border:1px solid #e5e7eb;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);overflow:hidden;
+}
+.chat-card-head{
+  padding:14px 20px;border-bottom:1px solid #f3f4f6;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.chat-card-head h5{font-size:14px;font-weight:700;color:#111827;margin:0;}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;}
+.chat-messages{height:420px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#fafafa;}
+.msg-row{display:flex;gap:10px;align-items:flex-end;}
+.msg-row.right{flex-direction:row-reverse;}
+.msg-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.av-user{background:#eff6ff;color:#2563eb;}
+.av-admin{background:#f3f4f6;color:#374151;}
+.msg-content{display:flex;flex-direction:column;gap:4px;max-width:70%;}
+.msg-row.right .msg-content{align-items:flex-end;}
+.msg-sender{font-size:11px;color:#9ca3af;font-weight:500;}
+.msg-bubble{padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.6;word-break:break-word;}
+.bubble-user{background:#e5e7eb;color:#111827;border-bottom-left-radius:4px;}
+.bubble-admin{background:#111827;color:#fff;border-bottom-right-radius:4px;}
+.msg-empty{text-align:center;color:#9ca3af;font-size:13px;padding:60px 0;}
+.msg-empty div{font-size:32px;margin-bottom:8px;}
+.chat-input-area{padding:14px 16px;border-top:1px solid #f3f4f6;background:#fff;}
+.chat-input-row{display:flex;gap:8px;}
+.chat-input{
+  flex:1;padding:11px 14px;border:1px solid #e5e7eb;border-radius:10px;
+  font-size:13px;outline:none;transition:border 0.2s;color:#111827;
+}
+.chat-input:focus{border-color:#111827;}
+.send-btn{
+  width:44px;height:44px;background:#111827;color:#fff;border:none;
+  border-radius:10px;cursor:pointer;font-size:18px;display:flex;
+  align-items:center;justify-content:center;transition:background 0.2s;
+  flex-shrink:0;
+}
+.send-btn:hover{background:#374151;}
+.chat-closed-msg{
+  text-align:center;padding:12px;background:#f0fdf4;
+  border-radius:10px;color:#16a34a;font-size:13px;
+  font-weight:500;border:1px solid #bbf7d0;
+}
+
+/* Modal */
+.modal-overlay{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
+  z-index:9999;justify-content:center;align-items:center;
+}
+.modal-overlay.active{display:flex;}
+.modal-box{
+  background:#fff;border-radius:20px;padding:28px 24px;
+  width:90%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.15);
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
 </style>
 
-<!-- CLOSE CONFIRM MODAL -->
-<div class="modal-overlay" id="closeModal">
-  <div class="modal-box">
-    <div style="font-size:40px; margin-bottom:10px;">✅</div>
-    <h5>Close this ticket?</h5>
-    <p>Issue resolve ho gaya hai? Ticket close karne ke baad reopen nahi hoga.</p>
-    <div class="modal-btns">
+<!-- Modal -->
+<div class="modal-overlay" id="closeModal" onclick="hideModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+
+    <div style="width:64px;height:64px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;border:2px solid #bbf7d0;">
+      <span style="font-size:28px;">✅</span>
+    </div>
+
+    <div style="font-size:18px;font-weight:700;color:#111827;text-align:center;margin-bottom:8px;">
+      Close this ticket?
+    </div>
+
+    <div style="font-size:13px;color:#6b7280;text-align:center;line-height:1.6;margin-bottom:12px;">
+      Kya issue resolve ho gaya hai? Confirm karne ke baad ticket band ho jayega.
+    </div>
+
+    <div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:16px;">⚠️</span>
+      <span style="font-size:12px;color:#854d0e;font-weight:500;">Ticket close hone ke baad messaging permanently disabled ho jayegi.</span>
+    </div>
+
+    <div style="display:flex;gap:10px;">
       <button onclick="hideModal()"
-        style="padding:10px 20px;background:#f3f4f6;border:none;border-radius:10px;cursor:pointer;font-size:14px;">
+              style="flex:1;padding:12px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;color:#374151;font-size:14px;font-weight:600;cursor:pointer;">
         Cancel
       </button>
-      <form method="POST" action="{% url 'close_ticket' ticket.id %}">
+      <form method="POST" action="{% url 'close_ticket' ticket.id %}" style="flex:1;">
         {% csrf_token %}
         <button type="submit"
-          style="padding:10px 20px;background:#16a34a;color:white;border:none;border-radius:10px;cursor:pointer;font-size:14px;">
-          Yes, Close Ticket
+                style="width:100%;padding:12px;border-radius:10px;border:none;background:#16a34a;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">
+          ✅ Yes, Close
         </button>
       </form>
     </div>
+
   </div>
 </div>
 
-<div class="wrapper mt-4">
+<div class="chat-wrapper">
 
-  <!-- TOP BAR -->
-  <div class="top-bar">
-    <div class="title">💬 Ticket Chat</div>
-    <div style="display:flex; gap:8px;">
-
-      <!-- Close button — sirf tab dikhega jab ticket resolved nahi hai -->
+  <!-- Top Bar -->
+  <div class="chat-topbar">
+    <div class="title">💬 Ticket #{{ ticket.id }}</div>
+    <div class="actions">
       {% if ticket.status != 'resolved' %}
-      <button onclick="showModal()"
-        style="
-          background:#16a34a;
-          color:white;
-          border:none;
-          padding:8px 14px;
-          border-radius:10px;
-          font-size:13px;
-          cursor:pointer;
-        ">
-        ✅ Close Ticket
-      </button>
+        <button class="btn-close-tkt" onclick="showModal()">✅ Close Ticket</button>
       {% else %}
-      <span style="
-        background:#dcfce7;
-        color:#16a34a;
-        padding:8px 14px;
-        border-radius:10px;
-        font-size:13px;
-        font-weight:500;
-      ">
-        ✅ Ticket Closed
-      </span>
+        <span class="tkt-closed-badge">✅ Ticket Closed</span>
       {% endif %}
-
-      <a href="{% url 'profile' %}" class="back-btn">← Back</a>
+      <a href="{% url 'profile' %}" class="btn-back-tkt">← Back</a>
     </div>
   </div>
 
-  <!-- ORDER INFO -->
-  <div class="order-card">
-    <div class="order-row">
-      <span class="label">Order ID</span>
-      <span><b>{{ ticket.purchase.purchase_id }}</b></span>
-    </div>
-    <div class="order-row">
-      <span class="label">Product</span>
-      <span>{{ ticket.purchase.product_name }}</span>
-    </div>
-    <div class="order-row">
-      <span class="label">Status</span>
-      <span>
-        {% if ticket.status == 'pending' %}
-          <span style="color:orange;">⏳ Pending</span>
-        {% elif ticket.status == 'resolved' %}
-          <span style="color:green;">✅ Resolved</span>
-        {% elif ticket.status == 'in_progress' %}
-          <span style="color:blue;">🔄 In Progress</span>
-        {% else %}
-          {{ ticket.status }}
-        {% endif %}
-      </span>
+  <!-- Order Info -->
+  <div class="order-info-card">
+    <div class="order-info-grid">
+      <div class="oi-item">
+        <div class="oi-label">Order ID</div>
+        <div class="oi-val mono">{{ ticket.purchase.purchase_id|default:"-" }}</div>
+      </div>
+      <div class="oi-item">
+        <div class="oi-label">Product</div>
+        <div class="oi-val">{{ ticket.purchase.product_name|default:"-" }}</div>
+      </div>
+      <div class="oi-item">
+        <div class="oi-label">Category</div>
+        <div class="oi-val">{{ ticket.category|default:"-" }}</div>
+      </div>
+      <div class="oi-item">
+        <div class="oi-label">Status</div>
+        <div class="oi-val">
+          {% if ticket.status == 'pending' %}
+            <span class="status-badge s-pending">⏳ Pending</span>
+          {% elif ticket.status == 'resolved' %}
+            <span class="status-badge s-resolved">✅ Resolved</span>
+          {% elif ticket.status == 'in_progress' %}
+            <span class="status-badge s-progress">🔄 In Progress</span>
+          {% else %}
+            {{ ticket.status }}
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- CHAT -->
+  <!-- Chat -->
   <div class="chat-card">
-    <div class="chat-box" id="chatBox">
-      {% for chat in chats %}
+    <div class="chat-card-head">
+      <h5>💬 Messages</h5>
+      <span class="online-dot"></span>
+    </div>
 
-        {% if chat.sender.is_staff %}
-        <!-- ADMIN -->
-        <div style="display:flex;justify-content:flex-end;margin:10px 0;">
-          <div style="text-align:right;">
-            <div style="font-size:11px;color:#555;margin-bottom:4px;">
-              🔴 Admin ({{ chat.sender.username }})
-            </div>
-            <div style="
-              background:#000;color:#fff;
-              padding:10px 14px;border-radius:18px;
-              border-bottom-right-radius:5px;
-              max-width:280px;display:inline-block;">
-              {{ chat.message }}
-            </div>
+    <div class="chat-messages" id="chatBox">
+      {% for chat in chats %}
+        {% if chat.sender.is_staff or chat.sender.is_superuser %}
+        <!-- Admin message -->
+        <div class="msg-row right">
+          <div class="msg-avatar av-admin">A</div>
+          <div class="msg-content">
+            <div class="msg-sender">Admin</div>
+            <div class="msg-bubble bubble-admin">{{ chat.message }}</div>
           </div>
         </div>
-
         {% else %}
-        <!-- USER -->
-        <div style="display:flex;justify-content:flex-start;margin:10px 0;">
-          <div style="text-align:left;">
-            <div style="font-size:11px;color:#555;margin-bottom:4px;">
-              🟢 {{ chat.sender.username }}
-            </div>
-            <div style="
-              background:#e5e5e5;color:#000;
-              padding:10px 14px;border-radius:18px;
-              border-bottom-left-radius:5px;
-              max-width:280px;display:inline-block;">
-              {{ chat.message }}
-            </div>
+        <!-- User message -->
+        <div class="msg-row">
+          <div class="msg-avatar av-user">
+            {{ chat.sender.username|slice:":1"|upper }}
+          </div>
+          <div class="msg-content">
+            <div class="msg-sender">{{ chat.sender.username }}</div>
+            <div class="msg-bubble bubble-user">{{ chat.message }}</div>
           </div>
         </div>
         {% endif %}
-
       {% empty %}
-        <p style="text-align:center;color:#999;margin-top:20px;">No messages yet</p>
+      <div class="msg-empty">
+        <div>💬</div>
+        No messages yet — start the conversation!
+      </div>
       {% endfor %}
     </div>
 
-    <!-- INPUT — resolved ho gayi toh disable -->
-    {% if ticket.status != 'resolved' %}
-    <form method="POST" style="display:flex;gap:10px;margin-top:12px;">
-      {% csrf_token %}
-      <input
-        type="text" name="message"
-        placeholder="Write a message..." required
-        style="flex:1;padding:12px;border-radius:12px;border:1px solid #ddd;outline:none;"
-      >
-      <button type="submit" style="
-        background:#000;color:#fff;border:none;
-        padding:12px 18px;border-radius:12px;cursor:pointer;">
-        Send
-      </button>
-    </form>
-    {% else %}
-    <div style="
-      text-align:center;margin-top:12px;
-      padding:12px;background:#f0fdf4;
-      border-radius:12px;color:#16a34a;font-size:14px;">
-      ✅ Ticket closed — messaging disabled
+    <div class="chat-input-area">
+      {% if ticket.status != 'resolved' %}
+      <form method="POST">
+        {% csrf_token %}
+        <div class="chat-input-row">
+          <input type="text" name="message" class="chat-input"
+                 placeholder="Type a message..." required autocomplete="off">
+          <button type="submit" class="send-btn">➤</button>
+        </div>
+      </form>
+      {% else %}
+      <div class="chat-closed-msg">✅ Ticket closed — messaging disabled</div>
+      {% endif %}
     </div>
-    {% endif %}
 
   </div>
+
 </div>
 
 <script>
-  // Auto scroll to bottom
   let chatBox = document.getElementById("chatBox");
-  chatBox.scrollTop = chatBox.scrollHeight;
+  if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
   function showModal() {
-    document.getElementById("closeModal").style.display = "flex";
+    document.getElementById("closeModal").classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
   function hideModal() {
-    document.getElementById("closeModal").style.display = "none";
+    document.getElementById("closeModal").classList.remove('active');
+    document.body.style.overflow = '';
   }
-  // Click outside modal to close
-  document.getElementById("closeModal").addEventListener("click", function(e) {
-    if (e.target === this) hideModal();
+  document.addEventListener('keydown', function(e) {
+    if(e.key === 'Escape') hideModal();
   });
 </script>
 

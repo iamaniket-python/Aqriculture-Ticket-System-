@@ -65,7 +65,7 @@
            style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
     <input type="date" name="date_to" value="{{ date_to }}"
            style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
-    <select name="user">
+    <select name="user" style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
       <option value="">All Users</option>
       {% for u in users %}
         <option value="{{ u.id }}"
@@ -74,9 +74,24 @@
         </option>
       {% endfor %}
     </select>
+    <select name="status" style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
+      <option value="">All Status</option>
+      <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
+      <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
+      <option value="resolved" {% if selected_status == 'resolved' %}selected{% endif %}>✅ Resolved</option>
+    </select>
+    <select name="assigned" style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
+      <option value="">All Assigned</option>
+      <option value="unassigned" {% if selected_assigned == 'unassigned' %}selected{% endif %}>❌ Unassigned</option>
+      {% for staff in staff_users %}
+        <option value="{{ staff.id }}" {% if selected_assigned == staff.id|stringformat:"s" %}selected{% endif %}>
+          👤 {{ staff.username }}
+        </option>
+      {% endfor %}
+    </select>
     <button type="submit" class="btn-search">🔍 Search</button>
     <a href="{% url 'admin_dashboard' %}" class="btn-reset">Reset</a>
-</form>
+  </form>
 </div>
 
     <!-- Table -->

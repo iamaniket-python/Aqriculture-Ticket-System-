@@ -268,6 +268,22 @@ def create_ticket(request):
         products = Purchase.objects.filter(user=user, purchase_id=selected_purchase)
 
     if request.method == "POST":
+        # ✅ Check pending ticket for selected purchase
+        selected_purchase_id = request.POST.get('purchase')
+        if selected_purchase_id:
+            pending_exists = Ticket.objects.filter(
+                user=user,
+                purchase__purchase_id=selected_purchase_id,
+                status='pending'
+            ).exists()
+            if pending_exists:
+                messages.error(request, "❌ You already have a pending ticket for this order. Please wait for it to be resolved.")
+                return render(request, 'UserProfile/create_ticket.html', {
+                    'purchases': purchases,
+                    'products': products,
+                    'selected_purchase': selected_purchase,
+                })
+
         try:
             TicketService.create_ticket(
                 user=user,
@@ -285,20 +301,17 @@ def create_ticket(request):
             logger.error("Ticket creation failed for user %s: %s", user.id, str(e))
             messages.error(request, "Something went wrong. Please try again.")
 
-        # 🔥 IMPORTANT: error ke baad bhi return hona chahiye
         return render(request, 'UserProfile/create_ticket.html', {
             'purchases': purchases,
             'products': products,
             'selected_purchase': selected_purchase,
         })
 
-    # GET request ke liye
     return render(request, 'UserProfile/create_ticket.html', {
         'purchases': purchases,
         'products': products,
         'selected_purchase': selected_purchase,
     })
-
 # =============================================
 # 💬 USER TICKET CHAT
 # =============================================
@@ -391,12 +404,12 @@ def admin_dashboard(request):
     search            = request.GET.get('search', '')
     date_from         = request.GET.get('date_from', '')
     date_to           = request.GET.get('date_to', '')
+    selected_status   = request.GET.get('status', '')
+    selected_assigned = request.GET.get('assigned', '')
 
-    stats = TicketService.get_dashboard_stats(user_filter=selected_user)
-
+    stats   = TicketService.get_dashboard_stats(user_filter=selected_user)
     tickets = TicketService.get_dashboard_tickets(user_filter=selected_user)
 
-    # ✅ Search filter
     if search:
         tickets = tickets.filter(
             Q(user__username__icontains=search) |
@@ -404,12 +417,16 @@ def admin_dashboard(request):
             Q(description__icontains=search) |
             Q(purchase__purchase_id__icontains=search)
         )
-
-    # ✅ Date filter
     if date_from:
         tickets = tickets.filter(created_at__date__gte=date_from)
     if date_to:
         tickets = tickets.filter(created_at__date__lte=date_to)
+    if selected_status:
+        tickets = tickets.filter(status=selected_status)
+    if selected_assigned == 'unassigned':
+        tickets = tickets.filter(assigned_to__isnull=True)
+    elif selected_assigned:
+        tickets = tickets.filter(assigned_to__id=selected_assigned)
 
     paginator = Paginator(tickets, 10)
     page_obj  = paginator.get_page(request.GET.get('page'))
@@ -450,6 +467,8 @@ def admin_dashboard(request):
         'search':            search,
         'date_from':         date_from,
         'date_to':           date_to,
+        'selected_status':   selected_status,
+        'selected_assigned': selected_assigned,
     })
 
 # =============================================
