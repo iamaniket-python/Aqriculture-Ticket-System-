@@ -7,22 +7,10 @@
     <title>Staff Login</title>
 
     <!-- CSS -->
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/ti-icons/css/themify-icons.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/vendors/font-awesome/css/font-awesome.min.css' %}"
-    />
+    <link rel="stylesheet" href="{% static 'assets/vendors/mdi/css/materialdesignicons.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'assets/vendors/ti-icons/css/themify-icons.css' %}"/>
+    <link rel="stylesheet" href="{% static 'assets/vendors/css/vendor.bundle.base.css' %}"/>
+    <link rel="stylesheet" href="{% static 'assets/vendors/font-awesome/css/font-awesome.min.css' %}"/>
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
     <link rel="shortcut icon" href="{% static 'image/logo.png' %}"/>
   </head>
@@ -34,6 +22,7 @@
           <div class="row flex-grow">
             <div class="col-lg-4 mx-auto">
               <div class="auth-form-light text-left p-5">
+
                 <div class="brand-logo text-center">
                   <img src="{% static 'image/logo.png' %}" />
                 </div>
@@ -44,10 +33,8 @@
                   </h6>
                 </div>
 
-                <p class="text-muted"></p>
-
                 {% if error %}
-                <div style="color: red; margin-bottom: 10px">{{ error }}</div>
+                <div style="color:red;margin-bottom:10px;">{{ error }}</div>
                 {% endif %}
 
                 <form method="POST" class="pt-3">
@@ -63,14 +50,21 @@
                     />
                   </div>
 
-                  <div class="form-group">
+                  <!-- ✅ Password with eye toggle -->
+                  <div class="form-group" style="position:relative;">
                     <input
                       type="password"
                       name="password"
+                      id="staffPassword"
                       class="form-control"
                       placeholder="Password"
                       required
+                      style="padding-right:45px;"
                     />
+                    <span onclick="togglePassword('staffPassword', this)"
+                          style="position:absolute;right:15px;top:50%;transform:translateY(-50%);cursor:pointer;color:#9ca3af;">
+                      <i class="mdi mdi-eye-outline" style="font-size:20px;"></i>
+                    </span>
                   </div>
 
                   <button type="submit" class="btn btn-gradient-primary w-100">
@@ -86,6 +80,7 @@
                 <p class="text-center mt-3 text-muted">
                   Only approved staff can login
                 </p>
+
               </div>
             </div>
           </div>
@@ -100,5 +95,20 @@
     <script src="{% static 'assets/js/settings.js' %}"></script>
     <script src="{% static 'assets/js/todolist.js' %}"></script>
     <script src="{% static 'assets/js/jquery.cookie.js' %}"></script>
+
+    <!-- ✅ Password Toggle Script -->
+    <script>
+    function togglePassword(fieldId, icon) {
+      const field = document.getElementById(fieldId);
+      if (field.type === 'password') {
+        field.type = 'text';
+        icon.innerHTML = '<i class="mdi mdi-eye-off-outline" style="font-size:20px;"></i>';
+      } else {
+        field.type = 'password';
+        icon.innerHTML = '<i class="mdi mdi-eye-outline" style="font-size:20px;"></i>';
+      }
+    }
+    </script>
+
   </body>
 </html>
