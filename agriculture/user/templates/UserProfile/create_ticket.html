@@ -58,7 +58,7 @@
       </select>
 
       <!-- OTHER BOX -->
-      <div id="otherBox">
+      <div id="otherBox" style="display:none;">
         <label>✏️ Please specify <span style="color:red;">*</span></label>
         <input
           type="text"
@@ -96,24 +96,34 @@
       <label>📄 Upload Document</label>
       <input type="file" name="document" />
 
-      <!-- SUBMIT BUTTON with Loader -->
-      <button type="submit" id="submitBtn" onclick="showLoader()">
-        Submit Ticket
-      </button>
-      <div id="loaderMsg" style="display:none;text-align:center;margin-top:10px;color:#6366f1;font-weight:600;">
-        ⏳ Submitting your ticket, please wait...
+      <!-- SUBMIT BUTTON -->
+      <button type="submit" id="submitBtn">Submit Ticket</button>
+
+      <!-- LOADER -->
+      <div id="loaderMsg" style="display:none;text-align:center;margin-top:12px;">
+        <div style="display:inline-block;width:24px;height:24px;border:3px solid #6366f1;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <span style="margin-left:8px;color:#6366f1;font-weight:600;">Please wait...</span>
       </div>
+
     </form>
   </div>
 </div>
 
+<style>
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+
 <script>
-  function showLoader() {
+  // ✅ Form submit pe loader
+  document.getElementById('ticketForm').addEventListener('submit', function() {
     document.getElementById('submitBtn').disabled = true;
     document.getElementById('submitBtn').innerText = '⏳ Submitting...';
     document.getElementById('loaderMsg').style.display = 'block';
-  }
+  });
 
+  // ✅ Category Other
   function handleCategory(value) {
     let otherBox   = document.getElementById("otherBox");
     let otherInput = document.getElementById("otherInput");
@@ -127,6 +137,7 @@
     }
   }
 
+  // ✅ Image preview
   document.addEventListener("DOMContentLoaded", function () {
     function openFilePicker() {
       document.getElementById("imageInput").click();
