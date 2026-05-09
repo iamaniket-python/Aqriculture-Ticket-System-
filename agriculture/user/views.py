@@ -249,6 +249,7 @@ def profile(request):
         "user":          user,
         "has_purchase":  has_purchase,
         "greeting":      greeting,
+        "emoji":         emoji,
     })
 
 
