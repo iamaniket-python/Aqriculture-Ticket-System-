@@ -373,21 +373,27 @@ def admin_login(request):
         return redirect('admin_dashboard')
 
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
+        email    = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
-        user     = authenticate(request, username=username, password=password)
+
+       
+        try:
+            user_obj = User.objects.get(email=email)
+            user     = authenticate(request, username=user_obj.username, password=password)
+        except User.DoesNotExist:
+            user = None
 
         if user is not None and user.is_superuser:
             login(request, user)
             request.session['role'] = 'admin'
-            logger.info("Admin login: %s from IP %s", username,
+            logger.info("Admin login: %s from IP %s", email,
                         request.META.get('REMOTE_ADDR'))
             return redirect('admin_dashboard')
 
         logger.warning("Failed admin login: %s from IP %s",
-                       username, request.META.get('REMOTE_ADDR'))
+                       email, request.META.get('REMOTE_ADDR'))
         return render(request, 'Dashboard/login.html', {
-            "error": "Username or Password is Incorrect"
+            "error": "Email or Password is Incorrect"
         })
 
     return render(request, 'Dashboard/login.html')
@@ -690,25 +696,31 @@ def staff_login(request):
         return redirect('staff_dashboard')
 
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
+        email    = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
-        user     = authenticate(request, username=username, password=password)
+
+        # ✅ Email se user dhundo
+        try:
+            user_obj = User.objects.get(email=email)
+            user     = authenticate(request, username=user_obj.username, password=password)
+        except User.DoesNotExist:
+            user = None
 
         if not user:
             logger.warning("Failed staff login: %s from IP %s",
-                           username, request.META.get('REMOTE_ADDR'))
-            return render(request, "Staff_dashboard/login.html", {
-                "error": "Invalid credentials"
+                           email, request.META.get('REMOTE_ADDR'))
+            return render(request, "staff_dashboard/login.html", {
+                "error": "Invalid email or password"
             })
 
         if not user.is_staff:
-            return render(request, "Staff_dashboard/login.html", {
+            return render(request, "staff_dashboard/login.html", {
                 "error": "Not a staff account"
             })
 
         profile = StaffProfile.objects.filter(user=user, is_approved=True).first()
         if not profile:
-            return render(request, "Staff_dashboard/login.html", {
+            return render(request, "staff_dashboard/login.html", {
                 "error": "Account not approved yet. Please wait for admin approval."
             })
 
@@ -716,7 +728,7 @@ def staff_login(request):
         request.session['role'] = 'staff'
         return redirect("staff_dashboard")
 
-    return render(request, "Staff_dashboard/login.html")
+    return render(request, "staff_dashboard/login.html")
 
 
 # =============================================
