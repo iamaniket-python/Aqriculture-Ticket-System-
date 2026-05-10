@@ -14,6 +14,7 @@ from datetime import datetime
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.exceptions import ValidationError
 
 from user.models import (
     AdminChat, Profile, Purchase,
@@ -260,26 +261,48 @@ def profile(request):
 
 @login_required_token
 def create_ticket(request):
-    user      = request._token_user
-    purchases = Purchase.objects.filter(user=user).values('purchase_id').distinct()
+
+    user = request._token_user
+
+    purchases = (
+        Purchase.objects
+        .filter(user=user)
+        .values('purchase_id')
+        .distinct()
+    )
 
     selected_purchase = request.GET.get('purchase')
+
     products = None
+
     if selected_purchase:
-        products = Purchase.objects.filter(user=user, purchase_id=selected_purchase)
+        products = Purchase.objects.filter(
+            user=user,
+            purchase_id=selected_purchase
+        )
 
     if request.method == "POST":
-        selected_purchase_id = request.POST.get('purchase')
 
-        # ✅ Early check before service call
-        if selected_purchase_id:
+        selected_purchase_id = request.POST.get('purchase')
+        selected_product     = request.POST.get('product')
+
+        # ✅ Prevent duplicate pending ticket
+        if selected_purchase_id and selected_product:
+
             pending_exists = Ticket.objects.filter(
                 user=user,
                 purchase__purchase_id=selected_purchase_id,
+                purchase__product_name=selected_product,
                 status='pending'
             ).exists()
+
             if pending_exists:
-                messages.error(request, "❌ You already have a pending ticket for this order. Please wait for it to be resolved.")
+
+                messages.error(
+                    request,
+                    "❌ You already have a pending ticket for this product."
+                )
+
                 return render(request, 'UserProfile/create_ticket.html', {
                     'purchases': purchases,
                     'products': products,
@@ -287,30 +310,38 @@ def create_ticket(request):
                 })
 
         try:
+
             TicketService.create_ticket(
                 user=user,
                 data=request.POST,
                 images=request.FILES.getlist("images"),
                 document=request.FILES.get("document"),
             )
-            messages.success(request, "Ticket created successfully!")
+
+            messages.success(request, "✅ Ticket created successfully!")
+
             return redirect('profile')
 
         except Purchase.DoesNotExist:
+
             messages.error(request, "Invalid purchase selected.")
 
-        except ValidationErr as e:
-            messages.error(request, e.message if hasattr(e, 'message') else str(e))
+        except ValidationError as e:
+
+            messages.error(request, str(e))
 
         except Exception as e:
-            logger.error("Ticket creation failed for user %s: %s", user.id, str(e))
-            messages.error(request, "Something went wrong. Please try again.")
 
-        return render(request, 'UserProfile/create_ticket.html', {
-            'purchases': purchases,
-            'products': products,
-            'selected_purchase': selected_purchase,
-        })
+            logger.error(
+                "Ticket creation failed for user %s: %s",
+                user.id,
+                str(e)
+            )
+
+            messages.error(
+                request,
+                "Something went wrong. Please try again."
+            )
 
     return render(request, 'UserProfile/create_ticket.html', {
         'purchases': purchases,
