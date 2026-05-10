@@ -1,4 +1,5 @@
 import logging
+from xml.dom import ValidationErr
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
@@ -298,7 +299,7 @@ def create_ticket(request):
         except Purchase.DoesNotExist:
             messages.error(request, "Invalid purchase selected.")
 
-        except ValidationError as e:
+        except ValidationErr as e:
             messages.error(request, e.message if hasattr(e, 'message') else str(e))
 
         except Exception as e:
