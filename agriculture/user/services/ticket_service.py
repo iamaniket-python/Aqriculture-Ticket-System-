@@ -279,59 +279,69 @@ class TicketService:
     # 🎫 TICKET CRUD
     # =========================================================
 
-    @staticmethod
-    def create_ticket(user: User, data: dict, images: list, document=None) -> Ticket:
-        """
-        Create ticket with full validation.
-        Invalidates user + dashboard cache on success.
-        """
-        title       = data.get('title', '').strip()
-        description = data.get('description', '').strip()
-        category    = data.get('category', '').strip()
-        purchase_id = data.get('purchase', '').strip()
-        product     = data.get('product', '').strip()
+@staticmethod
+def create_ticket(user: User, data: dict, images: list, document=None) -> Ticket:
+    """
+    Create ticket with full validation.
+    Invalidates user + dashboard cache on success.
+    """
+    title       = data.get('title', '').strip()
+    description = data.get('description', '').strip()
+    category    = data.get('category', '').strip()
+    purchase_id = data.get('purchase', '').strip()
+    product     = data.get('product', '').strip()
 
-        if not title:
-            raise ValidationError("Title is required.")
-        if not description:
-            raise ValidationError("Description is required.")
+    if not title:
+        raise ValidationError("Title is required.")
+    if not description:
+        raise ValidationError("Description is required.")
 
-        # Validate files before DB hit
-        TicketService._validate_images(images)
-        TicketService._validate_document(document)
+    # Validate files before DB hit
+    TicketService._validate_images(images)
+    TicketService._validate_document(document)
 
-        purchase = None
-        if purchase_id and product:
-            purchase = Purchase.objects.get(
-                user=user,
-                purchase_id=purchase_id,
-                product_name=product,
-            )
-
-        ticket = Ticket.objects.create(
-            user        = user,
-            purchase    = purchase,
-            title       = title,
-            description = description,
-            category    = category or None,
-            other       = data.get('other', '').strip() or None,
-            document    = document,
+    purchase = None
+    if purchase_id and product:
+        purchase = Purchase.objects.get(
+            user=user,
+            purchase_id=purchase_id,
+            product_name=product,
         )
 
-        if images:
-            TicketImage.objects.bulk_create([
-                TicketImage(ticket=ticket, image=img) for img in images
-            ])
+    # ✅ Pending ticket check
+    if purchase:
+        pending_exists = Ticket.objects.filter(
+            user=user,
+            purchase=purchase,
+            status='pending'
+        ).exists()
+        if pending_exists:
+            raise ValidationError("You already have a pending ticket for this order. Please wait for it to be resolved.")
 
-        # ✅ Invalidate all related caches
-        TicketService.invalidate_user_cache(user.id)
-        TicketService.invalidate_dashboard_cache()
+    ticket = Ticket.objects.create(
+        user        = user,
+        purchase    = purchase,
+        title       = title,
+        description = description,
+        category    = category or None,
+        other       = data.get('other', '').strip() or None,
+        document    = document,
+    )
 
-        logger.info(
-            "Ticket #%s created by user '%s' (id=%s)",
-            ticket.id, user.username, user.id,
-        )
-        return ticket
+    if images:
+        TicketImage.objects.bulk_create([
+            TicketImage(ticket=ticket, image=img) for img in images
+        ])
+
+    # ✅ Invalidate all related caches
+    TicketService.invalidate_user_cache(user.id)
+    TicketService.invalidate_dashboard_cache()
+
+    logger.info(
+        "Ticket #%s created by user '%s' (id=%s)",
+        ticket.id, user.username, user.id,
+    )
+    return ticket
 
     @staticmethod
     def add_comment(

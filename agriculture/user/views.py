@@ -268,8 +268,9 @@ def create_ticket(request):
         products = Purchase.objects.filter(user=user, purchase_id=selected_purchase)
 
     if request.method == "POST":
-        # ✅ Check pending ticket for selected purchase
         selected_purchase_id = request.POST.get('purchase')
+
+        # ✅ Early check before service call
         if selected_purchase_id:
             pending_exists = Ticket.objects.filter(
                 user=user,
@@ -296,6 +297,9 @@ def create_ticket(request):
 
         except Purchase.DoesNotExist:
             messages.error(request, "Invalid purchase selected.")
+
+        except ValidationError as e:
+            messages.error(request, e.message if hasattr(e, 'message') else str(e))
 
         except Exception as e:
             logger.error("Ticket creation failed for user %s: %s", user.id, str(e))
