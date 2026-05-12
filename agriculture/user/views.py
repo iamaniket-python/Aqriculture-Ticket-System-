@@ -702,17 +702,17 @@ def staff_register(request):
         password = request.POST.get("password", "")
 
         if not username or not password or not email:
-            return render(request, "staff_dashboard/register.html", {
+            return render(request, "Staff_dashboard/register.html", {
                 "error": "All fields are required."
             })
 
         if User.objects.filter(username=username).exists():
-            return render(request, "staff_dashboard/register.html", {
+            return render(request, "Staff_dashboard/register.html", {
                 "error": "Username already exists"
             })
 
         if User.objects.filter(email=email).exists():
-            return render(request, "staff_dashboard/register.html", {
+            return render(request, "Staff_dashboard/register.html", {
                 "error": "Email already exists"
             })
 
@@ -724,11 +724,11 @@ def staff_register(request):
             is_superuser=False,
         )
         StaffProfile.objects.create(user=user)
-        return render(request, "staff_dashboard/register.html", {
+        return render(request, "Staff_dashboard/register.html", {
             "msg": "✅ Request sent to admin for approval."
         })
 
-    return render(request, "staff_dashboard/register.html")
+    return render(request, "Staff_dashboard/register.html")
 
 
 # =============================================
@@ -754,18 +754,18 @@ def staff_login(request):
         if not user:
             logger.warning("Failed staff login: %s from IP %s",
                            email, request.META.get('REMOTE_ADDR'))
-            return render(request, "staff_dashboard/login.html", {
+            return render(request, "Staff_dashboard/login.html", {
                 "error": "Invalid email or password"
             })
 
         if not user.is_staff:
-            return render(request, "staff_dashboard/login.html", {
+            return render(request, "Staff_dashboard/login.html", {
                 "error": "Not a staff account"
             })
 
         profile = StaffProfile.objects.filter(user=user, is_approved=True).first()
         if not profile:
-            return render(request, "staff_dashboard/login.html", {
+            return render(request, "Staff_dashboard/login.html", {
                 "error": "Account not approved yet. Please wait for admin approval."
             })
 
@@ -773,7 +773,7 @@ def staff_login(request):
         request.session['role'] = 'staff'
         return redirect("staff_dashboard")
 
-    return render(request, "staff_dashboard/login.html")
+    return render(request, "Staff_dashboard/login.html")
 
 
 # =============================================
@@ -823,7 +823,7 @@ def staff_dashboard(request):
         ticket__assigned_to=user, is_read=False
     ).count()
 
-    return render(request, "staff_dashboard/staff_dashboard.html", {
+    return render(request, "Staff_dashboard/staff_dashboard.html", {
         **stats,
         "tickets":               page_obj,
         "page_obj":              page_obj,
