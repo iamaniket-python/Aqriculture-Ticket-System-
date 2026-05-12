@@ -52,14 +52,17 @@
                   {% csrf_token %}
 
                   <div class="form-group">
+                    <label
+                      style="font-size: 13px; font-weight: 600; color: #374151"
+                      >Email <span style="color: red">*</span></label
+                    >
                     <input
                       type="email"
-                      name="username"
+                      name="email"
                       class="form-control"
-                      placeholder="Email Address"
+                      placeholder="Enter your email"
                       required
                     />
-                    
                   </div>
 
                   <!-- ✅ Password with eye toggle -->

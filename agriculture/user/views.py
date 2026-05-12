@@ -695,32 +695,40 @@ def reject_staff(request, id):
 # =============================================
 # 🧑‍💻 STAFF REGISTER
 # =============================================
-
 def staff_register(request):
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
+        email    = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
 
-        if not username or not password:
-            return render(request, "Staff_dashboard/register.html", {
-                "error": "Username and password are required."
+        if not username or not password or not email:
+            return render(request, "staff_dashboard/register.html", {
+                "error": "All fields are required."
             })
 
         if User.objects.filter(username=username).exists():
-            return render(request, "Staff_dashboard/register.html", {
+            return render(request, "staff_dashboard/register.html", {
                 "error": "Username already exists"
             })
 
+        if User.objects.filter(email=email).exists():
+            return render(request, "staff_dashboard/register.html", {
+                "error": "Email already exists"
+            })
+
         user = User.objects.create_user(
-            username=username, password=password,
-            is_staff=False, is_superuser=False,
+            username=username,
+            email=email,
+            password=password,
+            is_staff=False,
+            is_superuser=False,
         )
         StaffProfile.objects.create(user=user)
-        return render(request, "Staff_dashboard/register.html", {
-            "msg": "Request sent to admin for approval."
+        return render(request, "staff_dashboard/register.html", {
+            "msg": "✅ Request sent to admin for approval."
         })
 
-    return render(request, "Staff_dashboard/register.html")
+    return render(request, "staff_dashboard/register.html")
 
 
 # =============================================
