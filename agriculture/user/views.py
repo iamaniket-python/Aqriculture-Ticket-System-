@@ -412,12 +412,13 @@ def admin_login(request):
         email    = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
 
-       
+        # ✅ Email ya username dono se login
         try:
             user_obj = User.objects.get(email=email)
             user     = authenticate(request, username=user_obj.username, password=password)
         except User.DoesNotExist:
-            user = None
+            # ✅ Username se bhi try karo (fallback)
+            user = authenticate(request, username=email, password=password)
 
         if user is not None and user.is_superuser:
             login(request, user)
