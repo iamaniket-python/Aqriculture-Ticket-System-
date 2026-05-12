@@ -745,10 +745,10 @@ def staff_login(request):
         password = request.POST.get("password", "")
 
         # ✅ Email se user dhundo
-        try:
-            user_obj = User.objects.get(email=email)
-            user     = authenticate(request, username=user_obj.username, password=password)
-        except User.DoesNotExist:
+        user_obj = User.objects.filter(email=email).first()
+        if user_obj:
+            user = authenticate(request, username=user_obj.username, password=password)
+        else:
             user = None
 
         if not user:
