@@ -217,21 +217,17 @@ def profile(request):
     product_query = request.GET.get('product', '')
     date_from     = request.GET.get('date_from', '')
     date_to       = request.GET.get('date_to', '')
+    status_filter = request.GET.get('status', '')
 
-   
     hour = datetime.now().hour
-
     if hour < 12:
-       greeting = "Good Morning"
-       emoji = "☀️"
+        greeting = "Good Morning"; emoji = "☀️"
     elif hour < 18:
-        greeting = "Good Afternoon"
-        emoji = "🌤️"
+        greeting = "Good Afternoon"; emoji = "🌤️"
     else:
-        greeting = "Good Evening"
-        emoji = "🌙"
+        greeting = "Good Evening"; emoji = "🌙"
 
-    has_purchase  = Purchase.objects.filter(user=user).exists()
+    has_purchase = Purchase.objects.filter(user=user).exists()
 
     tickets = TicketService.get_user_tickets_cached(
         user,
@@ -240,20 +236,31 @@ def profile(request):
         date_to=date_to,
     )
 
+    if status_filter:
+        tickets = tickets.filter(status=status_filter)
+
     paginator = Paginator(tickets, 10)
     page_obj  = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'UserProfile/profile.html', {
-        "page_obj":      page_obj,
-        "product_query": product_query,
-        "date_from":     date_from,
-        "date_to":       date_to,
-        "user":          user,
-        "has_purchase":  has_purchase,
-        "greeting":      greeting,
-        "emoji":         emoji,
-    })
+    all_tickets   = TicketService.get_user_tickets_cached(user)
+    pending_count  = all_tickets.filter(status='pending').count()
+    progress_count = all_tickets.filter(status='in_progress').count()
+    resolved_count = all_tickets.filter(status='resolved').count()
 
+    return render(request, 'UserProfile/profile.html', {
+        "page_obj":       page_obj,
+        "product_query":  product_query,
+        "date_from":      date_from,
+        "date_to":        date_to,
+        "status_filter":  status_filter,
+        "user":           user,
+        "has_purchase":   has_purchase,
+        "greeting":       greeting,
+        "emoji":          emoji,
+        "pending_count":  pending_count,
+        "progress_count": progress_count,
+        "resolved_count": resolved_count,
+    })
 
 # =============================================
 # 🎫 CREATE TICKET

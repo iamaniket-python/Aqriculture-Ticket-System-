@@ -5,206 +5,274 @@
 {% load static %}
 
 <style>
-.pf-navbar {
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 20px;background:#ffffff;border-radius:14px;
-  border:1px solid #e5e7eb;margin-bottom:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.04);
-}
-.pf-brand img { height:38px;object-fit:contain; }
-.pf-nav-right { display:flex;gap:10px;align-items:center; }
-.btn-create {
-  background:#111827;color:#fff;border:none;padding:9px 18px;
-  border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
-  text-decoration:none;display:inline-flex;align-items:center;gap:6px;
-  transition:background 0.2s;
-}
-.btn-create:hover { background:#374151;color:#fff; }
-.btn-logout {
-  background:transparent;color:#ef4444;border:1px solid #fca5a5;
-  padding:9px 16px;border-radius:10px;font-size:13px;font-weight:500;
-  text-decoration:none;transition:all 0.2s;
-}
-.btn-logout:hover { background:#fef2f2;color:#ef4444; }
-.no-order { font-size:13px;color:#ef4444;font-weight:500; }
+*{box-sizing:border-box;}
 
-.welcome-card {
-  background:linear-gradient(135deg,#111827 0%,#1f2937 100%);
-  border-radius:16px;padding:24px 28px;margin-bottom:16px;
-  display:flex;align-items:center;justify-content:space-between;
+/* ── Layout ── */
+.app-layout{display:flex;min-height:100vh;margin:-1.5rem;background:#f3f4f6;}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:260px;min-width:260px;background:#111827;
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;
+  z-index:1000;transition:transform 0.3s ease;
 }
-.welcome-card h4 { color:#fff;font-size:18px;font-weight:700;margin:0 0 4px; }
-.welcome-card p { color:#9ca3af;font-size:13px;margin:0; }
-.welcome-avatar {
-  width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.15);
+.sidebar-header{
+  padding:20px;border-bottom:1px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;gap:12px;
+}
+.sidebar-logo{height:36px;object-fit:contain;}
+.sidebar-brand{color:#fff;font-size:15px;font-weight:700;}
+
+/* User Info Card */
+.sidebar-user{
+  padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.user-avatar-big{
+  width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
   display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:700;color:#fff;
+  font-size:20px;font-weight:700;color:#fff;margin-bottom:10px;
+}
+.user-info-name{color:#fff;font-size:14px;font-weight:600;margin-bottom:2px;}
+.user-info-phone{color:#9ca3af;font-size:12px;}
+.user-info-row{
+  display:flex;align-items:center;gap:6px;
+  color:#9ca3af;font-size:12px;margin-top:4px;
 }
 
-.stat-row {
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
-  gap:12px;margin-bottom:16px;
+/* Nav Links */
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto;}
+.nav-section-title{
+  padding:8px 20px;font-size:11px;font-weight:600;
+  color:#4b5563;text-transform:uppercase;letter-spacing:0.8px;
 }
-.stat-box {
-  background:#fff;border-radius:14px;padding:16px 18px;
-  border:1px solid #e5e7eb;box-shadow:0 2px 8px rgba(0,0,0,0.03);
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 20px;color:#9ca3af;font-size:13px;
+  text-decoration:none;transition:all 0.15s;cursor:pointer;
+  border-left:3px solid transparent;
 }
-.stat-box .s-label { font-size:12px;color:#9ca3af;margin-bottom:6px; }
-.stat-box .s-val { font-size:24px;font-weight:700;color:#111827; }
-.stat-box.pending .s-val { color:#d97706; }
-.stat-box.progress .s-val { color:#2563eb; }
-.stat-box.resolved .s-val { color:#16a34a; }
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#fff;}
+.nav-item.active{
+  background:rgba(99,102,241,0.15);color:#818cf8;
+  border-left-color:#6366f1;
+}
+.nav-item i{font-size:16px;width:18px;}
+.nav-badge{
+  margin-left:auto;background:#ef4444;color:#fff;
+  padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;
+}
 
-.filter-card {
-  background:#fff;border-radius:14px;padding:18px 20px;
-  border:1px solid #e5e7eb;margin-bottom:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.03);
+/* Sidebar Footer */
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);}
+.logout-btn{
+  display:flex;align-items:center;gap:10px;
+  color:#ef4444;font-size:13px;text-decoration:none;
+  padding:10px 0;transition:opacity 0.15s;
 }
-.filter-card .filter-title {
-  font-size:13px;font-weight:600;color:#374151;margin-bottom:14px;
-}
-.filter-row { display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end; }
-.filter-group { display:flex;flex-direction:column;gap:5px; }
-.filter-group label { font-size:12px;color:#6b7280;font-weight:500; }
-.filter-group input {
-  padding:9px 12px;border:1px solid #e5e7eb;border-radius:10px;
-  font-size:13px;min-width:160px;color:#111827;
-  transition:border 0.2s;
-}
-.filter-group input:focus { border-color:#111827;outline:none; }
-.btn-apply {
-  padding:9px 20px;background:#111827;color:#fff;border:none;
-  border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
-  transition:background 0.2s;
-}
-.btn-apply:hover { background:#374151; }
-.btn-reset {
-  padding:9px 16px;background:#f3f4f6;color:#374151;
-  border-radius:10px;font-size:13px;text-decoration:none;
-  font-weight:500;transition:background 0.2s;
-}
-.btn-reset:hover { background:#e5e7eb; }
-.filter-tags { display:flex;gap:8px;flex-wrap:wrap;margin-top:12px; }
-.f-tag {
-  padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;
-}
-.f-tag.blue { background:#eff6ff;color:#1d4ed8; }
-.f-tag.green { background:#f0fdf4;color:#166534; }
-.f-tag.amber { background:#fefce8;color:#854d0e; }
+.logout-btn:hover{opacity:0.8;color:#ef4444;}
 
-.table-card {
-  background:#fff;border-radius:14px;padding:20px;
-  border:1px solid #e5e7eb;box-shadow:0 2px 8px rgba(0,0,0,0.03);
+/* Mobile overlay */
+.sidebar-overlay{
+  display:none;position:fixed;top:0;left:0;
+  width:100%;height:100%;background:rgba(0,0,0,0.5);
+  z-index:999;
 }
-.table-card-header {
+.sidebar-overlay.active{display:block;}
+
+/* ── Main Content ── */
+.main-content{
+  margin-left:260px;flex:1;
+  display:flex;flex-direction:column;min-height:100vh;
+}
+
+/* Top navbar */
+.top-navbar{
+  background:#fff;padding:14px 24px;
+  border-bottom:1px solid #e5e7eb;
   display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:16px;
+  position:sticky;top:0;z-index:100;
 }
-.table-card-header h5 {
-  font-size:15px;font-weight:700;color:#111827;margin:0;
+.hamburger{
+  display:none;background:none;border:none;
+  cursor:pointer;padding:4px;
 }
-.table-card-header span { font-size:12px;color:#9ca3af; }
+.hamburger span{
+  display:block;width:22px;height:2px;
+  background:#374151;margin:4px 0;transition:0.3s;
+}
+.top-navbar-right{display:flex;align-items:center;gap:12px;}
+.greeting-text{font-size:14px;color:#6b7280;}
+.btn-create-ticket{
+  background:#111827;color:#fff;border:none;
+  padding:9px 18px;border-radius:10px;font-size:13px;
+  font-weight:600;text-decoration:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-create-ticket:hover{background:#374151;color:#fff;}
 
-table { width:100%;border-collapse:collapse;font-size:13px; }
-thead tr { background:#f9fafb; }
-th {
-  padding:10px 14px;text-align:left;font-weight:600;color:#6b7280;
-  font-size:12px;white-space:nowrap;border-bottom:1px solid #e5e7eb;
-}
-td {
-  padding:13px 14px;border-bottom:1px solid #f3f4f6;
-  color:#374151;vertical-align:middle;
-}
-tbody tr { transition:background 0.15s;cursor:pointer; }
-tbody tr:hover { background:#f9fafb; }
-tbody tr:last-child td { border-bottom:none; }
+/* Page content */
+.page-content{padding:24px;flex:1;}
 
-.order-pill {
+/* Stats */
+.stat-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;margin-bottom:20px;
+}
+.stat-box{
+  background:#fff;border-radius:14px;padding:16px 18px;
+  border:1px solid #e5e7eb;
+}
+.stat-label{font-size:11px;color:#9ca3af;margin-bottom:6px;font-weight:500;}
+.stat-val{font-size:24px;font-weight:700;color:#111827;}
+.stat-val.pending{color:#d97706;}
+.stat-val.progress{color:#2563eb;}
+.stat-val.resolved{color:#16a34a;}
+
+/* Cards */
+.card{
+  background:#fff;border-radius:14px;border:1px solid #e5e7eb;
+  margin-bottom:16px;overflow:hidden;
+}
+.card-header{
+  padding:14px 20px;border-bottom:1px solid #f3f4f6;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-header h5{font-size:14px;font-weight:700;color:#111827;margin:0;}
+.card-body{padding:16px 20px;}
+
+/* Profile Info */
+.profile-info-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;
+}
+.info-item .info-label{
+  font-size:11px;color:#9ca3af;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;
+}
+.info-item .info-val{font-size:14px;color:#111827;font-weight:500;}
+
+/* Filter */
+.filter-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:4px;}
+.filter-group label{font-size:12px;color:#6b7280;font-weight:500;}
+.filter-group input, .filter-group select{
+  padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;
+  font-size:13px;color:#111827;min-width:140px;
+}
+.btn-apply{
+  padding:9px 18px;background:#111827;color:#fff;
+  border:none;border-radius:8px;font-size:13px;
+  font-weight:600;cursor:pointer;
+}
+.btn-reset{
+  padding:9px 14px;background:#f3f4f6;color:#374151;
+  border-radius:8px;font-size:13px;text-decoration:none;
+}
+.filter-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.f-tag{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.f-tag.blue{background:#eff6ff;color:#1d4ed8;}
+.f-tag.green{background:#f0fdf4;color:#166534;}
+.f-tag.amber{background:#fefce8;color:#854d0e;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:#f9fafb;}
+th{
+  padding:10px 14px;text-align:left;font-weight:600;
+  color:#6b7280;font-size:12px;border-bottom:1px solid #e5e7eb;
+  white-space:nowrap;
+}
+td{padding:12px 14px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:middle;}
+tbody tr{cursor:pointer;transition:background 0.15s;}
+tbody tr:hover{background:#f9fafb;}
+tbody tr:last-child td{border-bottom:none;}
+
+.order-pill{
   background:#f3f4f6;color:#111827;padding:3px 10px;
   border-radius:20px;font-size:12px;font-weight:600;font-family:monospace;
 }
-.status-badge {
+.status-badge{
   display:inline-flex;align-items:center;gap:5px;
   padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
 }
-.s-pending { background:#fef3c7;color:#d97706; }
-.s-resolved { background:#dcfce7;color:#16a34a; }
-.s-progress { background:#dbeafe;color:#2563eb; }
-.dot { width:6px;height:6px;border-radius:50%;display:inline-block; }
-
-.thumb-img {
-  width:38px;height:38px;border-radius:8px;object-fit:cover;
+.s-pending{background:#fef3c7;color:#d97706;}
+.s-resolved{background:#dcfce7;color:#16a34a;}
+.s-progress{background:#dbeafe;color:#2563eb;}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+.thumb-img{
+  width:36px;height:36px;border-radius:6px;object-fit:cover;
   border:1px solid #e5e7eb;cursor:pointer;margin-right:3px;
-  transition:transform 0.15s;
 }
-.thumb-img:hover { transform:scale(1.1); }
-
-.doc-link {
+.doc-link{
   display:inline-flex;align-items:center;gap:4px;
   color:#2563eb;font-size:12px;text-decoration:none;font-weight:500;
 }
-.doc-link:hover { text-decoration:underline; }
-
-.chat-btn {
+.chat-btn{
   display:inline-flex;align-items:center;gap:5px;
-  padding:7px 14px;background:#111827;color:#fff;
-  border-radius:10px;font-size:12px;font-weight:600;
-  text-decoration:none;transition:background 0.2s;white-space:nowrap;
+  padding:6px 12px;background:#111827;color:#fff;
+  border-radius:8px;font-size:12px;font-weight:600;
+  text-decoration:none;white-space:nowrap;
 }
-.chat-btn:hover { background:#374151;color:#fff; }
+.chat-btn:hover{background:#374151;color:#fff;}
+.empty-state{text-align:center;padding:40px;color:#9ca3af;}
+.empty-state div{font-size:32px;margin-bottom:8px;}
 
-.empty-state {
-  text-align:center;padding:40px 20px;color:#9ca3af;
-}
-.empty-state .e-icon { font-size:36px;margin-bottom:10px; }
-.empty-state p { font-size:14px;font-weight:600;color:#374151;margin:0 0 4px; }
-.empty-state span { font-size:13px; }
-
-.pg-wrap {
+/* Pagination */
+.pg-wrap{
   display:flex;justify-content:space-between;align-items:center;
-  margin-top:18px;
+  margin-top:16px;
 }
-.pg-info { font-size:12px;color:#9ca3af; }
-.pg-btns { display:flex;gap:6px; }
-.pg-btn {
-  padding:6px 14px;border:1px solid #e5e7eb;border-radius:8px;
-  font-size:13px;background:#fff;color:#374151;
-  text-decoration:none;transition:all 0.15s;
+.pg-info{font-size:12px;color:#9ca3af;}
+.pg-btns{display:flex;gap:6px;}
+.pg-btn{
+  padding:6px 12px;border:1px solid #e5e7eb;border-radius:8px;
+  font-size:13px;background:#fff;color:#374151;text-decoration:none;
 }
-.pg-btn:hover { background:#f3f4f6; }
-.pg-btn.active {
-  background:#111827;color:#fff;border-color:#111827;
-}
+.pg-btn.active{background:#111827;color:#fff;border-color:#111827;}
 
 /* Image Modal */
-.img-modal {
-  display:none;position:fixed;top:0;left:0;
-  width:100%;height:100%;background:rgba(0,0,0,0.8);
-  justify-content:center;align-items:center;z-index:9999;
+.img-modal{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.8);z-index:9999;
+  justify-content:center;align-items:center;
 }
-.img-modal img {
-  max-width:85%;max-height:85%;border-radius:12px;
-}
+.img-modal.active{display:flex;}
+.img-modal img{max-width:85%;max-height:85%;border-radius:12px;}
 
 /* Toast */
-.toast-container {
+.toast-container{
   position:fixed;top:20px;right:20px;z-index:9999;
   display:flex;flex-direction:column;gap:8px;
 }
-.toast-msg {
+.toast-msg{
   padding:14px 20px;border-radius:12px;font-size:14px;font-weight:500;
-  background:#fff;border:1px solid #e5e7eb;color:#065f46;
+  background:#fff;border:1px solid #e5e7eb;
   box-shadow:0 4px 20px rgba(0,0,0,0.1);
-  animation:slideIn 0.3s ease forwards;min-width:260px;
+  animation:slideIn 0.3s ease;min-width:260px;
   display:flex;align-items:center;gap:10px;
 }
-@keyframes slideIn {
-  from { opacity:0;transform:translateX(40px); }
-  to { opacity:1;transform:translateX(0); }
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(40px)}
+  to{opacity:1;transform:translateX(0)}
 }
-@keyframes slideOut {
-  from { opacity:1;transform:translateX(0); }
-  to { opacity:0;transform:translateX(40px); }
+
+/* Pickup/Delivery */
+.coming-soon{
+  text-align:center;padding:40px 20px;
+}
+.coming-soon .cs-icon{font-size:40px;margin-bottom:12px;}
+.coming-soon h6{font-size:15px;font-weight:700;color:#111827;margin-bottom:6px;}
+.coming-soon p{font-size:13px;color:#9ca3af;}
+
+/* Mobile */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main-content{margin-left:0;}
+  .hamburger{display:block;}
+  .stat-row{grid-template-columns:1fr 1fr;}
 }
 </style>
 
@@ -213,7 +281,7 @@ tbody tr:last-child td { border-bottom:none; }
   <img id="modalImg" src="">
 </div>
 
-<!-- Toast Notifications -->
+<!-- Toast -->
 {% if messages %}
 <div class="toast-container" id="toastContainer">
   {% for message in messages %}
@@ -225,225 +293,372 @@ tbody tr:last-child td { border-bottom:none; }
 </div>
 {% endif %}
 
-<!-- NAVBAR -->
-<nav class="pf-navbar">
-  <div class="pf-brand">
-    <img src="{% static 'image/ff.png' %}" alt="Agribiz Farm">
-  </div>
-  <div class="pf-nav-right">
-    {% if has_purchase %}
-      <a href="{% url 'create_ticket' %}" class="btn-create">
-        ＋ Create Ticket
-      </a>
-    {% else %}
-      <span class="no-order">❌ No Orders Found</span>
-    {% endif %}
-    <a href="{% url 'user_logout' %}" class="btn-logout">Logout</a>
-  </div>
-</nav>
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<div class="profile-container" style="padding:0;">
+<div class="app-layout">
 
-  <!-- WELCOME -->
-  <div class="welcome-card">
-    <div>
-      <h4>{{ greeting }}, {{ user.username }} {{ emoji }}</h4>
-      <p>Manage and track your support tickets</p>
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Header -->
+    <div class="sidebar-header">
+      <img src="{% static 'image/ff.png' %}" class="sidebar-logo" alt="Logo">
+      <span class="sidebar-brand">Agribiz Farm</span>
     </div>
-    <div class="welcome-avatar">
-      {{ user.username|slice:":1"|upper }}
-    </div>
-  </div>
-  <!-- FILTERS -->
-  <div class="filter-card">
-    <div class="filter-title">🔍 Filter Tickets</div>
-    <form method="GET">
-      <div class="filter-row">
-        <div class="filter-group">
-          <label>📦 Product Name</label>
-          <input type="text" name="product" value="{{ product_query }}" placeholder="Search product...">
-        </div>
-        <div class="filter-group">
-          <label>📅 From</label>
-          <input type="date" name="date_from" value="{{ date_from }}">
-        </div>
-        <div class="filter-group">
-          <label>📅 To</label>
-          <input type="date" name="date_to" value="{{ date_to }}">
-        </div>
-        <div style="display:flex;gap:8px;align-items:flex-end;">
-          <button type="submit" class="btn-apply">Apply</button>
-          <a href="{% url 'profile' %}" class="btn-reset">Reset</a>
-        </div>
-      </div>
 
-      {% if product_query or date_from or date_to %}
-      <div class="filter-tags">
-        {% if product_query %}
-          <span class="f-tag blue">📦 "{{ product_query }}"</span>
-        {% endif %}
-        {% if date_from %}
-          <span class="f-tag green">From: {{ date_from }}</span>
-        {% endif %}
-        {% if date_to %}
-          <span class="f-tag green">To: {{ date_to }}</span>
-        {% endif %}
-        <span class="f-tag amber">{{ page_obj.paginator.count }} result(s)</span>
-      </div>
+    <!-- User Info -->
+    <div class="sidebar-user">
+      <div class="user-avatar-big">{{ user.username|slice:":1"|upper }}</div>
+      <div class="user-info-name">{{ user.username }}</div>
+      <div class="user-info-phone">📱 {{ user.profile.mobile|default:"-" }}</div>
+      {% if user.profile.address %}
+      <div class="user-info-row">📍 {{ user.profile.address|truncatechars:30 }}</div>
       {% endif %}
-    </form>
-  </div>
-
-  <!-- TABLE -->
-  <div class="table-card">
-    <div class="table-card-header">
-      <h5>📌 Your Tickets</h5>
-      <span>{{ page_obj.paginator.count }} total</span>
     </div>
 
-    <div style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Order ID</th>
-            <th>Product</th>
-            <th>Category</th>
-            <th>Other</th>
-            <th>Date</th>
-            <th>Images</th>
-            <th>Document</th>
-            <th>Status</th>
-            <th>Chat</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for ticket in page_obj %}
-          <tr onclick="window.location='{% url 'user_ticket_chat' ticket.id %}'">
-            <td style="color:#9ca3af;font-weight:500;">{{ forloop.counter }}</td>
+    <!-- Nav -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Menu</div>
 
-            <td>
-              {% if ticket.purchase %}
-                <span class="order-pill">{{ ticket.purchase.purchase_id }}</span>
-              {% else %}-{% endif %}
-            </td>
+      <a href="{% url 'profile' %}" class="nav-item active" id="nav-dashboard">
+        <i class="mdi mdi-view-dashboard-outline"></i>
+        Dashboard
+      </a>
 
-            <td style="font-weight:500;">
-              {% if ticket.purchase %}{{ ticket.purchase.product_name }}{% else %}-{% endif %}
-            </td>
+      <a href="#" class="nav-item" onclick="showSection('tickets'); return false;" id="nav-tickets">
+        <i class="mdi mdi-ticket-outline"></i>
+        My Tickets
+        <span class="nav-badge">{{ page_obj.paginator.count }}</span>
+      </a>
 
-            <td>{{ ticket.category|default:"-" }}</td>
+      <a href="#" class="nav-item" onclick="showSection('profile'); return false;" id="nav-profile">
+        <i class="mdi mdi-account-outline"></i>
+        Profile
+      </a>
 
-            <td style="color:#6b7280;font-size:12px;">{{ ticket.other|default:"-" }}</td>
+      <div class="nav-section-title" style="margin-top:8px;">Orders</div>
 
-            <td style="color:#6b7280;white-space:nowrap;">{{ ticket.created_at|date:"d M Y" }}</td>
+      <a href="#" class="nav-item" onclick="showSection('pickup'); return false;" id="nav-pickup">
+        <i class="mdi mdi-package-up"></i>
+        Pickup
+      </a>
 
-            <td>
-              {% for img in ticket.images.all %}
-                <img src="{{ img.image.url }}" class="thumb-img"
-                     onclick="event.stopPropagation();openImage(this.src)">
-              {% empty %}-{% endfor %}
-            </td>
+      <a href="#" class="nav-item" onclick="showSection('delivery'); return false;" id="nav-delivery">
+        <i class="mdi mdi-truck-delivery-outline"></i>
+        Delivery
+      </a>
 
-            <td>
-              {% if ticket.document %}
-                <a href="{{ ticket.document.url }}" target="_blank"
-                   class="doc-link" onclick="event.stopPropagation()">
-                  📄 View
-                </a>
-              {% else %}-{% endif %}
-            </td>
+    </nav>
 
-            <td>
-              {% if ticket.status == "pending" %}
-                <span class="status-badge s-pending">
-                  <span class="dot" style="background:#d97706;"></span>Pending
-                </span>
-              {% elif ticket.status == "resolved" %}
-                <span class="status-badge s-resolved">
-                  <span class="dot" style="background:#16a34a;"></span>Resolved
-                </span>
-              {% elif ticket.status == "in_progress" %}
-                <span class="status-badge s-progress">
-                  <span class="dot" style="background:#2563eb;"></span>In Progress
-                </span>
-              {% else %}
-                <span>{{ ticket.status }}</span>
-              {% endif %}
-            </td>
-
-            <td>
-              <a href="{% url 'user_ticket_chat' ticket.id %}"
-                 class="chat-btn" onclick="event.stopPropagation()">
-                💬 Chat
-              </a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="10">
-              <div class="empty-state">
-                <div class="e-icon">🎫</div>
-                <p>No tickets found</p>
-                <span>Try changing your filter or create a new ticket</span>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <a href="{% url 'user_logout' %}" class="logout-btn">
+        <i class="mdi mdi-logout" style="font-size:16px;"></i>
+        Logout
+      </a>
     </div>
 
-    <!-- PAGINATION -->
-    {% if page_obj.has_other_pages %}
-    <div class="pg-wrap">
-      <span class="pg-info">
-        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-      </span>
-      <div class="pg-btns">
-        {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}"
-             class="pg-btn">← Prev</a>
-        {% endif %}
+  </aside>
 
-        {% for num in page_obj.paginator.page_range %}
-          {% if page_obj.number == num %}
-            <span class="pg-btn active">{{ num }}</span>
-          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <a href="?page={{ num }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}"
-               class="pg-btn">{{ num }}</a>
-          {% endif %}
-        {% endfor %}
+  <!-- ── MAIN CONTENT ── -->
+  <div class="main-content">
 
-        {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}"
-             class="pg-btn">Next →</a>
+    <!-- Top Navbar -->
+    <div class="top-navbar">
+      <button class="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="top-navbar-right">
+        <span class="greeting-text">{{ emoji }} {{ greeting }}, {{ user.username }}!</span>
+        {% if has_purchase %}
+          <a href="{% url 'create_ticket' %}" class="btn-create-ticket">+ Create Ticket</a>
         {% endif %}
       </div>
     </div>
-    {% endif %}
 
+    <!-- Page Content -->
+    <div class="page-content">
+
+      <!-- Stats -->
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-label">Total Tickets</div>
+          <div class="stat-val">{{ page_obj.paginator.count }}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Pending</div>
+          <div class="stat-val pending">{{ pending_count|default:"0" }}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-val progress">{{ progress_count|default:"0" }}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Resolved</div>
+          <div class="stat-val resolved">{{ resolved_count|default:"0" }}</div>
+        </div>
+      </div>
+
+      <!-- ── TICKETS SECTION ── -->
+      <div id="section-tickets">
+
+        <!-- Filters -->
+        <div class="card">
+          <div class="card-header">
+            <h5>🔍 Filter Tickets</h5>
+          </div>
+          <div class="card-body">
+            <form method="GET">
+              <div class="filter-row">
+                <div class="filter-group">
+                  <label>Product Name</label>
+                  <input type="text" name="product" value="{{ product_query }}" placeholder="Search...">
+                </div>
+                <div class="filter-group">
+                  <label>Status</label>
+                  <select name="status">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>⏳ Pending</option>
+                    <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
+                    <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>✅ Resolved</option>
+                  </select>
+                </div>
+                <div class="filter-group">
+                  <label>From</label>
+                  <input type="date" name="date_from" value="{{ date_from }}">
+                </div>
+                <div class="filter-group">
+                  <label>To</label>
+                  <input type="date" name="date_to" value="{{ date_to }}">
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-end;">
+                  <button type="submit" class="btn-apply">Apply</button>
+                  <a href="{% url 'profile' %}" class="btn-reset">Reset</a>
+                </div>
+              </div>
+              {% if product_query or date_from or date_to or status_filter %}
+              <div class="filter-tags">
+                {% if product_query %}<span class="f-tag blue">📦 "{{ product_query }}"</span>{% endif %}
+                {% if status_filter %}<span class="f-tag amber">{{ status_filter }}</span>{% endif %}
+                {% if date_from %}<span class="f-tag green">From: {{ date_from }}</span>{% endif %}
+                {% if date_to %}<span class="f-tag green">To: {{ date_to }}</span>{% endif %}
+              </div>
+              {% endif %}
+            </form>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card">
+          <div class="card-header">
+            <h5>📌 My Tickets</h5>
+            <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} total</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order ID</th>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Date</th>
+                  <th>Images</th>
+                  <th>Document</th>
+                  <th>Status</th>
+                  <th>Chat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for ticket in page_obj %}
+                <tr onclick="window.location='{% url 'user_ticket_chat' ticket.id %}'">
+                  <td style="color:#9ca3af;">{{ forloop.counter }}</td>
+                  <td>{% if ticket.purchase %}<span class="order-pill">{{ ticket.purchase.purchase_id }}</span>{% else %}-{% endif %}</td>
+                  <td style="font-weight:500;">{% if ticket.purchase %}{{ ticket.purchase.product_name }}{% else %}-{% endif %}</td>
+                  <td>{{ ticket.category|default:"-" }}</td>
+                  <td style="color:#6b7280;white-space:nowrap;">{{ ticket.created_at|date:"d M Y" }}</td>
+                  <td>
+                    {% for img in ticket.images.all %}
+                      <img src="{{ img.image.url }}" class="thumb-img"
+                           onclick="event.stopPropagation();openImage(this.src)">
+                    {% empty %}-{% endfor %}
+                  </td>
+                  <td>
+                    {% if ticket.document %}
+                      <a href="{{ ticket.document.url }}" target="_blank"
+                         class="doc-link" onclick="event.stopPropagation()">📄 View</a>
+                    {% else %}-{% endif %}
+                  </td>
+                  <td>
+                    {% if ticket.status == 'pending' %}
+                      <span class="status-badge s-pending"><span class="dot" style="background:#d97706;"></span>Pending</span>
+                    {% elif ticket.status == 'resolved' %}
+                      <span class="status-badge s-resolved"><span class="dot" style="background:#16a34a;"></span>Resolved</span>
+                    {% elif ticket.status == 'in_progress' %}
+                      <span class="status-badge s-progress"><span class="dot" style="background:#2563eb;"></span>In Progress</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'user_ticket_chat' ticket.id %}" class="chat-btn"
+                       onclick="event.stopPropagation()">💬 Chat</a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9">
+                  <div class="empty-state">
+                    <div>🎫</div>
+                    <p style="font-weight:600;color:#374151;margin:0 0 4px;">No tickets found</p>
+                    <span style="font-size:13px;">Create a new ticket to get started</span>
+                  </div>
+                </td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if page_obj.has_other_pages %}
+          <div style="padding:16px 20px;">
+            <div class="pg-wrap">
+              <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+              <div class="pg-btns">
+                {% if page_obj.has_previous %}
+                  <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}" class="pg-btn">← Prev</a>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                  {% if page_obj.number == num %}
+                    <span class="pg-btn active">{{ num }}</span>
+                  {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}" class="pg-btn">{{ num }}</a>
+                  {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                  <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}" class="pg-btn">Next →</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── PROFILE SECTION ── -->
+      <div id="section-profile" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <h5>👤 My Profile</h5>
+          </div>
+          <div class="card-body">
+            <div class="profile-info-grid">
+              <div class="info-item">
+                <div class="info-label">Full Name</div>
+                <div class="info-val">{{ user.get_full_name|default:user.username }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Username</div>
+                <div class="info-val">{{ user.username }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-val">{{ user.email|default:"-" }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Phone</div>
+                <div class="info-val">{{ user.profile.mobile|default:"-" }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Address</div>
+                <div class="info-val">{{ user.profile.address|default:"-" }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">City</div>
+                <div class="info-val">{{ user.profile.city|default:"-" }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Pincode</div>
+                <div class="info-val">{{ user.profile.pincode|default:"-" }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Total Orders</div>
+                <div class="info-val">{{ page_obj.paginator.count }} tickets</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PICKUP SECTION ── -->
+      <div id="section-pickup" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <h5>📦 Pickup</h5>
+          </div>
+          <div class="card-body">
+            <div class="coming-soon">
+              <div class="cs-icon">📦</div>
+              <h6>Pickup Coming Soon</h6>
+              <p>Pickup tracking feature will be available soon.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DELIVERY SECTION ── -->
+      <div id="section-delivery" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <h5>🚚 Delivery</h5>
+          </div>
+          <div class="card-body">
+            <div class="coming-soon">
+              <div class="cs-icon">🚚</div>
+              <h6>Delivery Tracking Coming Soon</h6>
+              <p>Track your deliveries in real-time. Feature coming soon!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
 <script>
-  // Image modal
-  function openImage(src) {
-    document.getElementById("modalImg").src = src;
-    document.getElementById("imgModal").style.display = "flex";
-  }
-  document.getElementById("imgModal").addEventListener("click", function() {
-    this.style.display = "none";
-  });
+// Sidebar toggle
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+}
 
-  // Toast auto hide
-  setTimeout(() => {
-    let t = document.getElementById("toastContainer");
-    if(t) {
-      t.style.animation = "slideOut 0.3s ease forwards";
-      setTimeout(() => t.remove(), 300);
-    }
-  }, 4500);
+// Section switching
+function showSection(name) {
+  const sections = ['tickets', 'profile', 'pickup', 'delivery'];
+  sections.forEach(s => {
+    document.getElementById('section-' + s).style.display = s === name ? 'block' : 'none';
+    document.getElementById('nav-' + s).classList.toggle('active', s === name);
+  });
+  closeSidebar();
+}
+
+// Image modal
+function openImage(src) {
+  document.getElementById('modalImg').src = src;
+  document.getElementById('imgModal').classList.add('active');
+}
+document.getElementById('imgModal').addEventListener('click', function() {
+  this.classList.remove('active');
+});
+
+// Toast auto hide
+setTimeout(() => {
+  let t = document.getElementById("toastContainer");
+  if(t) { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }
+}, 4500);
 </script>
 
 {% endblock %}

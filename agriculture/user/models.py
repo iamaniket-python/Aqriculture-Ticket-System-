@@ -7,7 +7,7 @@ class Purchase(models.Model):
     mobile = models.CharField(max_length=15, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='purchases')
     product_name = models.CharField(max_length=200)
-    purchase_id = models.CharField(max_length=100, unique=True)  # unique to avoid duplicates
+    purchase_id = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -43,7 +43,7 @@ class Ticket(models.Model):
     # Removed image from here — use TicketImage model instead (cleaner)
     document = CloudinaryField(resource_type='raw', blank=True, null=True)
     purchase = models.ForeignKey(
-        Purchase, on_delete=models.SET_NULL,  # SET_NULL is safer than CASCADE
+        Purchase, on_delete=models.SET_NULL,  
         blank=True, null=True, related_name='tickets'
     )
     other = models.CharField(max_length=255, blank=True, null=True)
@@ -54,7 +54,7 @@ class Ticket(models.Model):
     )
     category = models.CharField(
         max_length=50, blank=True, null=True,
-        choices=CATEGORY_CHOICES  # controlled choices, not free text
+        choices=CATEGORY_CHOICES 
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
@@ -146,6 +146,17 @@ class AdminChat(models.Model):
 class StaffProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
     is_approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.username
+
+
+class Profile(models.Model):
+    user    = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    mobile  = models.CharField(max_length=15)
+    address = models.TextField(blank=True, null=True)
+    city    = models.CharField(max_length=100, blank=True, null=True)
+    pincode = models.CharField(max_length=10, blank=True, null=True)
 
     def __str__(self):
         return self.user.username
