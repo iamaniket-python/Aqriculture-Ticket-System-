@@ -415,7 +415,7 @@ tbody tr:last-child td{border-bottom:none;}
               </thead>
               <tbody>
                 {% for ticket in page_obj %}
-                <tr onclick="window.location='{% url &quot;user_ticket_chat&quot; ticket.id %}'">
+                <tr data-href="{% url 'user_ticket_chat' ticket.id %}" onclick="goTicket(this)">
                   <td style="color:#9ca3af;">{{ forloop.counter }}</td>
                   <td>{% if ticket.purchase %}<span class="order-pill">{{ ticket.purchase.purchase_id }}</span>{% else %}-{% endif %}</td>
                   <td style="font-weight:500;">{% if ticket.purchase %}{{ ticket.purchase.product_name }}{% else %}-{% endif %}</td>
@@ -487,7 +487,7 @@ tbody tr:last-child td{border-bottom:none;}
             <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} total</span>
           </div>
           {% for ticket in page_obj %}
-          <div class="ticket-card" onclick="window.location='{% url 'user_ticket_chat' ticket.id %}'">
+          <div class="ticket-card" data-href="{% url 'user_ticket_chat' ticket.id %}" onclick="goTicket(this)">
             <div class="tc-row">
               <div>
                 <div class="tc-label">Order ID</div>
@@ -632,6 +632,8 @@ tbody tr:last-child td{border-bottom:none;}
 </div>
 
 <script>
+function goTicket(el) { window.location = el.getAttribute('data-href'); }
+
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('active');
