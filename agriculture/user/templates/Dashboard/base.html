@@ -152,7 +152,8 @@
   <div class="sidebar-section">
     <div class="sidebar-label">Main</div>
 
-    <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+    <a href="{% url 'admin_dashboard' %}"
+       class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
       <div class="icon"><i class="mdi mdi-view-dashboard-outline"></i></div>
       Dashboard
     </a>
@@ -163,6 +164,52 @@
   <div class="sidebar-section">
     <div class="sidebar-label">Management</div>
 
+    <!-- 🎫 Tickets -->
+    <button class="sidebar-link"
+            data-bs-toggle="collapse"
+            data-bs-target="#ticketMenu"
+            aria-expanded="{% if 'ticket' in request.resolver_match.url_name %}true{% else %}false{% endif %}">
+      <div class="icon"><i class="mdi mdi-ticket-outline"></i></div>
+      Tickets
+      {% if unread_count > 0 %}
+      <span class="sidebar-badge">{{ unread_count }}</span>
+      {% else %}
+      <i class="mdi mdi-chevron-right sidebar-arrow"></i>
+      {% endif %}
+    </button>
+
+    <div class="collapse {% if 'ticket' in request.resolver_match.url_name %}show{% endif %}" id="ticketMenu">
+      <div class="sub-menu">
+        <a href="{% url 'admin_dashboard' %}?status=pending"
+           class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' and request.GET.status == 'pending' %}active{% endif %}">
+          <div class="icon"><i class="mdi mdi-clock-outline"></i></div>
+          Pending
+          {% if pending > 0 %}
+          <span class="sidebar-badge">{{ pending }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'admin_dashboard' %}?status=in_progress"
+           class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' and request.GET.status == 'in_progress' %}active{% endif %}">
+          <div class="icon"><i class="mdi mdi-progress-clock"></i></div>
+          In Progress
+          {% if in_progress > 0 %}
+          <span class="sidebar-badge" style="background:#3b82f6;">{{ in_progress }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'admin_dashboard' %}?status=resolved"
+           class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' and request.GET.status == 'resolved' %}active{% endif %}">
+          <div class="icon"><i class="mdi mdi-check-circle-outline"></i></div>
+          Resolved
+        </a>
+        <a href="{% url 'admin_dashboard' %}?assigned=unassigned"
+           class="sidebar-link">
+          <div class="icon"><i class="mdi mdi-account-off-outline"></i></div>
+          Unassigned
+        </a>
+      </div>
+    </div>
+
+    <!-- 👥 Staff -->
     <button class="sidebar-link"
             data-bs-toggle="collapse"
             data-bs-target="#staffMenu"
@@ -178,7 +225,8 @@
 
     <div class="collapse" id="staffMenu">
       <div class="sub-menu">
-        <a href="{% url 'admin_staff_list' %}" class="sidebar-link">
+        <a href="{% url 'admin_staff_list' %}"
+           class="sidebar-link {% if request.resolver_match.url_name == 'admin_staff_list' %}active{% endif %}">
           <div class="icon"><i class="mdi mdi-account-multiple-outline"></i></div>
           Manage Staff
           {% if pending_staff_count > 0 %}
@@ -187,6 +235,7 @@
         </a>
       </div>
     </div>
+
   </div>
 
 </nav>
@@ -207,7 +256,19 @@
 <script src="{% static 'js/dashboard.js' %}"></script>
 
 <script>
- 
+// Panel toggle
+function togglePanel(id) {
+  document.querySelectorAll('.notif-panel').forEach(p => {
+    if (p.id !== id) p.classList.remove('open');
+  });
+  document.getElementById(id).classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.notif-panel') && !e.target.closest('.nav-icon-btn') &&
+      !e.target.closest('.profile-btn')) {
+    document.querySelectorAll('.notif-panel').forEach(p => p.classList.remove('open'));
+  }
+});
 </script>
 
 {% block extra_js %}{% endblock %}

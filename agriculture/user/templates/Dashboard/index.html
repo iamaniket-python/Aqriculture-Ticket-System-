@@ -2,86 +2,168 @@
 {% block content %}
 {% load static %}
 
+<style>
+/* ── Chart Card ── */
+.chart-card {
+  background: #fff; border-radius: 16px;
+  border: 1px solid #f0f0f5;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+  padding: 20px 24px; margin-bottom: 24px;
+}
+.chart-card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+.chart-card-head h4 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0; }
+.chart-card-head span { font-size: 12px; color: #9ca3af; }
+
+/* ── Filter bar ── */
+.filter-bar {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  align-items: center; padding: 14px 20px;
+  border-bottom: 1px solid #f1f3f9;
+  background: #fafbff;
+}
+.filter-bar input[type="date"],
+.filter-bar select {
+  padding: 8px 12px; border: 1.5px solid #e5e7eb;
+  border-radius: 10px; font-size: 13px;
+  background: #fff; color: #374151;
+  outline: none; transition: border 0.2s;
+  min-width: 130px;
+}
+.filter-bar input:focus,
+.filter-bar select:focus { border-color: #6366f1; }
+
+.btn-search {
+  padding: 8px 18px; background: #1a1a2e; color: white;
+  border: none; border-radius: 10px; font-size: 13px;
+  font-weight: 600; cursor: pointer; transition: background 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-search:hover { background: #2d2d4e; }
+
+.btn-reset {
+  padding: 8px 14px; background: #fee2e2; color: #dc2626;
+  border: none; border-radius: 10px; font-size: 13px;
+  font-weight: 500; cursor: pointer; text-decoration: none;
+  transition: background 0.2s; display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-reset:hover { background: #fecaca; }
+
+/* ── Toast ── */
+.toast-wrap {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+}
+.toast-msg {
+  background: #1a1a2e; color: #fff;
+  padding: 12px 20px; border-radius: 12px;
+  font-size: 13px; font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  display: flex; align-items: center; gap: 8px;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Assign warning ── */
+.assign-required {
+  font-size: 11px; color: #ef4444;
+  margin-top: 4px; display: none;
+  font-weight: 600;
+}
+</style>
 
 <!-- Image Modal -->
 <div class="img-modal" id="imgModal" onclick="this.classList.remove('active')">
   <img id="modalImg" src="">
 </div>
 
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap" style="display:none;">
+  <div class="toast-msg" id="toastMsg">⚠️ Message</div>
+</div>
+
 <div class="dash-wrapper">
 
-  <!-- ── Page title ── -->
-  <div style="margin-bottom:24px;">
+  <!-- Title -->
+  <div style="margin-bottom:20px;">
     <h2 style="font-size:22px;font-weight:700;color:#1a1a2e;margin:0;">Dashboard</h2>
     <p style="font-size:13px;color:#9ca3af;margin:4px 0 0;">Welcome back, {{ request.user.username }} 👋</p>
   </div>
 
-  <!-- ── Stat Cards ── -->
+  <!-- Stat Cards -->
   <div class="stat-grid">
-
     <div class="stat-card card-total">
       <div class="icon">🎫</div>
       <div class="value">{{ total }}</div>
       <div class="label">Total Tickets</div>
       <div class="blob"></div>
     </div>
-
     <div class="stat-card card-pending">
       <div class="icon">⏳</div>
       <div class="value">{{ pending }}</div>
       <div class="label">Pending</div>
       <div class="blob"></div>
     </div>
-
     <div class="stat-card card-progress">
       <div class="icon">🔄</div>
       <div class="value">{{ in_progress }}</div>
       <div class="label">In Progress</div>
       <div class="blob"></div>
     </div>
-
     <div class="stat-card card-resolved">
       <div class="icon">✅</div>
       <div class="value">{{ resolved }}</div>
       <div class="label">Resolved</div>
       <div class="blob"></div>
     </div>
-
   </div>
 
-  <!-- ── Table Card ── -->
+  <!-- Per Day Chart -->
+  <div class="chart-card">
+    <div class="chart-card-head">
+      <h4>📈 Tickets Per Day (Last 14 Days)</h4>
+      <span id="chartTotal"></span>
+    </div>
+    <canvas id="ticketChart" height="80"></canvas>
+  </div>
+
+  <!-- Table Card -->
   <div class="table-card">
 
-    <!-- Header + Filter -->
-    
-<div class="table-header">
-  <h4>🎫 Ticket Management</h4>
+    <!-- Filter Bar -->
+    <form method="GET" id="filterForm">
+      <div class="filter-bar">
+        <input type="date" name="date_from" value="{{ date_from }}" placeholder="From">
+        <input type="date" name="date_to"   value="{{ date_to }}"   placeholder="To">
+        <select name="status">
+          <option value="">All Status</option>
+          <option value="pending"     {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
+          <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
+          <option value="resolved"    {% if selected_status == 'resolved' %}selected{% endif %}>✅ Resolved</option>
+        </select>
+        <select name="assigned">
+          <option value="">All Assigned</option>
+          <option value="unassigned" {% if selected_assigned == 'unassigned' %}selected{% endif %}>❌ Unassigned</option>
+          {% for staff in staff_users %}
+            <option value="{{ staff.id }}" {% if selected_assigned == staff.id|stringformat:"s" %}selected{% endif %}>
+              👤 {{ staff.username }}
+            </option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-search">🔍 Search</button>
+        <a href="{% url 'admin_dashboard' %}?reset=1" class="btn-reset">✕ Reset</a>
+      </div>
+    </form>
 
-  <form method="GET" class="filter-row">
-
-    <input type="date" name="date_from" value="{{ date_from }}"
-           style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
-    <input type="date" name="date_to" value="{{ date_to }}"
-           style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
-    <select name="status" style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
-      <option value="">All Status</option>
-      <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
-      <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
-      <option value="resolved" {% if selected_status == 'resolved' %}selected{% endif %}>✅ Resolved</option>
-    </select>
-    <select name="assigned" style="padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;">
-      <option value="">All Assigned</option>
-      <option value="unassigned" {% if selected_assigned == 'unassigned' %}selected{% endif %}>❌ Unassigned</option>
-      {% for staff in staff_users %}
-        <option value="{{ staff.id }}" {% if selected_assigned == staff.id|stringformat:"s" %}selected{% endif %}>
-          👤 {{ staff.username }}
-        </option>
-      {% endfor %}
-    </select>
-    <button type="submit" class="btn-search">🔍 Search</button>
-    <a href="{% url 'admin_dashboard' %}?reset=1" class="btn-reset">Reset</a>
-  </form>
-</div>
+    <!-- Table Header -->
+    <div class="table-header" style="border-top:none;">
+      <h4>🎫 Ticket Management</h4>
+      <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} tickets</span>
+    </div>
 
     <!-- Table -->
     <div class="table-scroll">
@@ -94,7 +176,7 @@
             <th>Category</th>
             <th>Title</th>
             <th>Description</th>
-            <th>Date</th>
+            <th>Created</th>
             <th>Images</th>
             <th>Doc</th>
             <th>Status</th>
@@ -132,18 +214,26 @@
             <!-- Description -->
             <td style="color:#9ca3af;font-size:13px;">{{ t.description|truncatechars:25 }}</td>
 
-            <!-- Date -->
-            <td style="font-size:12px;color:#6b7280;white-space:nowrap;">{{ t.created_at|date:"d M Y" }}</td>
+            <!-- Date + Time -->
+            <td style="font-size:12px;color:#6b7280;white-space:nowrap;">
+              {{ t.created_at|date:"d M Y" }}<br>
+              <span style="font-size:11px;color:#9ca3af;">{{ t.created_at|date:"H:i" }}</span>
+            </td>
 
-            <!-- Images -->
+            <!-- Images with count -->
             <td>
-              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
                 {% for img in t.images.all %}
                   <img src="{{ img.image.url }}" class="ticket-img"
                        onclick="openImg('{{ img.image.url }}')">
                 {% empty %}
                   <span style="font-size:12px;color:#d1d5db;">—</span>
                 {% endfor %}
+                {% if t.images.count > 0 %}
+                  <span style="font-size:11px;color:#6b7280;font-weight:600;margin-left:2px;">
+                    {{ t.images.count }}
+                  </span>
+                {% endif %}
               </div>
             </td>
 
@@ -163,16 +253,27 @@
                   {% if t.status == 'pending' %}status-pending
                   {% elif t.status == 'in_progress' %}status-progress
                   {% else %}status-resolved{% endif %}"
-                  data-bs-toggle="dropdown" style="border:none;cursor:pointer;">
+                  data-bs-toggle="dropdown"
+                  data-assigned="{{ t.assigned_to.id|default:'' }}"
+                  data-status="{{ t.status }}"
+                  style="border:none;cursor:pointer;">
                   {% if t.status == 'pending' %}⏳{% elif t.status == 'in_progress' %}🔄{% else %}✅{% endif %}
                   {{ t.status|title }}
                 </button>
                 <div class="dropdown-menu">
                   <form method="POST" action="{% url 'admin_update_ticket' t.id %}">
                     {% csrf_token %}
-                    <button class="dropdown-item" name="status" value="pending">⏳ Pending</button>
-                    <button class="dropdown-item" name="status" value="in_progress">🔄 In Progress</button>
-                    <button class="dropdown-item" name="status" value="resolved">✅ Resolved</button>
+                    <button class="dropdown-item" name="status" value="pending"
+                            data-assigned="{{ t.assigned_to.id|default:'' }}"
+                            data-newstatus="pending"
+                            onclick="return confirmStatus(this)">⏳ Pending</button>
+                    <button class="dropdown-item" name="status" value="in_progress"
+                            data-assigned="{{ t.assigned_to.id|default:'' }}"
+                            data-newstatus="in_progress"
+                            onclick="return confirmStatus(this)">🔄 In Progress</button>
+                    <button class="dropdown-item" name="status" value="resolved"
+                            data-assigned="{{ t.assigned_to.id|default:'' }}"
+                            onclick="return confirmResolve(this)">✅ Resolved</button>
                   </form>
                 </div>
               </div>
@@ -181,27 +282,44 @@
             <!-- Assign -->
             <td>
               <div class="dropdown">
-                <button class="assign-btn {% if t.assigned_to %}assigned{% endif %} dropdown-toggle"
-                        data-bs-toggle="dropdown">
-                  {% if t.assigned_to %}
-                    👤 {{ t.assigned_to.username }}
-                  {% else %}
-                    + Assign
-                  {% endif %}
-                </button>
-                <div class="dropdown-menu" style="border-radius:12px;border:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;">
-                  {% for staff in staff_users %}
-                  <form method="POST" action="{% url 'assign_ticket' t.id %}">
-                    {% csrf_token %}
-                    <button class="dropdown-item" name="staff_id" value="{{ staff.id }}"
-                      style="border-radius:8px;padding:8px 14px;font-size:13px;border:none;background:none;width:100%;text-align:left;cursor:pointer;">
-                      {{ staff.username }}
-                    </button>
-                  </form>
-                  {% empty %}
-                  <div style="padding:10px 14px;font-size:13px;color:#9ca3af;">No staff available</div>
-                  {% endfor %}
-                </div>
+                {% if t.status == 'resolved' %}
+                  <!-- Resolved: show unassign option only -->
+                  <span style="font-size:12px;color:#9ca3af;font-style:italic;">
+                    {% if t.assigned_to %}{{ t.assigned_to.username }}{% else %}—{% endif %}
+                  </span>
+                {% else %}
+                  <button class="assign-btn {% if t.assigned_to %}assigned{% endif %} dropdown-toggle"
+                          data-bs-toggle="dropdown">
+                    {% if t.assigned_to %}
+                      👤 {{ t.assigned_to.username }}
+                    {% else %}
+                      + Assign
+                    {% endif %}
+                  </button>
+                  <div class="dropdown-menu" style="border-radius:12px;border:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;min-width:170px;">
+                    {% for staff in staff_users %}
+                    <form method="POST" action="{% url 'assign_ticket' t.id %}">
+                      {% csrf_token %}
+                      <button class="dropdown-item" name="staff_id" value="{{ staff.id }}"
+                        style="border-radius:8px;padding:8px 14px;font-size:13px;border:none;background:none;width:100%;text-align:left;cursor:pointer;">
+                        👤 {{ staff.username }}
+                      </button>
+                    </form>
+                    {% empty %}
+                    <div style="padding:10px 14px;font-size:13px;color:#9ca3af;">No staff available</div>
+                    {% endfor %}
+                    {% if t.assigned_to %}
+                    <div style="border-top:1px solid #f3f4f6;margin:4px 0;"></div>
+                    <form method="POST" action="{% url 'assign_ticket' t.id %}">
+                      {% csrf_token %}
+                      <button class="dropdown-item" name="staff_id" value=""
+                        style="border-radius:8px;padding:8px 14px;font-size:13px;border:none;background:none;width:100%;text-align:left;cursor:pointer;color:#ef4444;">
+                        ✕ Unassign
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                {% endif %}
               </div>
             </td>
 
@@ -225,24 +343,114 @@
         </tbody>
       </table>
     </div>
-<!-- Pagination -->
-<div style="display:flex;justify-content:center;gap:8px;margin-top:20px;">
-  {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}&user={{ selected_user }}" 
-       style="padding:8px 16px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;">← Prev</a>
-  {% endif %}
-  
-  <span style="padding:8px 16px;border-radius:8px;background:#6366f1;color:white;">
-    {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-  </span>
-  
-  {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}&user={{ selected_user }}"
-       style="padding:8px 16px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;">Next →</a>
-  {% endif %}
-</div>
-  </div>
 
+    <!-- Pagination -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;flex-wrap:wrap;gap:10px;">
+      <span style="font-size:12px;color:#9ca3af;">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        &nbsp;·&nbsp; {{ page_obj.paginator.count }} total
+      </span>
+      <div style="display:flex;gap:6px;">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}&status={{ selected_status }}&assigned={{ selected_assigned }}&date_from={{ date_from }}&date_to={{ date_to }}"
+             style="padding:7px 14px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:13px;">← Prev</a>
+        {% endif %}
+        <span style="padding:7px 14px;border-radius:8px;background:#6366f1;color:white;font-size:13px;">
+          {{ page_obj.number }}
+        </span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}&status={{ selected_status }}&assigned={{ selected_assigned }}&date_from={{ date_from }}&date_to={{ date_to }}"
+             style="padding:7px 14px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:13px;">Next →</a>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{# Chart data — hidden input se pass karo #}
+<div id="chartDataJson" data-chart='{{ daily_chart_data|escapejs }}' style="display:none;"></div>
+
+<script>
+// ── Per Day Chart ──
+const rawData    = document.getElementById('chartDataJson').getAttribute('data-chart');
+const chartData  = JSON.parse(rawData);
+const labels     = chartData.map(d => d.date);
+const values     = chartData.map(d => d.count);
+const total      = values.reduce((a, b) => a + b, 0);
+document.getElementById('chartTotal').textContent = total + ' tickets in 14 days';
+
+new Chart(document.getElementById('ticketChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Tickets',
+      data: values,
+      backgroundColor: 'rgba(99,102,241,0.15)',
+      borderColor: '#6366f1',
+      borderWidth: 2,
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.parsed.y} ticket${ctx.parsed.y !== 1 ? 's' : ''}`
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f3f4f6' } }
+    }
+  }
+});
+
+// ── Image modal ──
+function openImg(src) {
+  document.getElementById('modalImg').src = src;
+  document.getElementById('imgModal').classList.add('active');
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const wrap = document.getElementById('toastWrap');
+  document.getElementById('toastMsg').innerHTML = '⚠️ ' + msg;
+  wrap.style.display = 'block';
+  setTimeout(() => { wrap.style.display = 'none'; }, 3500);
+}
+
+// ── Bina assign ke resolved nahi hoga ──
+function confirmResolve(btn) {
+  const assignedId = btn.getAttribute('data-assigned');
+  if (!assignedId || assignedId === '') {
+    showToast('Ticket assign karo pehle — bina assign ke resolve nahi hoga!');
+    return false;
+  }
+  return true;
+}
+
+function confirmStatus(btn) {
+  const assignedId = btn.getAttribute('data-assigned');
+  const newStatus  = btn.getAttribute('data-newstatus');
+  if (newStatus === 'resolved' && (!assignedId || assignedId === '')) {
+    showToast('Ticket assign karo pehle — bina assign ke resolve nahi hoga!');
+    return false;
+  }
+  return true;
+}
+
+function checkAssignBeforeStatus(event, assignedId, currentStatus) {
+  // Allow dropdown to open, JS on item click handles validation
+}
+</script>
 
 {% endblock %}
