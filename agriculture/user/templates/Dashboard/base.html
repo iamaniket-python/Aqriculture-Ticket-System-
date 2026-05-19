@@ -33,6 +33,15 @@
 
   <div class="navbar-right">
 
+    <!-- 🎫 All Tickets Offcanvas Button -->
+    <button class="nav-icon-btn" data-bs-toggle="offcanvas" data-bs-target="#ticketOffcanvas"
+            aria-controls="ticketOffcanvas" title="All Tickets" style="position:relative;">
+      <i class="mdi mdi-ticket-outline"></i>
+      {% if total > 0 %}
+      <span class="nav-badge" style="background:#6366f1;">{{ total }}</span>
+      {% endif %}
+    </button>
+
     <!-- 💬 Messages -->
     <div style="position:relative;">
       <button class="nav-icon-btn" onclick="togglePanel('msgPanel')" id="msgBtn">
@@ -239,6 +248,200 @@
   </div>
 
 </nav>
+
+<!-- ══════════ TICKET OFFCANVAS ══════════ -->
+<style>
+.ticket-offcanvas { width: 380px !important; }
+.oc-filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.oc-filter-row select,
+.oc-filter-row input {
+  flex: 1; min-width: 100px;
+  padding: 7px 10px; border: 1.5px solid #e5e7eb;
+  border-radius: 8px; font-size: 12px; color: #374151;
+  outline: none;
+}
+.oc-filter-row select:focus,
+.oc-filter-row input:focus { border-color: #6366f1; }
+.oc-btn-search {
+  padding: 7px 14px; background: #1a1a2e; color: #fff;
+  border: none; border-radius: 8px; font-size: 12px;
+  font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.oc-btn-reset {
+  padding: 7px 10px; background: #fee2e2; color: #dc2626;
+  border: none; border-radius: 8px; font-size: 12px;
+  font-weight: 600; cursor: pointer; white-space: nowrap;
+  text-decoration: none;
+}
+.oc-ticket-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 0; border-bottom: 1px solid #f3f4f6;
+  text-decoration: none; color: inherit;
+  transition: background 0.15s; cursor: pointer;
+}
+.oc-ticket-item:hover { background: #fafbff; }
+.oc-ticket-item:last-child { border-bottom: none; }
+.oc-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff; display: flex; align-items: center;
+  justify-content: center; font-size: 13px; font-weight: 700;
+  flex-shrink: 0;
+}
+.oc-ticket-info { flex: 1; min-width: 0; }
+.oc-ticket-title {
+  font-size: 13px; font-weight: 600; color: #1a1a2e;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.oc-ticket-sub { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+.oc-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+}
+.oc-pending  { background: #fef3c7; color: #d97706; }
+.oc-progress { background: #dbeafe; color: #2563eb; }
+.oc-resolved { background: #dcfce7; color: #16a34a; }
+.oc-stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 14px;
+}
+.oc-stat {
+  background: #f8f9ff; border-radius: 10px;
+  padding: 10px; text-align: center;
+  border: 1px solid #eef0f7;
+}
+.oc-stat-val { font-size: 20px; font-weight: 800; color: #1a1a2e; }
+.oc-stat-label { font-size: 10px; color: #9ca3af; font-weight: 600; text-transform: uppercase; }
+.oc-empty { text-align: center; padding: 40px 20px; color: #9ca3af; }
+.oc-empty div { font-size: 32px; margin-bottom: 8px; }
+</style>
+
+<div class="offcanvas offcanvas-end ticket-offcanvas"
+     tabindex="-1" id="ticketOffcanvas"
+     aria-labelledby="ticketOffcanvasLabel">
+
+  <!-- Header -->
+  <div class="offcanvas-header" style="background:#0f1117;color:#fff;padding:16px 20px;">
+    <div>
+      <h5 class="offcanvas-title" id="ticketOffcanvasLabel"
+          style="color:#fff;font-weight:700;margin:0;font-size:15px;">
+        🎫 All Tickets
+      </h5>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;">
+        {{ total }} total tickets
+      </div>
+    </div>
+    <button type="button" class="btn-close btn-close-white"
+            data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body" style="padding:16px 18px;">
+
+    <!-- Stats -->
+    <div class="oc-stats-row">
+      <div class="oc-stat">
+        <div class="oc-stat-val" style="color:#d97706;">{{ pending }}</div>
+        <div class="oc-stat-label">Pending</div>
+      </div>
+      <div class="oc-stat">
+        <div class="oc-stat-val" style="color:#2563eb;">{{ in_progress }}</div>
+        <div class="oc-stat-label">Progress</div>
+      </div>
+      <div class="oc-stat">
+        <div class="oc-stat-val" style="color:#16a34a;">{{ resolved }}</div>
+        <div class="oc-stat-label">Resolved</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" action="{% url 'admin_dashboard' %}">
+      <div class="oc-filter-row">
+        <select name="status">
+          <option value="">All Status</option>
+          <option value="pending"     {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
+          <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
+          <option value="resolved"    {% if selected_status == 'resolved' %}selected{% endif %}>✅ Resolved</option>
+        </select>
+        <select name="assigned">
+          <option value="">All Assigned</option>
+          <option value="unassigned" {% if selected_assigned == 'unassigned' %}selected{% endif %}>❌ Unassigned</option>
+          {% for staff in staff_users %}
+          <option value="{{ staff.id }}" {% if selected_assigned == staff.id|stringformat:"s" %}selected{% endif %}>
+            👤 {{ staff.username }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="oc-filter-row">
+        <input type="date" name="date_from" value="{{ date_from }}" placeholder="From">
+        <input type="date" name="date_to"   value="{{ date_to }}"   placeholder="To">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button type="submit" class="oc-btn-search">🔍 Filter</button>
+        <a href="{% url 'admin_dashboard' %}?reset=1" class="oc-btn-reset"
+           onclick="document.getElementById('ticketOffcanvas').classList.remove('show');">
+          ✕ Reset
+        </a>
+      </div>
+    </form>
+
+    <div style="border-top:1px solid #f3f4f6;padding-top:12px;">
+      <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;
+                  letter-spacing:0.6px;margin-bottom:10px;">
+        Tickets ({{ page_obj.paginator.count }})
+      </div>
+
+      {% for t in page_obj %}
+      <a href="{% url 'admin_view_ticket' t.id %}" class="oc-ticket-item">
+        <div class="oc-avatar">{{ t.user.username|slice:":1"|upper }}</div>
+        <div class="oc-ticket-info">
+          <div class="oc-ticket-title">
+            #{{ t.id }} — {{ t.title|default:t.category|default:"No Title"|truncatechars:28 }}
+          </div>
+          <div class="oc-ticket-sub">
+            {{ t.user.username }} · {{ t.created_at|date:"d M, H:i" }}
+          </div>
+          {% if t.assigned_to %}
+          <div class="oc-ticket-sub">👤 {{ t.assigned_to.username }}</div>
+          {% endif %}
+        </div>
+        <span class="oc-status
+          {% if t.status == 'pending' %}oc-pending
+          {% elif t.status == 'in_progress' %}oc-progress
+          {% else %}oc-resolved{% endif %}">
+          {% if t.status == 'pending' %}⏳{% elif t.status == 'in_progress' %}🔄{% else %}✅{% endif %}
+          {{ t.status|title }}
+        </span>
+      </a>
+      {% empty %}
+      <div class="oc-empty">
+        <div>🎫</div>
+        <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 4px;">No tickets found</p>
+        <span style="font-size:12px;">Try changing filters</span>
+      </div>
+      {% endfor %}
+
+      <!-- Offcanvas Pagination -->
+      {% if page_obj.has_other_pages %}
+      <div style="display:flex;justify-content:center;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;">
+        {% if page_obj.has_previous %}
+          <a href="{% url 'admin_dashboard' %}?page={{ page_obj.previous_page_number }}&status={{ selected_status }}&assigned={{ selected_assigned }}&date_from={{ date_from }}&date_to={{ date_to }}"
+             style="padding:6px 12px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:12px;">← Prev</a>
+        {% endif %}
+        <span style="padding:6px 12px;border-radius:8px;background:#6366f1;color:#fff;font-size:12px;">
+          {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+          <a href="{% url 'admin_dashboard' %}?page={{ page_obj.next_page_number }}&status={{ selected_status }}&assigned={{ selected_assigned }}&date_from={{ date_from }}&date_to={{ date_to }}"
+             style="padding:6px 12px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:12px;">Next →</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
 
 <!-- ══════════ MAIN CONTENT ══════════ -->
 <div class="main-wrapper">
