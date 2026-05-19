@@ -1,6 +1,7 @@
 import logging
 from xml.dom import ValidationErr
-from datetime import timedelta, timezone
+from django.utils import timezone
+from datetime import timedelta
 import json
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
@@ -966,7 +967,7 @@ def close_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id, user=user)
     ticket.status = 'resolved'
     ticket.save(update_fields=['status'])
-    TicketService.invalidate_user_cache(user.id)   # ✅ clear cache
+    TicketService.invalidate_user_cache(user.id)  
     messages.success(request, "Ticket closed successfully!")
     return redirect('profile')
 
