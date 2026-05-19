@@ -241,8 +241,8 @@ def profile(request):
     if status_filter:
         tickets = [t for t in tickets if t.status == status_filter]
 
-    paginator = Paginator(tickets, 10)
-    page_obj  = paginator.get_page(request.GET.get('page'))
+    per_page = int(request.GET.get('per_page', 10))
+    paginator = Paginator(tickets, per_page)
 
     # Counts — DB se direct, cache se nahi (reliable)
     base_qs        = Ticket.objects.filter(user=user)

@@ -388,6 +388,15 @@ tbody tr:last-child td{border-bottom:none;}
                   <label>To</label>
                   <input type="date" name="date_to" value="{{ date_to }}">
                 </div>
+                <div class="filter-group">
+                  <label>Show</label>
+                  <select name="per_page">
+                    <option value="10" {% if request.GET.per_page == '10' or not request.GET.per_page %}selected{% endif %}>10 / page</option>
+                    <option value="20" {% if request.GET.per_page == '20' %}selected{% endif %}>20 / page</option>
+                    <option value="30" {% if request.GET.per_page == '30' %}selected{% endif %}>30 / page</option>
+                    <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50 / page</option>
+                  </select>
+                </div>
                 <div style="display:flex;gap:8px;align-items:flex-end;">
                   <button type="submit" class="btn-apply">Apply</button>
                   <a href="{% url 'profile' %}" class="btn-reset">Reset</a>
@@ -468,17 +477,17 @@ tbody tr:last-child td{border-bottom:none;}
               <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
               <div class="pg-btns">
                 {% if page_obj.has_previous %}
-                  <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}" class="pg-btn">← Prev</a>
+                  <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">← Prev</a>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                   {% if page_obj.number == num %}
                     <span class="pg-btn active">{{ num }}</span>
                   {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <a href="?page={{ num }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}" class="pg-btn">{{ num }}</a>
+                    <a href="?page={{ num }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">{{ num }}</a>
                   {% endif %}
                 {% endfor %}
                 {% if page_obj.has_next %}
-                  <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}" class="pg-btn">Next →</a>
+                  <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">Next →</a>
                 {% endif %}
               </div>
             </div>
@@ -550,10 +559,10 @@ tbody tr:last-child td{border-bottom:none;}
             <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
             <div class="pg-btns">
               {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}" class="pg-btn">← Prev</a>
+                <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">← Prev</a>
               {% endif %}
               {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}" class="pg-btn">Next →</a>
+                <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">Next →</a>
               {% endif %}
             </div>
           </div>
