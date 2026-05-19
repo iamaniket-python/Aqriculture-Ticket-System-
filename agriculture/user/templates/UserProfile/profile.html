@@ -119,8 +119,8 @@
 }
 .stat-label{font-size:11px;color:#9ca3af;margin-bottom:4px;font-weight:500;}
 .stat-val{font-size:22px;font-weight:700;color:#111827;}
+.stat-val.inprog{color:#2563eb;}
 .stat-val.pending{color:#d97706;}
-.stat-val.progress{color:#2563eb;}
 .stat-val.resolved{color:#16a34a;}
 
 /* Cards */
@@ -350,7 +350,7 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
         <div class="stat-box">
           <div class="stat-label">In Progress</div>
-          <div class="stat-val progress">{{ progress_count|default:"0" }}</div>
+          <div class="stat-val inprog">{{ progress_count|default:"0" }}</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Resolved</div>
