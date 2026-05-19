@@ -220,16 +220,20 @@ def profile(request):
     status_filter = request.GET.get('status', '')
 
     hour = datetime.now().hour
+
     if hour < 12:
-        greeting = "Good Morning"; emoji = "☀️"
+        greeting = "Good Morning"
+        emoji = "☀️"
     elif hour < 18:
-        greeting = "Good Afternoon"; emoji = "🌤️"
+        greeting = "Good Afternoon"
+        emoji = "🌤️"
     else:
-        greeting = "Good Evening"; emoji = "🌙"
+        greeting = "Good Evening"
+        emoji = "🌙"
 
     has_purchase = Purchase.objects.filter(user=user).exists()
 
-    # Cached list — pagination ke liye
+    # Cached tickets
     tickets = TicketService.get_user_tickets_cached(
         user,
         product=product_query,
@@ -237,30 +241,35 @@ def profile(request):
         date_to=date_to,
     )
 
-    # status filter — list pe karo (cached list hai)
+    # Status filter
     if status_filter:
         tickets = [t for t in tickets if t.status == status_filter]
 
+    # Pagination
     per_page = int(request.GET.get('per_page', 10))
     paginator = Paginator(tickets, per_page)
 
-    # Counts — DB se direct, cache se nahi (reliable)
-    base_qs        = Ticket.objects.filter(user=user)
-    pending_count  = base_qs.filter(status='pending').count()
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Counts from DB
+    base_qs = Ticket.objects.filter(user=user)
+
+    pending_count = base_qs.filter(status='pending').count()
     progress_count = base_qs.filter(status='in_progress').count()
     resolved_count = base_qs.filter(status='resolved').count()
 
     return render(request, 'UserProfile/profile.html', {
-        "page_obj":       page_obj,
-        "product_query":  product_query,
-        "date_from":      date_from,
-        "date_to":        date_to,
-        "status_filter":  status_filter,
-        "user":           user,
-        "has_purchase":   has_purchase,
-        "greeting":       greeting,
-        "emoji":          emoji,
-        "pending_count":  pending_count,
+        "page_obj": page_obj,
+        "product_query": product_query,
+        "date_from": date_from,
+        "date_to": date_to,
+        "status_filter": status_filter,
+        "user": user,
+        "has_purchase": has_purchase,
+        "greeting": greeting,
+        "emoji": emoji,
+        "pending_count": pending_count,
         "progress_count": progress_count,
         "resolved_count": resolved_count,
     })
