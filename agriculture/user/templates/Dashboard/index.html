@@ -222,19 +222,29 @@
 
             <!-- Images with count -->
             <td>
-              <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
-                {% for img in t.images.all %}
-                  <img src="{{ img.image.url }}" class="ticket-img"
-                       onclick="openImg('{{ img.image.url }}')">
-                {% empty %}
-                  <span style="font-size:12px;color:#d1d5db;">—</span>
-                {% endfor %}
-                {% if t.images.count > 0 %}
-                  <span style="font-size:11px;color:#6b7280;font-weight:600;margin-left:2px;">
-                    {{ t.images.count }}
+              {% if t.images.count == 0 %}
+                <span style="font-size:12px;color:#d1d5db;">—</span>
+              {% else %}
+                <div style="display:flex;align-items:center;gap:4px;cursor:pointer;"
+                     data-ticket-id="{{ t.id }}"
+                     onclick="openAllImgs(this.getAttribute('data-ticket-id'))">
+                  {% with first_img=t.images.first %}
+                  <img src="{{ first_img.image.url }}"
+                       style="width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb;pointer-events:none;">
+                  {% endwith %}
+                  {% if t.images.count > 1 %}
+                  <span style="background:#6366f1;color:#fff;padding:2px 7px;border-radius:20px;
+                               font-size:11px;font-weight:700;pointer-events:none;">
+                    +{{ t.images.count|add:"-1" }}
                   </span>
-                {% endif %}
-              </div>
+                  {% endif %}
+                </div>
+                <div id="imgs-{{ t.id }}" style="display:none;">
+                  {% for img in t.images.all %}
+                  <span>{{ img.image.url }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </td>
 
             <!-- Document -->
@@ -249,15 +259,22 @@
             <!-- Status dropdown -->
             <td>
               <div class="dropdown status-dropdown">
+                {% if t.status == 'resolved' %}
+                  {# Resolved ticket — lock kar do, reopen nahi hoga #}
+                  <span class="status-badge status-resolved"
+                        style="cursor:default;opacity:0.85;"
+                        title="Ticket closed — cannot reopen">
+                    ✅ Resolved
+                  </span>
+                {% else %}
                 <button class="status-badge dropdown-toggle
                   {% if t.status == 'pending' %}status-pending
-                  {% elif t.status == 'in_progress' %}status-progress
-                  {% else %}status-resolved{% endif %}"
+                  {% else %}status-progress{% endif %}"
                   data-bs-toggle="dropdown"
                   data-assigned="{{ t.assigned_to.id|default:'' }}"
                   data-status="{{ t.status }}"
                   style="border:none;cursor:pointer;">
-                  {% if t.status == 'pending' %}⏳{% elif t.status == 'in_progress' %}🔄{% else %}✅{% endif %}
+                  {% if t.status == 'pending' %}⏳{% else %}🔄{% endif %}
                   {{ t.status|title }}
                 </button>
                 <div class="dropdown-menu">
@@ -276,6 +293,7 @@
                             onclick="return confirmResolve(this)">✅ Resolved</button>
                   </form>
                 </div>
+                {% endif %}
               </div>
             </td>
 
@@ -371,39 +389,85 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-{# Chart data — hidden input se pass karo #}
-<div id="chartDataJson" data-chart='{{ daily_chart_data|escapejs }}' style="display:none;"></div>
+<div id="chartDataJson"
+     data-chart='{{ daily_chart_data|escapejs }}'
+     style="display:none;"></div>
+
+<!-- Image Gallery Modal -->
+<div id="galleryModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+     background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);z-index:99999;
+     justify-content:center;align-items:center;flex-direction:column;gap:12px;">
+  <div style="position:relative;max-width:88%;max-height:80vh;">
+    <img id="galleryImg" src="" style="max-width:100%;max-height:75vh;border-radius:12px;display:block;">
+    <div id="galleryNav" style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;">
+      <button onclick="galleryPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;
+              padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">← Prev</button>
+      <span id="galleryCount" style="color:rgba(255,255,255,0.6);font-size:13px;"></span>
+      <button onclick="galleryNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;
+              padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">Next →</button>
+    </div>
+  </div>
+  <button onclick="closeGallery()" style="position:absolute;top:18px;right:22px;
+          background:rgba(255,255,255,0.12);border:none;color:#fff;width:38px;height:38px;
+          border-radius:10px;font-size:18px;cursor:pointer;">✕</button>
+</div>
 
 <script>
-// ── Per Day Chart ──
-const rawData    = document.getElementById('chartDataJson').getAttribute('data-chart');
-const chartData  = JSON.parse(rawData);
-const labels     = chartData.map(d => d.date);
-const values     = chartData.map(d => d.count);
-const total      = values.reduce((a, b) => a + b, 0);
-document.getElementById('chartTotal').textContent = total + ' tickets in 14 days';
+// ── Per Day Chart — Total + Resolved + In Progress ──
+const rawData   = document.getElementById('chartDataJson').getAttribute('data-chart');
+const chartData = JSON.parse(rawData);
+const labels    = chartData.map(d => d.date);
+const totals    = chartData.map(d => d.count);
+const resolved  = chartData.map(d => d.resolved);
+const inprog    = chartData.map(d => d.in_progress);
+const totalSum  = totals.reduce((a, b) => a + b, 0);
+document.getElementById('chartTotal').textContent = totalSum + ' tickets in 14 days';
 
 new Chart(document.getElementById('ticketChart'), {
   type: 'bar',
   data: {
     labels,
-    datasets: [{
-      label: 'Tickets',
-      data: values,
-      backgroundColor: 'rgba(99,102,241,0.15)',
-      borderColor: '#6366f1',
-      borderWidth: 2,
-      borderRadius: 8,
-      borderSkipped: false,
-    }]
+    datasets: [
+      {
+        label: 'Total Raised',
+        data: totals,
+        backgroundColor: 'rgba(99,102,241,0.18)',
+        borderColor: '#6366f1',
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: 'Resolved',
+        data: resolved,
+        backgroundColor: 'rgba(34,197,94,0.18)',
+        borderColor: '#22c55e',
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: 'In Progress',
+        data: inprog,
+        backgroundColor: 'rgba(59,130,246,0.18)',
+        borderColor: '#3b82f6',
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+    ]
   },
   options: {
     responsive: true,
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: true,
+        position: 'top',
+        labels: { font: { size: 11 }, boxWidth: 12, padding: 16 }
+      },
       tooltip: {
         callbacks: {
-          label: ctx => ` ${ctx.parsed.y} ticket${ctx.parsed.y !== 1 ? 's' : ''}`
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}`
         }
       }
     },
@@ -414,11 +478,30 @@ new Chart(document.getElementById('ticketChart'), {
   }
 });
 
-// ── Image modal ──
-function openImg(src) {
-  document.getElementById('modalImg').src = src;
-  document.getElementById('imgModal').classList.add('active');
+// ── Image Gallery ──
+let galleryUrls = [];
+let galleryIdx  = 0;
+
+function openAllImgs(ticketId) {
+  const container = document.getElementById('imgs-' + ticketId);
+  if (!container) return;
+  galleryUrls = Array.from(container.querySelectorAll('span')).map(s => s.textContent.trim());
+  if (!galleryUrls.length) return;
+  galleryIdx = 0;
+  showGalleryImg();
+  document.getElementById('galleryModal').style.display = 'flex';
+  document.getElementById('galleryNav').style.display = galleryUrls.length > 1 ? 'flex' : 'none';
 }
+function showGalleryImg() {
+  document.getElementById('galleryImg').src = galleryUrls[galleryIdx];
+  document.getElementById('galleryCount').textContent = (galleryIdx + 1) + ' / ' + galleryUrls.length;
+}
+function galleryPrev() { galleryIdx = (galleryIdx - 1 + galleryUrls.length) % galleryUrls.length; showGalleryImg(); }
+function galleryNext() { galleryIdx = (galleryIdx + 1) % galleryUrls.length; showGalleryImg(); }
+function closeGallery() { document.getElementById('galleryModal').style.display = 'none'; }
+document.getElementById('galleryModal').addEventListener('click', function(e) {
+  if (e.target === this) closeGallery();
+});
 
 // ── Toast ──
 function showToast(msg) {
@@ -437,7 +520,6 @@ function confirmResolve(btn) {
   }
   return true;
 }
-
 function confirmStatus(btn) {
   const assignedId = btn.getAttribute('data-assigned');
   const newStatus  = btn.getAttribute('data-newstatus');
@@ -446,10 +528,6 @@ function confirmStatus(btn) {
     return false;
   }
   return true;
-}
-
-function checkAssignBeforeStatus(event, assignedId, currentStatus) {
-  // Allow dropdown to open, JS on item click handles validation
 }
 </script>
 

@@ -533,15 +533,16 @@ def admin_dashboard(request):
     purchases = Purchase.objects.filter(user_id=selected_user).distinct() \
                 if selected_user else Purchase.objects.none()
  
-    # ✅ Per Day Chart — last 14 days
+    # ✅ Per Day Chart — last 14 days (total + resolved + in_progress)
     today = timezone.now().date()
     daily_chart_data = []
     for i in range(13, -1, -1):
-        day   = today - timedelta(days=i)
-        count = Ticket.objects.filter(created_at__date=day).count()
+        day = today - timedelta(days=i)
         daily_chart_data.append({
-            'date':  day.strftime('%d %b'),
-            'count': count,
+            'date':        day.strftime('%d %b'),
+            'count':       Ticket.objects.filter(created_at__date=day).count(),
+            'resolved':    Ticket.objects.filter(created_at__date=day, status='resolved').count(),
+            'in_progress': Ticket.objects.filter(created_at__date=day, status='in_progress').count(),
         })
  
     return render(request, 'Dashboard/index.html', {
@@ -562,9 +563,8 @@ def admin_dashboard(request):
         'date_to':            date_to,
         'selected_status':    selected_status,
         'selected_assigned':  selected_assigned,
-        'daily_chart_data':   json.dumps(daily_chart_data),  
+        'daily_chart_data':   json.dumps(daily_chart_data),  # ✅ chart ke liye
     })
-
 # =============================================
 # 🚪 ADMIN LOGOUT
 # =============================================
