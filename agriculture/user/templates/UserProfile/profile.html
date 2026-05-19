@@ -554,19 +554,7 @@ tbody tr:last-child td{border-bottom:none;}
           </div>
           {% endfor %}
 
-          {% if page_obj.has_other_pages %}
-          <div class="pg-wrap">
-            <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            <div class="pg-btns">
-              {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">← Prev</a>
-              {% endif %}
-              {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">Next →</a>
-              {% endif %}
-            </div>
-          </div>
-          {% endif %}
+         
         </div>
 
       </div>
