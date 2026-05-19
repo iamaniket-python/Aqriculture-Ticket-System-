@@ -229,6 +229,7 @@ def profile(request):
 
     has_purchase = Purchase.objects.filter(user=user).exists()
 
+    # Cached list — pagination ke liye
     tickets = TicketService.get_user_tickets_cached(
         user,
         product=product_query,
@@ -236,16 +237,18 @@ def profile(request):
         date_to=date_to,
     )
 
+    # status filter — list pe karo (cached list hai)
     if status_filter:
-        tickets = tickets.filter(status=status_filter)
+        tickets = [t for t in tickets if t.status == status_filter]
 
     paginator = Paginator(tickets, 10)
     page_obj  = paginator.get_page(request.GET.get('page'))
 
-    all_tickets   = TicketService.get_user_tickets_cached(user)
-    pending_count  = all_tickets.filter(status='pending').count()
-    progress_count = all_tickets.filter(status='in_progress').count()
-    resolved_count = all_tickets.filter(status='resolved').count()
+    # Counts — DB se direct, cache se nahi (reliable)
+    base_qs        = Ticket.objects.filter(user=user)
+    pending_count  = base_qs.filter(status='pending').count()
+    progress_count = base_qs.filter(status='in_progress').count()
+    resolved_count = base_qs.filter(status='resolved').count()
 
     return render(request, 'UserProfile/profile.html', {
         "page_obj":       page_obj,
