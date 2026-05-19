@@ -224,7 +224,7 @@
             data-bs-target="#staffMenu"
             aria-expanded="false">
       <div class="icon"><i class="mdi mdi-account-group-outline"></i></div>
-      Staff
+     Support Team
       {% if pending_staff_count > 0 %}
       <span class="sidebar-badge">{{ pending_staff_count }}</span>
       {% else %}
@@ -237,7 +237,7 @@
         <a href="{% url 'admin_staff_list' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'admin_staff_list' %}active{% endif %}">
           <div class="icon"><i class="mdi mdi-account-multiple-outline"></i></div>
-          Manage Staff
+          Manage Support Team
           {% if pending_staff_count > 0 %}
           <span class="sidebar-badge">{{ pending_staff_count }}</span>
           {% endif %}
