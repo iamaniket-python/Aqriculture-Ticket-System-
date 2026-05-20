@@ -3,77 +3,121 @@
 {% load static %}
 
 <style>
+/* ── Chart Card ── */
 .chart-card {
-  background: #fff; border-radius: 16px;
-  border: 1px solid #f0f0f5;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
-  padding: 20px 24px; margin-bottom: 24px;
+  background:#fff;border-radius:16px;border:1px solid #f0f0f5;
+  box-shadow:0 2px 16px rgba(0,0,0,0.05);padding:20px 24px;margin-bottom:24px;
 }
 .chart-card-head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;flex-wrap:wrap;gap:10px;
 }
-.chart-card-head h4 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0; }
-.chart-card-head span { font-size: 12px; color: #9ca3af; }
+.chart-card-head h4 { font-size:15px;font-weight:700;color:#1a1a2e;margin:0; }
 
+/* Chart day filter pills */
+.day-filter { display:flex;gap:6px;flex-wrap:wrap; }
+.day-pill {
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
+  border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer;transition:all 0.15s;
+}
+.day-pill:hover { border-color:#6366f1;color:#6366f1; }
+.day-pill.active { background:#6366f1;color:#fff;border-color:#6366f1; }
+
+/* ── Filter bar ── */
 .filter-bar {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  align-items: center; padding: 14px 20px;
-  border-bottom: 1px solid #f1f3f9;
-  background: #fafbff;
+  display:flex;flex-wrap:wrap;gap:8px;
+  align-items:center;padding:14px 20px;
+  border-bottom:1px solid #f1f3f9;background:#fafbff;
 }
 .filter-bar input[type="date"],
 .filter-bar select {
-  padding: 8px 12px; border: 1.5px solid #e5e7eb;
-  border-radius: 10px; font-size: 13px;
-  background: #fff; color: #374151;
-  outline: none; transition: border 0.2s; min-width: 130px;
+  padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:10px;
+  font-size:13px;background:#fff;color:#374151;outline:none;min-width:130px;
 }
-.filter-bar input:focus, .filter-bar select:focus { border-color: #6366f1; }
-
+.filter-bar input:focus,.filter-bar select:focus { border-color:#6366f1; }
 .btn-search {
-  padding: 8px 18px; background: #1a1a2e; color: white;
-  border: none; border-radius: 10px; font-size: 13px;
-  font-weight: 600; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px;
+  padding:8px 18px;background:#1a1a2e;color:white;border:none;
+  border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
 }
-.btn-search:hover { background: #2d2d4e; }
-
+.btn-search:hover { background:#2d2d4e; }
 .btn-reset {
-  padding: 8px 14px; background: #fee2e2; color: #dc2626;
-  border: none; border-radius: 10px; font-size: 13px;
-  font-weight: 500; cursor: pointer; text-decoration: none;
-  display: inline-flex; align-items: center; gap: 5px;
+  padding:8px 14px;background:#fee2e2;color:#dc2626;border:none;
+  border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;
+  text-decoration:none;display:inline-flex;align-items:center;gap:5px;
 }
-.btn-reset:hover { background: #fecaca; }
+.btn-reset:hover { background:#fecaca; }
 
-.toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
+/* ── Toast ── */
+.toast-wrap { position:fixed;bottom:24px;right:24px;z-index:9999; }
 .toast-msg {
-  background: #1a1a2e; color: #fff;
-  padding: 12px 20px; border-radius: 12px;
-  font-size: 13px; font-weight: 500;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  display: flex; align-items: center; gap: 8px;
-  animation: slideUp 0.3s ease;
+  background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:12px;
+  font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  display:flex;align-items:center;gap:8px;animation:slideUp 0.3s ease;
 }
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* ── Mobile ticket cards ── */
+.mobile-ticket-list { display:none; }
+.m-ticket-card {
+  background:#fff;border-radius:12px;border:1px solid #e8eaf0;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.m-tc-top { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px; }
+.m-tc-user { display:flex;align-items:center;gap:8px; }
+.m-tc-avatar {
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;flex-shrink:0;
+}
+.m-tc-name { font-size:13px;font-weight:700;color:#1a1a2e; }
+.m-tc-email { font-size:11px;color:#9ca3af; }
+.m-tc-row { display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px; }
+.m-tc-item .m-label { font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase; }
+.m-tc-item .m-val { font-size:12px;font-weight:600;color:#374151; }
+.m-tc-footer {
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:10px;border-top:1px solid #f3f4f6;margin-top:8px;
+  flex-wrap:wrap;gap:8px;
+}
+
+@media(max-width:768px) {
+  .desktop-table { display:none !important; }
+  .mobile-ticket-list { display:block; }
+  .filter-bar { padding:10px 12px; }
+}
+@media(min-width:769px) {
+  .mobile-ticket-list { display:none !important; }
 }
 </style>
 
-<!-- Image Modal -->
-<div class="img-modal" id="imgModal" onclick="this.classList.remove('active')">
-  <img id="modalImg" src="">
-</div>
+<!-- Chart JSON -->
+<script id="chartRawData" type="application/json">{{ daily_chart_data|safe }}</script>
 
 <!-- Toast -->
 <div class="toast-wrap" id="toastWrap" style="display:none;">
   <div class="toast-msg" id="toastMsg">⚠️ Message</div>
 </div>
 
-<!-- Chart JSON data — type application/json se JS mein safely read hoga -->
-<script id="chartRawData" type="application/json">{{ daily_chart_data|safe }}</script>
+<!-- Image Gallery Modal -->
+<div id="galleryModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+     background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);z-index:99999;
+     justify-content:center;align-items:center;flex-direction:column;gap:12px;">
+  <div style="position:relative;max-width:88%;max-height:80vh;">
+    <img id="galleryImg" src="" style="max-width:100%;max-height:75vh;border-radius:12px;display:block;">
+    <div id="galleryNav" style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;">
+      <button onclick="galleryPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">← Prev</button>
+      <span id="galleryCount" style="color:rgba(255,255,255,0.6);font-size:13px;"></span>
+      <button onclick="galleryNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">Next →</button>
+    </div>
+  </div>
+  <button onclick="closeGallery()" style="position:absolute;top:18px;right:22px;background:rgba(255,255,255,0.12);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;">✕</button>
+</div>
 
 <div class="dash-wrapper">
 
@@ -86,36 +130,36 @@
   <!-- Stat Cards -->
   <div class="stat-grid">
     <div class="stat-card card-total">
-      <div class="icon">🎫</div>
-      <div class="value">{{ total }}</div>
-      <div class="label">Total Tickets</div>
-      <div class="blob"></div>
+      <div class="icon">🎫</div><div class="value">{{ total }}</div>
+      <div class="label">Total Tickets</div><div class="blob"></div>
     </div>
     <div class="stat-card card-pending">
-      <div class="icon">⏳</div>
-      <div class="value">{{ pending }}</div>
-      <div class="label">Pending</div>
-      <div class="blob"></div>
+      <div class="icon">⏳</div><div class="value">{{ pending }}</div>
+      <div class="label">Pending</div><div class="blob"></div>
     </div>
     <div class="stat-card card-progress">
-      <div class="icon">🔄</div>
-      <div class="value">{{ in_progress }}</div>
-      <div class="label">In Progress</div>
-      <div class="blob"></div>
+      <div class="icon">🔄</div><div class="value">{{ in_progress }}</div>
+      <div class="label">In Progress</div><div class="blob"></div>
     </div>
     <div class="stat-card card-resolved">
-      <div class="icon">✅</div>
-      <div class="value">{{ resolved }}</div>
-      <div class="label">Resolved</div>
-      <div class="blob"></div>
+      <div class="icon">✅</div><div class="value">{{ resolved }}</div>
+      <div class="label">Resolved</div><div class="blob"></div>
     </div>
   </div>
 
   <!-- Per Day Chart -->
   <div class="chart-card">
     <div class="chart-card-head">
-      <h4>📈 Tickets Per Day (Last 14 Days)</h4>
-      <span id="chartTotal"></span>
+      <div>
+        <h4>📈 Tickets Per Day</h4>
+        <span id="chartTotal" style="font-size:12px;color:#9ca3af;"></span>
+      </div>
+      <!-- Day filter pills -->
+      <div class="day-filter">
+        <button class="day-pill" data-days="7">7 Days</button>
+        <button class="day-pill active" data-days="14">14 Days</button>
+        <button class="day-pill" data-days="30">30 Days</button>
+      </div>
     </div>
     <canvas id="ticketChart" height="80"></canvas>
   </div>
@@ -126,8 +170,8 @@
     <!-- Filter Bar -->
     <form method="GET" id="filterForm">
       <div class="filter-bar">
-        <input type="date" name="date_from" value="{{ date_from }}" placeholder="From">
-        <input type="date" name="date_to"   value="{{ date_to }}"   placeholder="To">
+        <input type="date" name="date_from" value="{{ date_from }}">
+        <input type="date" name="date_to"   value="{{ date_to }}">
         <select name="status">
           <option value="">All Status</option>
           <option value="pending"     {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
@@ -148,29 +192,19 @@
       </div>
     </form>
 
-    <!-- Table Header -->
     <div class="table-header" style="border-top:none;">
-     
+      <h4>🎫 Ticket Management</h4>
       <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} tickets</span>
     </div>
 
-    <!-- Table -->
-    <div class="table-scroll">
+    <!-- Desktop Table -->
+    <div class="table-scroll desktop-table">
       <table class="premium-table">
         <thead>
           <tr>
-            <th>Client</th>
-            <th>Order ID</th>
-            <th>Product</th>
-            <th>Category</th>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Created</th>
-            <th>Images</th>
-            <th>Doc</th>
-            <th>Status</th>
-            <th>Assign</th>
-            <th>Action</th>
+            <th>Client</th><th>Order ID</th><th>Product</th><th>Category</th>
+            <th>Title</th><th>Description</th><th>Created</th>
+            <th>Images</th><th>Doc</th><th>Status</th><th>Assign</th><th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -186,7 +220,7 @@
               </div>
             </td>
             <td><span class="order-id">{{ t.purchase.purchase_id|default:"-" }}</span></td>
-            <td style="font-weight:500;color:#374151;">{{ t.purchase.product_name|default:"-"|truncatechars:18 }}</td>
+            <td style="font-weight:500;">{{ t.purchase.product_name|default:"-"|truncatechars:18 }}</td>
             <td style="color:#6b7280;">{{ t.category|default:"-" }}</td>
             <td style="font-weight:600;color:#1a1a2e;">{{ t.title|default:"-"|truncatechars:20 }}</td>
             <td style="color:#9ca3af;font-size:13px;">{{ t.description|truncatechars:25 }}</td>
@@ -196,19 +230,15 @@
             </td>
             <td>
               {% if t.images.count == 0 %}
-                <span style="font-size:12px;color:#d1d5db;">—</span>
+                <span style="color:#d1d5db;">—</span>
               {% else %}
-                <button type="button" data-tid="{{ t.id }}"
-                        onclick="openAllImgs(this.dataset.tid)"
+                <button type="button" data-tid="{{ t.id }}" onclick="openAllImgs(this.dataset.tid)"
                         style="display:flex;align-items:center;gap:4px;cursor:pointer;background:none;border:none;padding:0;">
                   {% with first_img=t.images.first %}
-                  <img src="{{ first_img.image.url }}"
-                       style="width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb;display:block;">
+                  <img src="{{ first_img.image.url }}" style="width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb;">
                   {% endwith %}
                   {% if t.images.count > 1 %}
-                  <span style="background:#6366f1;color:#fff;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;">
-                    +{{ t.images.count|add:"-1" }}
-                  </span>
+                  <span style="background:#6366f1;color:#fff;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;">+{{ t.images.count|add:"-1" }}</span>
                   {% endif %}
                 </button>
                 <div id="imgs-{{ t.id }}" style="display:none;">
@@ -217,22 +247,16 @@
               {% endif %}
             </td>
             <td>
-              {% if t.document %}
-                <a href="{{ t.document.url }}" target="_blank" class="doc-btn">📄 View</a>
-              {% else %}
-                <span style="color:#d1d5db;">—</span>
-              {% endif %}
+              {% if t.document %}<a href="{{ t.document.url }}" target="_blank" class="doc-btn">📄 View</a>
+              {% else %}<span style="color:#d1d5db;">—</span>{% endif %}
             </td>
             <td>
-              <div class="dropdown status-dropdown">
-                {% if t.status == 'resolved' %}
-                  <span class="status-badge status-resolved" style="cursor:default;opacity:0.85;" title="Ticket closed">
-                    ✅ Resolved
-                  </span>
-                {% else %}
+              {% if t.status == 'resolved' %}
+                <span class="status-badge status-resolved" style="cursor:default;">✅ Resolved</span>
+              {% else %}
+                <div class="dropdown status-dropdown">
                   <button class="status-badge dropdown-toggle {% if t.status == 'pending' %}status-pending{% else %}status-progress{% endif %}"
-                          data-bs-toggle="dropdown"
-                          data-assigned="{{ t.assigned_to.id|default:'' }}"
+                          data-bs-toggle="dropdown" data-assigned="{{ t.assigned_to.id|default:'' }}"
                           style="border:none;cursor:pointer;">
                     {% if t.status == 'pending' %}⏳{% else %}🔄{% endif %} {{ t.status|title }}
                   </button>
@@ -250,8 +274,8 @@
                               onclick="return confirmResolve(this)">✅ Resolved</button>
                     </form>
                   </div>
-                {% endif %}
-              </div>
+                </div>
+              {% endif %}
             </td>
             <td>
               {% if t.assigned_to %}
@@ -259,7 +283,7 @@
                   🔒 {{ t.assigned_to.username }}
                 </span>
               {% elif t.status == 'resolved' %}
-                <span style="font-size:12px;color:#9ca3af;font-style:italic;">—</span>
+                <span style="font-size:12px;color:#9ca3af;">—</span>
               {% else %}
                 <div class="dropdown">
                   <button class="assign-btn dropdown-toggle" data-bs-toggle="dropdown">+ Assign</button>
@@ -281,32 +305,93 @@
             </td>
             <td>
               {% if t.assigned_to and t.assigned_to != request.user and not request.user.is_superuser %}
-                <span style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:#f3f4f6;color:#9ca3af;font-size:12px;font-weight:600;cursor:not-allowed;"
-                      title="Assigned to {{ t.assigned_to.username }}">🔒 Locked</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:#f3f4f6;color:#9ca3af;font-size:12px;font-weight:600;cursor:not-allowed;">🔒 Locked</span>
               {% else %}
                 <a href="{% url 'admin_view_ticket' t.id %}" class="view-btn">👁 View</a>
               {% endif %}
             </td>
           </tr>
           {% empty %}
-          <tr>
-            <td colspan="12">
-              <div class="empty-state">
-                <div>🎫</div>
-                <p style="font-weight:600;color:#374151;font-size:15px;margin:0 0 4px;">No tickets found</p>
-                <p style="font-size:13px;margin:0;">Try changing your search filter</p>
-              </div>
-            </td>
-          </tr>
+          <tr><td colspan="12">
+            <div class="empty-state"><div>🎫</div>
+              <p style="font-weight:600;color:#374151;">No tickets found</p>
+            </div>
+          </td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
+    <!-- Mobile Cards -->
+    <div class="mobile-ticket-list">
+      {% for t in tickets %}
+      <div class="m-ticket-card">
+        <div class="m-tc-top">
+          <div class="m-tc-user">
+            <div class="m-tc-avatar">{{ t.user.username|slice:":1"|upper }}</div>
+            <div>
+              <div class="m-tc-name">{{ t.user.username }}</div>
+              <div class="m-tc-email">{{ t.user.email|truncatechars:22 }}</div>
+            </div>
+          </div>
+          {% if t.status == 'resolved' %}
+            <span class="status-badge status-resolved" style="font-size:11px;padding:4px 10px;">✅ Resolved</span>
+          {% elif t.status == 'in_progress' %}
+            <span class="status-badge status-progress" style="font-size:11px;padding:4px 10px;">🔄 In Progress</span>
+          {% else %}
+            <span class="status-badge status-pending" style="font-size:11px;padding:4px 10px;">⏳ Pending</span>
+          {% endif %}
+        </div>
+        <div class="m-tc-row">
+          <div class="m-tc-item">
+            <div class="m-label">Order ID</div>
+            <div class="m-val" style="font-family:monospace;">{{ t.purchase.purchase_id|default:"-" }}</div>
+          </div>
+          <div class="m-tc-item">
+            <div class="m-label">Product</div>
+            <div class="m-val">{{ t.purchase.product_name|default:"-"|truncatechars:16 }}</div>
+          </div>
+          <div class="m-tc-item">
+            <div class="m-label">Category</div>
+            <div class="m-val">{{ t.category|default:"-" }}</div>
+          </div>
+          <div class="m-tc-item">
+            <div class="m-label">Date</div>
+            <div class="m-val">{{ t.created_at|date:"d M Y" }}</div>
+          </div>
+        </div>
+        {% if t.title %}
+        <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">{{ t.title|truncatechars:40 }}</div>
+        {% endif %}
+        <div style="font-size:12px;color:#9ca3af;margin-bottom:8px;">{{ t.description|truncatechars:60 }}</div>
+        <div class="m-tc-footer">
+          <div style="display:flex;align-items:center;gap:8px;">
+            {% if t.assigned_to %}
+              <span style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:3px 9px;border-radius:20px;font-weight:600;">🔒 {{ t.assigned_to.username }}</span>
+            {% endif %}
+            {% if t.document %}
+              <a href="{{ t.document.url }}" target="_blank" style="font-size:11px;color:#2563eb;font-weight:600;">📄 Doc</a>
+            {% endif %}
+          </div>
+          {% if t.assigned_to and t.assigned_to != request.user and not request.user.is_superuser %}
+            <span style="font-size:12px;color:#9ca3af;font-weight:600;">🔒 Locked</span>
+          {% else %}
+            <a href="{% url 'admin_view_ticket' t.id %}" class="view-btn" style="font-size:12px;padding:6px 12px;">👁 View</a>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:40px;color:#9ca3af;">
+        <div style="font-size:32px;margin-bottom:8px;">🎫</div>
+        <p style="font-weight:600;color:#374151;">No tickets found</p>
+      </div>
+      {% endfor %}
+    </div>
+
     <!-- Pagination -->
     <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;flex-wrap:wrap;gap:10px;">
       <span style="font-size:12px;color:#9ca3af;">
-        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} &nbsp;·&nbsp; {{ page_obj.paginator.count }} total
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} total
       </span>
       <div style="display:flex;gap:6px;">
         {% if page_obj.has_previous %}
@@ -324,114 +409,97 @@
   </div>
 </div>
 
-<!-- Image Gallery Modal -->
-<div id="galleryModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-     background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);z-index:99999;
-     justify-content:center;align-items:center;flex-direction:column;gap:12px;">
-  <div style="position:relative;max-width:88%;max-height:80vh;">
-    <img id="galleryImg" src="" style="max-width:100%;max-height:75vh;border-radius:12px;display:block;">
-    <div id="galleryNav" style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;">
-      <button onclick="galleryPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">← Prev</button>
-      <span id="galleryCount" style="color:rgba(255,255,255,0.6);font-size:13px;"></span>
-      <button onclick="galleryNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">Next →</button>
-    </div>
-  </div>
-  <button onclick="closeGallery()" style="position:absolute;top:18px;right:22px;background:rgba(255,255,255,0.12);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;">✕</button>
-</div>
-
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
   // ── Chart ──
-  const chartScript = document.getElementById("chartRawData");
-  if (chartScript) {
-    try {
-      const data    = JSON.parse(chartScript.textContent.trim());
-      const labels  = data.map(d => d.date);
-      const totals  = data.map(d => d.count);
-      const res     = data.map(d => d.resolved);
-      const inp     = data.map(d => d.in_progress);
-      const sum     = totals.reduce((a, b) => a + b, 0);
+  const allData = JSON.parse(document.getElementById('chartRawData').textContent.trim());
+  let chartInstance = null;
 
-      const el = document.getElementById('chartTotal');
-      if (el) el.textContent = sum + ' tickets in 14 days';
+  function buildChart(days) {
+    const data   = allData.slice(-days);
+    const labels = data.map(d => d.date);
+    const totals = data.map(d => d.count);
+    const res    = data.map(d => d.resolved);
+    const inp    = data.map(d => d.in_progress);
+    const sum    = totals.reduce((a,b) => a+b, 0);
+    document.getElementById('chartTotal').textContent = sum + ' tickets in ' + days + ' days';
 
-      new Chart(document.getElementById('ticketChart'), {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            { label: 'Created',     data: totals, backgroundColor: 'rgba(99,102,241,0.35)', borderColor: '#6366f1', borderWidth: 2, borderRadius: 6 },
-            { label: 'Resolved',    data: res,    backgroundColor: 'rgba(34,197,94,0.35)',  borderColor: '#22c55e', borderWidth: 2, borderRadius: 6 },
-            { label: 'In Progress', data: inp,    backgroundColor: 'rgba(59,130,246,0.35)', borderColor: '#3b82f6', borderWidth: 2, borderRadius: 6 },
-          ]
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(document.getElementById('ticketChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label:'Created',     data:totals, backgroundColor:'rgba(99,102,241,0.35)', borderColor:'#6366f1', borderWidth:2, borderRadius:6 },
+          { label:'Resolved',    data:res,    backgroundColor:'rgba(34,197,94,0.35)',  borderColor:'#22c55e', borderWidth:2, borderRadius:6 },
+          { label:'In Progress', data:inp,    backgroundColor:'rgba(59,130,246,0.35)', borderColor:'#3b82f6', borderWidth:2, borderRadius:6 },
+        ]
+      },
+      options: {
+        responsive:true,
+        plugins: {
+          legend:{ display:true, position:'top', labels:{ font:{size:11}, boxWidth:12, padding:14 } },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}` } }
         },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: true, position: 'top', labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
-            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}` } }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f3f4f6' } }
-          }
+        scales: {
+          x:{ grid:{display:false}, ticks:{font:{size:11}} },
+          y:{ beginAtZero:true, ticks:{stepSize:1,font:{size:11}}, grid:{color:'#f3f4f6'} }
         }
-      });
-    } catch(e) {
-      console.error("Chart parse error:", e);
-    }
+      }
+    });
   }
+
+  buildChart(14); // default 14 days
+
+  // Day filter pills
+  document.querySelectorAll('.day-pill').forEach(pill => {
+    pill.addEventListener('click', function() {
+      document.querySelectorAll('.day-pill').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      buildChart(parseInt(this.dataset.days));
+    });
+  });
 
   // ── Image Gallery ──
   let galleryUrls = [], galleryIdx = 0;
-
-  window.openAllImgs = function(ticketId) {
-    const container = document.getElementById('imgs-' + ticketId);
-    if (!container) return;
-    galleryUrls = Array.from(container.querySelectorAll('span')).map(s => s.textContent.trim());
+  window.openAllImgs = function(tid) {
+    const c = document.getElementById('imgs-' + tid);
+    if (!c) return;
+    galleryUrls = Array.from(c.querySelectorAll('span')).map(s => s.textContent.trim());
     if (!galleryUrls.length) return;
-    galleryIdx = 0;
-    showGalleryImg();
+    galleryIdx = 0; showGalleryImg();
     document.getElementById('galleryModal').style.display = 'flex';
     document.getElementById('galleryNav').style.display = galleryUrls.length > 1 ? 'flex' : 'none';
   };
-
   function showGalleryImg() {
     document.getElementById('galleryImg').src = galleryUrls[galleryIdx];
-    document.getElementById('galleryCount').textContent = (galleryIdx + 1) + ' / ' + galleryUrls.length;
+    document.getElementById('galleryCount').textContent = (galleryIdx+1) + ' / ' + galleryUrls.length;
   }
-
-  window.galleryPrev = function() { galleryIdx = (galleryIdx - 1 + galleryUrls.length) % galleryUrls.length; showGalleryImg(); };
-  window.galleryNext = function() { galleryIdx = (galleryIdx + 1) % galleryUrls.length; showGalleryImg(); };
-  window.closeGallery = function() { document.getElementById('galleryModal').style.display = 'none'; };
-
-  document.getElementById('galleryModal').addEventListener('click', function(e) {
-    if (e.target === this) closeGallery();
-  });
+  window.galleryPrev = () => { galleryIdx=(galleryIdx-1+galleryUrls.length)%galleryUrls.length; showGalleryImg(); };
+  window.galleryNext = () => { galleryIdx=(galleryIdx+1)%galleryUrls.length; showGalleryImg(); };
+  window.closeGallery = () => { document.getElementById('galleryModal').style.display='none'; };
+  document.getElementById('galleryModal').addEventListener('click', function(e) { if(e.target===this) closeGallery(); });
 
   // ── Toast ──
   window.showToast = function(msg) {
-    const wrap = document.getElementById('toastWrap');
+    const w = document.getElementById('toastWrap');
     document.getElementById('toastMsg').innerHTML = '⚠️ ' + msg;
-    wrap.style.display = 'block';
-    setTimeout(() => { wrap.style.display = 'none'; }, 3500);
+    w.style.display = 'block';
+    setTimeout(() => { w.style.display='none'; }, 3500);
   };
 
-  // ── Assign/Status validation ──
+  // ── Assign / Status validation ──
   window.confirmResolve = function(btn) {
     const id = btn.getAttribute('data-assigned');
-    if (!id || id === '') { showToast('Ticket assign karo pehle — bina assign ke resolve nahi hoga!'); return false; }
+    if (!id || id==='') { showToast('Ticket assign karo pehle — bina assign ke resolve nahi hoga!'); return false; }
     return true;
   };
-
   window.confirmStatus = function(btn) {
     const id = btn.getAttribute('data-assigned');
     const st = btn.getAttribute('data-newstatus');
-    if (st === 'resolved' && (!id || id === '')) { showToast('Ticket assign karo pehle!'); return false; }
+    if (st==='resolved' && (!id || id==='')) { showToast('Ticket assign karo pehle!'); return false; }
     return true;
   };
 

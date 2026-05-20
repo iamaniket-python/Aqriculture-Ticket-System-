@@ -474,13 +474,13 @@ def admin_dashboard(request):
             'selected_assigned': request.GET.get('assigned', ''),
             'selected_purchase': request.GET.get('purchase_id', ''),
         }
- 
+
     # ✅ Reset filters
     if 'reset' in request.GET:
         request.session.pop('admin_filters', None)
- 
+
     # ✅ Load filters from session
-    filters = request.session.get('admin_filters', {})
+    filters           = request.session.get('admin_filters', {})
     search            = filters.get('search', '')
     selected_status   = filters.get('status', '')
     selected_user     = filters.get('selected_user', '')
@@ -488,10 +488,10 @@ def admin_dashboard(request):
     date_to           = filters.get('date_to', '')
     selected_assigned = filters.get('selected_assigned', '')
     selected_purchase = filters.get('selected_purchase', '')
- 
+
     stats   = TicketService.get_dashboard_stats(user_filter=selected_user)
     tickets = TicketService.get_dashboard_tickets(user_filter=selected_user)
- 
+
     if search:
         tickets = tickets.filter(
             Q(user__username__icontains=search) |
@@ -509,34 +509,40 @@ def admin_dashboard(request):
         tickets = tickets.filter(assigned_to__isnull=True)
     elif selected_assigned:
         tickets = tickets.filter(assigned_to__id=selected_assigned)
- 
+
     paginator = Paginator(tickets, 10)
     page_obj  = paginator.get_page(request.GET.get('page'))
- 
+
     users       = User.objects.filter(tickets__isnull=False).distinct()
     staff_users = User.objects.filter(is_staff=True)
     new_tickets = Ticket.objects.filter(status='pending').order_by('-created_at')[:5]
- 
-    unread_count    = TicketService.get_unread_count_cached()
+
+    unread_count = TicketService.get_unread_count_cached()
+
+    # ✅ Sirf apne assigned ya unassigned tickets ke messages dikhao
+    # Dusre staff ke assigned tickets ke messages hide honge
     unread_messages = TicketComment.objects.filter(
         is_read=False,
         sender__is_staff=False,
         sender__is_superuser=False,
+    ).filter(
+        Q(ticket__assigned_to=request.user) |   # apne assigned tickets
+        Q(ticket__assigned_to__isnull=True)     # ya unassigned tickets
     ).select_related('ticket', 'sender').order_by('-created_at')[:5]
- 
+
     gallery_tickets = Ticket.objects.select_related('user', 'purchase').order_by('-created_at')
     if selected_user:
         gallery_tickets = gallery_tickets.filter(user_id=selected_user)
     if selected_purchase:
         gallery_tickets = gallery_tickets.filter(purchase__purchase_id=selected_purchase)
- 
+
     purchases = Purchase.objects.filter(user_id=selected_user).distinct() \
                 if selected_user else Purchase.objects.none()
- 
-    # ✅ Per Day Chart — last 14 days (total + resolved + in_progress)
+
+    # ✅ Per Day Chart — last 30 days data (7/14/30 filter frontend pe hoga)
     today = timezone.now().date()
     daily_chart_data = []
-    for i in range(13, -1, -1):
+    for i in range(29, -1, -1):
         day = today - timedelta(days=i)
         daily_chart_data.append({
             'date':        day.strftime('%d %b'),
@@ -544,31 +550,33 @@ def admin_dashboard(request):
             'resolved':    Ticket.objects.filter(created_at__date=day, status='resolved').count(),
             'in_progress': Ticket.objects.filter(created_at__date=day, status='in_progress').count(),
         })
- 
-    # ✅ My Tickets — current admin ko assign tickets
+
+    # ✅ My Tickets — current admin/staff ko assign tickets
     my_tickets_count = Ticket.objects.filter(assigned_to=request.user).count()
- 
+
     return render(request, 'Dashboard/index.html', {
         **stats,
-        'page_obj':           page_obj,
-        'tickets':            page_obj,
-        'staff_users':        staff_users,
-        'new_tickets':        new_tickets,
-        'unread_messages':    unread_messages,
-        'unread_count':       unread_count,
-        'users':              users,
-        'purchases':          purchases,
-        'selected_user':      selected_user,
-        'selected_purchase':  selected_purchase,
-        'gallery_tickets':    gallery_tickets,
-        'search':             search,
-        'date_from':          date_from,
-        'date_to':            date_to,
-        'selected_status':    selected_status,
-        'selected_assigned':  selected_assigned,
-        "daily_chart_data":   json.dumps(daily_chart_data),
-        'my_tickets_count':   my_tickets_count,              
+        'page_obj':          page_obj,
+        'tickets':           page_obj,
+        'staff_users':       staff_users,
+        'new_tickets':       new_tickets,
+        'unread_messages':   unread_messages,
+        'unread_count':      unread_count,
+        'users':             users,
+        'purchases':         purchases,
+        'selected_user':     selected_user,
+        'selected_purchase': selected_purchase,
+        'gallery_tickets':   gallery_tickets,
+        'search':            search,
+        'date_from':         date_from,
+        'date_to':           date_to,
+        'selected_status':   selected_status,
+        'selected_assigned': selected_assigned,
+        'daily_chart_data':  json.dumps(daily_chart_data),
+        'my_tickets_count':  my_tickets_count,
     })
+
+
 def get_daily_chart_data():
 
 
