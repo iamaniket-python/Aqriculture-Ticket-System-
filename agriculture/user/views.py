@@ -545,6 +545,9 @@ def admin_dashboard(request):
             'in_progress': Ticket.objects.filter(created_at__date=day, status='in_progress').count(),
         })
  
+    # ✅ My Tickets — current admin ko assign tickets
+    my_tickets_count = Ticket.objects.filter(assigned_to=request.user).count()
+ 
     return render(request, 'Dashboard/index.html', {
         **stats,
         'page_obj':           page_obj,
@@ -564,6 +567,7 @@ def admin_dashboard(request):
         'selected_status':    selected_status,
         'selected_assigned':  selected_assigned,
         'daily_chart_data':   json.dumps(daily_chart_data),  # ✅ chart ke liye
+        'my_tickets_count':   my_tickets_count,               # ✅ sidebar my tickets
     })
 # =============================================
 # 🚪 ADMIN LOGOUT

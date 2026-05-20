@@ -161,7 +161,7 @@
 
     <!-- Table Header -->
     <div class="table-header" style="border-top:none;">
-     
+      <h4>🎫 Ticket Management</h4>
       <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} tickets</span>
     </div>
 
@@ -300,48 +300,38 @@
               </div>
             </td>
 
-            <!-- Assign -->
+            <!-- Assign — once assigned, locked forever -->
             <td>
-              <div class="dropdown">
-                {% if t.status == 'resolved' %}
-                  <!-- Resolved: show unassign option only -->
-                  <span style="font-size:12px;color:#9ca3af;font-style:italic;">
-                    {% if t.assigned_to %}{{ t.assigned_to.username }}{% else %}—{% endif %}
-                  </span>
-                {% else %}
-                  <button class="assign-btn {% if t.assigned_to %}assigned{% endif %} dropdown-toggle"
-                          data-bs-toggle="dropdown">
-                    {% if t.assigned_to %}
-                      👤 {{ t.assigned_to.username }}
-                    {% else %}
-                      + Assign
-                    {% endif %}
+              {% if t.assigned_to %}
+                <span style="display:inline-flex;align-items:center;gap:5px;
+                             background:#ede9fe;color:#6d28d9;padding:5px 11px;
+                             border-radius:20px;font-size:12px;font-weight:600;">
+                  🔒 {{ t.assigned_to.username }}
+                </span>
+              {% elif t.status == 'resolved' %}
+                <span style="font-size:12px;color:#9ca3af;font-style:italic;">—</span>
+              {% else %}
+                <div class="dropdown">
+                  <button class="assign-btn dropdown-toggle" data-bs-toggle="dropdown">
+                    + Assign
                   </button>
-                  <div class="dropdown-menu" style="border-radius:12px;border:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;min-width:170px;">
+                  <div class="dropdown-menu" style="border-radius:12px;border:none;
+                       box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;min-width:170px;">
                     {% for staff in staff_users %}
                     <form method="POST" action="{% url 'assign_ticket' t.id %}">
                       {% csrf_token %}
                       <button class="dropdown-item" name="staff_id" value="{{ staff.id }}"
-                        style="border-radius:8px;padding:8px 14px;font-size:13px;border:none;background:none;width:100%;text-align:left;cursor:pointer;">
+                        style="border-radius:8px;padding:8px 14px;font-size:13px;
+                               border:none;background:none;width:100%;text-align:left;cursor:pointer;">
                         👤 {{ staff.username }}
                       </button>
                     </form>
                     {% empty %}
-                    <div style="padding:10px 14px;font-size:13px;color:#9ca3af;">No staff available</div>
+                    <div style="padding:10px 14px;font-size:13px;color:#9ca3af;">No staff</div>
                     {% endfor %}
-                    {% if t.assigned_to %}
-                    <div style="border-top:1px solid #f3f4f6;margin:4px 0;"></div>
-                    <form method="POST" action="{% url 'assign_ticket' t.id %}">
-                      {% csrf_token %}
-                      <button class="dropdown-item" name="staff_id" value=""
-                        style="border-radius:8px;padding:8px 14px;font-size:13px;border:none;background:none;width:100%;text-align:left;cursor:pointer;color:#ef4444;">
-                        ✕ Unassign
-                      </button>
-                    </form>
-                    {% endif %}
                   </div>
-                {% endif %}
-              </div>
+                </div>
+              {% endif %}
             </td>
 
             <!-- View -->
