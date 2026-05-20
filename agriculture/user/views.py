@@ -605,7 +605,16 @@ def admin_ticket_chat(request, ticket_id):
 
 @admin_session_required
 def admin_view_ticket(request, id):
-    ticket   = get_object_or_404(Ticket, id=id)
+    ticket = get_object_or_404(Ticket, id=id)
+
+    # ✅ Access lock — agar ticket assigned hai
+    # toh sirf assigned staff/admin hi dekh sakta hai
+    if ticket.assigned_to is not None:
+        if request.user != ticket.assigned_to and not request.user.is_superuser:
+            from django.contrib import messages as django_messages
+            django_messages.error(request, "⛔ Yeh ticket kisi aur ko assigned hai — aap access nahi kar sakte.")
+            return redirect('admin_dashboard')
+
     comments = TicketComment.objects.filter(ticket=ticket)\
                                     .select_related('sender')\
                                     .order_by('created_at')
@@ -622,7 +631,6 @@ def admin_view_ticket(request, id):
         't':        ticket,
         'messages': comments,
     })
-
 
 @admin_session_required
 @require_POST
