@@ -809,26 +809,29 @@ def staff_register(request):
 # =============================================
 # 🔐 STAFF LOGIN
 # =============================================
-
 @never_cache
 def staff_login(request):
+
     if request.user.is_authenticated and request.session.get('role') == 'staff':
         return redirect('staff_dashboard')
 
     if request.method == "POST":
-        email    = request.POST.get("username", "").strip()
+
+        email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
 
-        # ✅ Email se user dhundo
         user_obj = User.objects.filter(email=email).first()
+
         if user_obj:
-            user = authenticate(request, username=user_obj.username, password=password)
+            user = authenticate(
+                request,
+                username=user_obj.username,
+                password=password
+            )
         else:
             user = None
 
         if not user:
-            logger.warning("Failed staff login: %s from IP %s",
-                           email, request.META.get('REMOTE_ADDR'))
             return render(request, "Staff_dashboard/login.html", {
                 "error": "Invalid email or password"
             })
@@ -838,18 +841,21 @@ def staff_login(request):
                 "error": "Not a staff account"
             })
 
-        profile = StaffProfile.objects.filter(user=user, is_approved=True).first()
-        if not profile:
+        # ✅ Staff profile check
+        profile, created = StaffProfile.objects.get_or_create(user=user)
+
+        if not profile.is_approved:
             return render(request, "Staff_dashboard/login.html", {
                 "error": "Account not approved yet. Please wait for admin approval."
             })
 
         login(request, user)
+
         request.session['role'] = 'staff'
+
         return redirect("staff_dashboard")
 
     return render(request, "Staff_dashboard/login.html")
-
 
 # =============================================
 # 📊 STAFF DASHBOARD
