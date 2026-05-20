@@ -3,7 +3,6 @@
 {% load static %}
 
 <style>
-/* ── Chart Card ── */
 .chart-card {
   background: #fff; border-radius: 16px;
   border: 1px solid #f0f0f5;
@@ -17,7 +16,6 @@
 .chart-card-head h4 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0; }
 .chart-card-head span { font-size: 12px; color: #9ca3af; }
 
-/* ── Filter bar ── */
 .filter-bar {
   display: flex; flex-wrap: wrap; gap: 8px;
   align-items: center; padding: 14px 20px;
@@ -29,16 +27,14 @@
   padding: 8px 12px; border: 1.5px solid #e5e7eb;
   border-radius: 10px; font-size: 13px;
   background: #fff; color: #374151;
-  outline: none; transition: border 0.2s;
-  min-width: 130px;
+  outline: none; transition: border 0.2s; min-width: 130px;
 }
-.filter-bar input:focus,
-.filter-bar select:focus { border-color: #6366f1; }
+.filter-bar input:focus, .filter-bar select:focus { border-color: #6366f1; }
 
 .btn-search {
   padding: 8px 18px; background: #1a1a2e; color: white;
   border: none; border-radius: 10px; font-size: 13px;
-  font-weight: 600; cursor: pointer; transition: background 0.2s;
+  font-weight: 600; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
 }
 .btn-search:hover { background: #2d2d4e; }
@@ -47,14 +43,11 @@
   padding: 8px 14px; background: #fee2e2; color: #dc2626;
   border: none; border-radius: 10px; font-size: 13px;
   font-weight: 500; cursor: pointer; text-decoration: none;
-  transition: background 0.2s; display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 5px;
 }
 .btn-reset:hover { background: #fecaca; }
 
-/* ── Toast ── */
-.toast-wrap {
-  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-}
+.toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
 .toast-msg {
   background: #1a1a2e; color: #fff;
   padding: 12px 20px; border-radius: 12px;
@@ -67,13 +60,6 @@
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* ── Assign warning ── */
-.assign-required {
-  font-size: 11px; color: #ef4444;
-  margin-top: 4px; display: none;
-  font-weight: 600;
-}
 </style>
 
 <!-- Image Modal -->
@@ -85,6 +71,9 @@
 <div class="toast-wrap" id="toastWrap" style="display:none;">
   <div class="toast-msg" id="toastMsg">⚠️ Message</div>
 </div>
+
+<!-- Chart JSON data — type application/json se JS mein safely read hoga -->
+<script id="chartRawData" type="application/json">{{ daily_chart_data|safe }}</script>
 
 <div class="dash-wrapper">
 
@@ -122,21 +111,14 @@
     </div>
   </div>
 
- <!-- Per Day Chart -->
-<div class="chart-card">
-  <div class="chart-card-head">
-    <h4>📈 Tickets Per Day (Last 14 Days)</h4>
-    <span id="chartTotal"></span>
+  <!-- Per Day Chart -->
+  <div class="chart-card">
+    <div class="chart-card-head">
+      <h4>📈 Tickets Per Day (Last 14 Days)</h4>
+      <span id="chartTotal"></span>
+    </div>
+    <canvas id="ticketChart" height="80"></canvas>
   </div>
-
-  <canvas id="ticketChart" height="80"></canvas>
-</div>
-
-<!-- Hidden JSON Data -->
-<div id="chartDataJson"
-     data-chart='{{ daily_chart_data|escapejs }}'
-     style="display:none;">
-</div>
 
   <!-- Table Card -->
   <div class="table-card">
@@ -168,7 +150,7 @@
 
     <!-- Table Header -->
     <div class="table-header" style="border-top:none;">
-      <h4>🎫 Ticket Management</h4>
+     
       <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} tickets</span>
     </div>
 
@@ -194,8 +176,6 @@
         <tbody>
           {% for t in tickets %}
           <tr>
-
-            <!-- Client -->
             <td>
               <div class="user-cell">
                 <div class="user-avatar">{{ t.user.username|slice:":1"|upper }}</div>
@@ -205,59 +185,37 @@
                 </div>
               </div>
             </td>
-
-            <!-- Order ID -->
             <td><span class="order-id">{{ t.purchase.purchase_id|default:"-" }}</span></td>
-
-            <!-- Product -->
             <td style="font-weight:500;color:#374151;">{{ t.purchase.product_name|default:"-"|truncatechars:18 }}</td>
-
-            <!-- Category -->
             <td style="color:#6b7280;">{{ t.category|default:"-" }}</td>
-
-            <!-- Title -->
             <td style="font-weight:600;color:#1a1a2e;">{{ t.title|default:"-"|truncatechars:20 }}</td>
-
-            <!-- Description -->
             <td style="color:#9ca3af;font-size:13px;">{{ t.description|truncatechars:25 }}</td>
-
-            <!-- Date + Time -->
             <td style="font-size:12px;color:#6b7280;white-space:nowrap;">
               {{ t.created_at|date:"d M Y" }}<br>
               <span style="font-size:11px;color:#9ca3af;">{{ t.created_at|date:"H:i" }}</span>
             </td>
-
-            <!-- Images with count -->
             <td>
               {% if t.images.count == 0 %}
                 <span style="font-size:12px;color:#d1d5db;">—</span>
               {% else %}
-                <button type="button"
-                        data-tid="{{ t.id }}"
+                <button type="button" data-tid="{{ t.id }}"
                         onclick="openAllImgs(this.dataset.tid)"
-                        style="display:flex;align-items:center;gap:4px;cursor:pointer;
-                               background:none;border:none;padding:0;">
+                        style="display:flex;align-items:center;gap:4px;cursor:pointer;background:none;border:none;padding:0;">
                   {% with first_img=t.images.first %}
                   <img src="{{ first_img.image.url }}"
-                       style="width:34px;height:34px;border-radius:6px;object-fit:cover;
-                              border:1px solid #e5e7eb;display:block;">
+                       style="width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb;display:block;">
                   {% endwith %}
                   {% if t.images.count > 1 %}
-                  <span style="background:#6366f1;color:#fff;padding:2px 7px;
-                               border-radius:20px;font-size:11px;font-weight:700;">
+                  <span style="background:#6366f1;color:#fff;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;">
                     +{{ t.images.count|add:"-1" }}
                   </span>
                   {% endif %}
                 </button>
                 <div id="imgs-{{ t.id }}" style="display:none;">
-                  {% for img in t.images.all %}
-                  <span>{{ img.image.url }}</span>
-                  {% endfor %}
+                  {% for img in t.images.all %}<span>{{ img.image.url }}</span>{% endfor %}
                 </div>
               {% endif %}
             </td>
-
-            <!-- Document -->
             <td>
               {% if t.document %}
                 <a href="{{ t.document.url }}" target="_blank" class="doc-btn">📄 View</a>
@@ -265,71 +223,52 @@
                 <span style="color:#d1d5db;">—</span>
               {% endif %}
             </td>
-
-            <!-- Status dropdown -->
             <td>
               <div class="dropdown status-dropdown">
                 {% if t.status == 'resolved' %}
-                  {# Resolved ticket — lock kar do, reopen nahi hoga #}
-                  <span class="status-badge status-resolved"
-                        style="cursor:default;opacity:0.85;"
-                        title="Ticket closed — cannot reopen">
+                  <span class="status-badge status-resolved" style="cursor:default;opacity:0.85;" title="Ticket closed">
                     ✅ Resolved
                   </span>
                 {% else %}
-                <button class="status-badge dropdown-toggle
-                  {% if t.status == 'pending' %}status-pending
-                  {% else %}status-progress{% endif %}"
-                  data-bs-toggle="dropdown"
-                  data-assigned="{{ t.assigned_to.id|default:'' }}"
-                  data-status="{{ t.status }}"
-                  style="border:none;cursor:pointer;">
-                  {% if t.status == 'pending' %}⏳{% else %}🔄{% endif %}
-                  {{ t.status|title }}
-                </button>
-                <div class="dropdown-menu">
-                  <form method="POST" action="{% url 'admin_update_ticket' t.id %}">
-                    {% csrf_token %}
-                    <button class="dropdown-item" name="status" value="pending"
-                            data-assigned="{{ t.assigned_to.id|default:'' }}"
-                            data-newstatus="pending"
-                            onclick="return confirmStatus(this)">⏳ Pending</button>
-                    <button class="dropdown-item" name="status" value="in_progress"
-                            data-assigned="{{ t.assigned_to.id|default:'' }}"
-                            data-newstatus="in_progress"
-                            onclick="return confirmStatus(this)">🔄 In Progress</button>
-                    <button class="dropdown-item" name="status" value="resolved"
-                            data-assigned="{{ t.assigned_to.id|default:'' }}"
-                            onclick="return confirmResolve(this)">✅ Resolved</button>
-                  </form>
-                </div>
+                  <button class="status-badge dropdown-toggle {% if t.status == 'pending' %}status-pending{% else %}status-progress{% endif %}"
+                          data-bs-toggle="dropdown"
+                          data-assigned="{{ t.assigned_to.id|default:'' }}"
+                          style="border:none;cursor:pointer;">
+                    {% if t.status == 'pending' %}⏳{% else %}🔄{% endif %} {{ t.status|title }}
+                  </button>
+                  <div class="dropdown-menu">
+                    <form method="POST" action="{% url 'admin_update_ticket' t.id %}">
+                      {% csrf_token %}
+                      <button class="dropdown-item" name="status" value="pending"
+                              data-assigned="{{ t.assigned_to.id|default:'' }}" data-newstatus="pending"
+                              onclick="return confirmStatus(this)">⏳ Pending</button>
+                      <button class="dropdown-item" name="status" value="in_progress"
+                              data-assigned="{{ t.assigned_to.id|default:'' }}" data-newstatus="in_progress"
+                              onclick="return confirmStatus(this)">🔄 In Progress</button>
+                      <button class="dropdown-item" name="status" value="resolved"
+                              data-assigned="{{ t.assigned_to.id|default:'' }}"
+                              onclick="return confirmResolve(this)">✅ Resolved</button>
+                    </form>
+                  </div>
                 {% endif %}
               </div>
             </td>
-
-            <!-- Assign — once assigned, locked forever -->
             <td>
               {% if t.assigned_to %}
-                <span style="display:inline-flex;align-items:center;gap:5px;
-                             background:#ede9fe;color:#6d28d9;padding:5px 11px;
-                             border-radius:20px;font-size:12px;font-weight:600;">
+                <span style="display:inline-flex;align-items:center;gap:5px;background:#ede9fe;color:#6d28d9;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:600;">
                   🔒 {{ t.assigned_to.username }}
                 </span>
               {% elif t.status == 'resolved' %}
                 <span style="font-size:12px;color:#9ca3af;font-style:italic;">—</span>
               {% else %}
                 <div class="dropdown">
-                  <button class="assign-btn dropdown-toggle" data-bs-toggle="dropdown">
-                    + Assign
-                  </button>
-                  <div class="dropdown-menu" style="border-radius:12px;border:none;
-                       box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;min-width:170px;">
+                  <button class="assign-btn dropdown-toggle" data-bs-toggle="dropdown">+ Assign</button>
+                  <div class="dropdown-menu" style="border-radius:12px;border:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;min-width:170px;">
                     {% for staff in staff_users %}
                     <form method="POST" action="{% url 'assign_ticket' t.id %}">
                       {% csrf_token %}
                       <button class="dropdown-item" name="staff_id" value="{{ staff.id }}"
-                        style="border-radius:8px;padding:8px 14px;font-size:13px;
-                               border:none;background:none;width:100%;text-align:left;cursor:pointer;">
+                        style="border-radius:8px;padding:8px 14px;font-size:13px;border:none;background:none;width:100%;text-align:left;cursor:pointer;">
                         👤 {{ staff.username }}
                       </button>
                     </form>
@@ -340,22 +279,14 @@
                 </div>
               {% endif %}
             </td>
-
-            <!-- View — locked if assigned to someone else -->
             <td>
               {% if t.assigned_to and t.assigned_to != request.user and not request.user.is_superuser %}
-                <span style="display:inline-flex;align-items:center;gap:5px;
-                             padding:6px 12px;border-radius:8px;
-                             background:#f3f4f6;color:#9ca3af;
-                             font-size:12px;font-weight:600;cursor:not-allowed;"
-                      title="Assigned to {{ t.assigned_to.username }}">
-                  🔒 Locked
-                </span>
+                <span style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:#f3f4f6;color:#9ca3af;font-size:12px;font-weight:600;cursor:not-allowed;"
+                      title="Assigned to {{ t.assigned_to.username }}">🔒 Locked</span>
               {% else %}
                 <a href="{% url 'admin_view_ticket' t.id %}" class="view-btn">👁 View</a>
               {% endif %}
             </td>
-
           </tr>
           {% empty %}
           <tr>
@@ -375,17 +306,14 @@
     <!-- Pagination -->
     <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;flex-wrap:wrap;gap:10px;">
       <span style="font-size:12px;color:#9ca3af;">
-        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        &nbsp;·&nbsp; {{ page_obj.paginator.count }} total
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} &nbsp;·&nbsp; {{ page_obj.paginator.count }} total
       </span>
       <div style="display:flex;gap:6px;">
         {% if page_obj.has_previous %}
           <a href="?page={{ page_obj.previous_page_number }}&status={{ selected_status }}&assigned={{ selected_assigned }}&date_from={{ date_from }}&date_to={{ date_to }}"
              style="padding:7px 14px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:13px;">← Prev</a>
         {% endif %}
-        <span style="padding:7px 14px;border-radius:8px;background:#6366f1;color:white;font-size:13px;">
-          {{ page_obj.number }}
-        </span>
+        <span style="padding:7px 14px;border-radius:8px;background:#6366f1;color:white;font-size:13px;">{{ page_obj.number }}</span>
         {% if page_obj.has_next %}
           <a href="?page={{ page_obj.next_page_number }}&status={{ selected_status }}&assigned={{ selected_assigned }}&date_from={{ date_from }}&date_to={{ date_to }}"
              style="padding:7px 14px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:13px;">Next →</a>
@@ -396,11 +324,6 @@
   </div>
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script id="chartDataJson" type="application/json">{{ daily_chart_data|safe }}</script>
-
 <!-- Image Gallery Modal -->
 <div id="galleryModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
      background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);z-index:99999;
@@ -408,232 +331,111 @@
   <div style="position:relative;max-width:88%;max-height:80vh;">
     <img id="galleryImg" src="" style="max-width:100%;max-height:75vh;border-radius:12px;display:block;">
     <div id="galleryNav" style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;">
-      <button onclick="galleryPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;
-              padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">← Prev</button>
+      <button onclick="galleryPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">← Prev</button>
       <span id="galleryCount" style="color:rgba(255,255,255,0.6);font-size:13px;"></span>
-      <button onclick="galleryNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;
-              padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">Next →</button>
+      <button onclick="galleryNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">Next →</button>
     </div>
   </div>
-  <button onclick="closeGallery()" style="position:absolute;top:18px;right:22px;
-          background:rgba(255,255,255,0.12);border:none;color:#fff;width:38px;height:38px;
-          border-radius:10px;font-size:18px;cursor:pointer;">✕</button>
+  <button onclick="closeGallery()" style="position:absolute;top:18px;right:22px;background:rgba(255,255,255,0.12);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;">✕</button>
 </div>
 
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-// ── Per Day Chart — Total + Resolved + In Progress ──
-const chartData = JSON.parse(document.getElementById('chartDataJson').textContent);
-const labels    = chartData.map(d => d.date);
-const totals    = chartData.map(d => d.count);
-const resolved  = chartData.map(d => d.resolved);
-const inprog    = chartData.map(d => d.in_progress);
-const totalSum  = totals.reduce((a, b) => a + b, 0);
-document.getElementById('chartTotal').textContent = totalSum + ' tickets in 14 days';
-
-new Chart(document.getElementById('ticketChart'), {
-  type: 'bar',
-  data: {
-    labels,
-    datasets: [
-      {
-        label: 'Total Raised',
-        data: totals,
-        backgroundColor: 'rgba(99,102,241,0.18)',
-        borderColor: '#6366f1',
-        borderWidth: 2,
-        borderRadius: 6,
-        borderSkipped: false,
-      },
-      {
-        label: 'Resolved',
-        data: resolved,
-        backgroundColor: 'rgba(34,197,94,0.18)',
-        borderColor: '#22c55e',
-        borderWidth: 2,
-        borderRadius: 6,
-        borderSkipped: false,
-      },
-      {
-        label: 'In Progress',
-        data: inprog,
-        backgroundColor: 'rgba(59,130,246,0.18)',
-        borderColor: '#3b82f6',
-        borderWidth: 2,
-        borderRadius: 6,
-        borderSkipped: false,
-      },
-    ]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-        labels: { font: { size: 11 }, boxWidth: 12, padding: 16 }
-      },
-      tooltip: {
-        callbacks: {
-          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}`
-        }
-      }
-    },
-    scales: {
-      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-      y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f3f4f6' } }
-    }
-  }
-});
-
-// ── Image Gallery ──
-let galleryUrls = [];
-let galleryIdx  = 0;
-
-function openAllImgs(ticketId) {
-  const container = document.getElementById('imgs-' + ticketId);
-  if (!container) return;
-  galleryUrls = Array.from(container.querySelectorAll('span')).map(s => s.textContent.trim());
-  if (!galleryUrls.length) return;
-  galleryIdx = 0;
-  showGalleryImg();
-  document.getElementById('galleryModal').style.display = 'flex';
-  document.getElementById('galleryNav').style.display = galleryUrls.length > 1 ? 'flex' : 'none';
-}
-function showGalleryImg() {
-  document.getElementById('galleryImg').src = galleryUrls[galleryIdx];
-  document.getElementById('galleryCount').textContent = (galleryIdx + 1) + ' / ' + galleryUrls.length;
-}
-function galleryPrev() { galleryIdx = (galleryIdx - 1 + galleryUrls.length) % galleryUrls.length; showGalleryImg(); }
-function galleryNext() { galleryIdx = (galleryIdx + 1) % galleryUrls.length; showGalleryImg(); }
-function closeGallery() { document.getElementById('galleryModal').style.display = 'none'; }
-document.getElementById('galleryModal').addEventListener('click', function(e) {
-  if (e.target === this) closeGallery();
-});
-
-// ── Toast ──
-function showToast(msg) {
-  const wrap = document.getElementById('toastWrap');
-  document.getElementById('toastMsg').innerHTML = '⚠️ ' + msg;
-  wrap.style.display = 'block';
-  setTimeout(() => { wrap.style.display = 'none'; }, 3500);
-}
-
-// ── Bina assign ke resolved nahi hoga ──
-function confirmResolve(btn) {
-  const assignedId = btn.getAttribute('data-assigned');
-  if (!assignedId || assignedId === '') {
-    showToast('Ticket assign karo pehle — bina assign ke resolve nahi hoga!');
-    return false;
-  }
-  return true;
-}
-function confirmStatus(btn) {
-  const assignedId = btn.getAttribute('data-assigned');
-  const newStatus  = btn.getAttribute('data-newstatus');
-  if (newStatus === 'resolved' && (!assignedId || assignedId === '')) {
-    showToast('Ticket assign karo pehle — bina assign ke resolve nahi hoga!');
-    return false;
-  }
-  return true;
-}
-const chartElement = document.getElementById('chartDataJson');
-
-if (chartElement) {
-
 document.addEventListener("DOMContentLoaded", function () {
 
-    const chartScript = document.getElementById("chartDataJson");
+  // ── Chart ──
+  const chartScript = document.getElementById("chartRawData");
+  if (chartScript) {
+    try {
+      const data    = JSON.parse(chartScript.textContent.trim());
+      const labels  = data.map(d => d.date);
+      const totals  = data.map(d => d.count);
+      const res     = data.map(d => d.resolved);
+      const inp     = data.map(d => d.in_progress);
+      const sum     = totals.reduce((a, b) => a + b, 0);
 
-    if (!chartScript) {
-        console.error("chartDataJson script not found");
-        return;
-    }
+      const el = document.getElementById('chartTotal');
+      if (el) el.textContent = sum + ' tickets in 14 days';
 
-    const rawData = chartScript.textContent.trim();
-
-    console.log("RAW DATA:", rawData);
-
-    if (!rawData) {
-        console.error("Chart data is empty");
-        return;
-    }
-
-    const chartData = JSON.parse(rawData);
-
-    const labels = chartData.map(item => item.date);
-
-    const totals = chartData.map(item => item.count);
-
-    const resolved = chartData.map(item => item.resolved);
-
-    const inProgress = chartData.map(item => item.in_progress);
-
-    const totalSum = totals.reduce((a, b) => a + b, 0);
-
-    document.getElementById('chartTotal').innerText =
-        totalSum + ' tickets in last 14 days';
-
-    new Chart(document.getElementById('ticketChart'), {
-
+      new Chart(document.getElementById('ticketChart'), {
         type: 'bar',
-
         data: {
-            labels: labels,
-
-            datasets: [
-
-                {
-                    label: 'Created',
-                    data: totals,
-                    backgroundColor: 'rgba(99,102,241,0.4)',
-                    borderColor: '#6366f1',
-                    borderWidth: 2,
-                    borderRadius: 6,
-                },
-
-                {
-                    label: 'Resolved',
-                    data: resolved,
-                    backgroundColor: 'rgba(34,197,94,0.4)',
-                    borderColor: '#22c55e',
-                    borderWidth: 2,
-                    borderRadius: 6,
-                },
-
-                {
-                    label: 'In Progress',
-                    data: inProgress,
-                    backgroundColor: 'rgba(59,130,246,0.4)',
-                    borderColor: '#3b82f6',
-                    borderWidth: 2,
-                    borderRadius: 6,
-                }
-            ]
+          labels,
+          datasets: [
+            { label: 'Created',     data: totals, backgroundColor: 'rgba(99,102,241,0.35)', borderColor: '#6366f1', borderWidth: 2, borderRadius: 6 },
+            { label: 'Resolved',    data: res,    backgroundColor: 'rgba(34,197,94,0.35)',  borderColor: '#22c55e', borderWidth: 2, borderRadius: 6 },
+            { label: 'In Progress', data: inp,    backgroundColor: 'rgba(59,130,246,0.35)', borderColor: '#3b82f6', borderWidth: 2, borderRadius: 6 },
+          ]
         },
-
         options: {
-            responsive: true,
-
-            plugins: {
-                legend: {
-                    position: 'top'
-                }
-            },
-
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
+          responsive: true,
+          plugins: {
+            legend: { display: true, position: 'top', labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}` } }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f3f4f6' } }
+          }
         }
-    });
+      });
+    } catch(e) {
+      console.error("Chart parse error:", e);
+    }
+  }
+
+  // ── Image Gallery ──
+  let galleryUrls = [], galleryIdx = 0;
+
+  window.openAllImgs = function(ticketId) {
+    const container = document.getElementById('imgs-' + ticketId);
+    if (!container) return;
+    galleryUrls = Array.from(container.querySelectorAll('span')).map(s => s.textContent.trim());
+    if (!galleryUrls.length) return;
+    galleryIdx = 0;
+    showGalleryImg();
+    document.getElementById('galleryModal').style.display = 'flex';
+    document.getElementById('galleryNav').style.display = galleryUrls.length > 1 ? 'flex' : 'none';
+  };
+
+  function showGalleryImg() {
+    document.getElementById('galleryImg').src = galleryUrls[galleryIdx];
+    document.getElementById('galleryCount').textContent = (galleryIdx + 1) + ' / ' + galleryUrls.length;
+  }
+
+  window.galleryPrev = function() { galleryIdx = (galleryIdx - 1 + galleryUrls.length) % galleryUrls.length; showGalleryImg(); };
+  window.galleryNext = function() { galleryIdx = (galleryIdx + 1) % galleryUrls.length; showGalleryImg(); };
+  window.closeGallery = function() { document.getElementById('galleryModal').style.display = 'none'; };
+
+  document.getElementById('galleryModal').addEventListener('click', function(e) {
+    if (e.target === this) closeGallery();
+  });
+
+  // ── Toast ──
+  window.showToast = function(msg) {
+    const wrap = document.getElementById('toastWrap');
+    document.getElementById('toastMsg').innerHTML = '⚠️ ' + msg;
+    wrap.style.display = 'block';
+    setTimeout(() => { wrap.style.display = 'none'; }, 3500);
+  };
+
+  // ── Assign/Status validation ──
+  window.confirmResolve = function(btn) {
+    const id = btn.getAttribute('data-assigned');
+    if (!id || id === '') { showToast('Ticket assign karo pehle — bina assign ke resolve nahi hoga!'); return false; }
+    return true;
+  };
+
+  window.confirmStatus = function(btn) {
+    const id = btn.getAttribute('data-assigned');
+    const st = btn.getAttribute('data-newstatus');
+    if (st === 'resolved' && (!id || id === '')) { showToast('Ticket assign karo pehle!'); return false; }
+    return true;
+  };
 
 });
-
-}
 </script>
 
 {% endblock %}
