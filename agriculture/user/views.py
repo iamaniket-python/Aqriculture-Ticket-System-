@@ -569,6 +569,36 @@ def admin_dashboard(request):
         "daily_chart_data":   json.dumps(daily_chart_data),
         'my_tickets_count':   my_tickets_count,              
     })
+def get_daily_chart_data():
+
+
+    today = timezone.now().date()
+
+    daily_chart_data = []
+
+    for i in range(13, -1, -1):
+
+        day = today - timedelta(days=i)
+
+        daily_chart_data.append({
+            "date": day.strftime('%d %b'),
+
+            "count": Ticket.objects.filter(
+                created_at__date=day
+            ).count(),
+
+            "resolved": Ticket.objects.filter(
+                created_at__date=day,
+                status='resolved'
+            ).count(),
+
+            "in_progress": Ticket.objects.filter(
+                created_at__date=day,
+                status='in_progress'
+            ).count(),
+        })
+
+    return json.dumps(daily_chart_data)
 # =============================================
 # 🚪 ADMIN LOGOUT
 # =============================================
