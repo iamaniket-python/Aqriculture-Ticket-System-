@@ -997,14 +997,24 @@ def mark_notifications_read(request):
 
 @admin_session_required
 def edit_staff_info(request, staff_id):
-    from django.contrib.auth.models import User
     staff_profile = get_object_or_404(StaffProfile, id=staff_id)
     if request.method == 'POST':
         user = staff_profile.user
+
+        # ✅ Username update — duplicate check
+        new_username = request.POST.get('username', '').strip()
+        if new_username and new_username != user.username:
+            if User.objects.filter(username=new_username).exclude(id=user.id).exists():
+                from django.contrib import messages as django_messages
+                django_messages.error(request, f'Username "{new_username}" already taken.')
+                return redirect('admin_staff_list')
+            user.username = new_username
+
         user.first_name = request.POST.get('first_name', '').strip()
         user.last_name  = request.POST.get('last_name', '').strip()
         user.email      = request.POST.get('email', '').strip()
         user.save()
+
     return redirect('admin_staff_list')
 
 

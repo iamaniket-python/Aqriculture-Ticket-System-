@@ -173,6 +173,12 @@
         <form method="POST" action="{% url 'edit_staff_info' staff.id %}">
           {% csrf_token %}
           <div class="edit-field">
+            <label>Username</label>
+            <input type="text" name="username"
+                   value="{{ staff.user.username }}"
+                   placeholder="Username" required>
+          </div>
+          <div class="edit-field">
             <label>First Name</label>
             <input type="text" name="first_name"
                    value="{{ staff.user.first_name }}"
