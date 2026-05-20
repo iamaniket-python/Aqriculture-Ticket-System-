@@ -995,6 +995,18 @@ def mark_notifications_read(request):
     TicketService.invalidate_dashboard_cache()   
     return JsonResponse({"status": "ok"})
 
+@admin_session_required
+def edit_staff_info(request, staff_id):
+    from django.contrib.auth.models import User
+    staff_profile = get_object_or_404(StaffProfile, id=staff_id)
+    if request.method == 'POST':
+        user = staff_profile.user
+        user.first_name = request.POST.get('first_name', '').strip()
+        user.last_name  = request.POST.get('last_name', '').strip()
+        user.email      = request.POST.get('email', '').strip()
+        user.save()
+    return redirect('admin_staff_list')
+
 
 # =============================================
 # ❌ ERROR PAGES

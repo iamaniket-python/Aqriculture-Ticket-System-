@@ -97,6 +97,7 @@ urlpatterns = [
     # 🔵 STAFF DASHBOARD
     # =========================
     path('staff/dashboard/', views.staff_dashboard, name='staff_dashboard'),
+    path('staff/<int:staff_id>/edit/', views.edit_staff_info, name='edit_staff_info'),
 
     # =========================
     # 🔵 STAFF TICKET
