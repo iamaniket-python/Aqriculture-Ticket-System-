@@ -540,79 +540,97 @@ const chartElement = document.getElementById('chartDataJson');
 
 if (chartElement) {
 
-const rawData = document.getElementById('chartDataJson').textContent;
+document.addEventListener("DOMContentLoaded", function () {
 
-const chartData = JSON.parse(rawData);
+    const chartScript = document.getElementById("chartDataJson");
 
-const labels = chartData.map(item => item.date);
+    if (!chartScript) {
+        console.error("chartDataJson script not found");
+        return;
+    }
 
-const totals = chartData.map(item => item.count);
+    const rawData = chartScript.textContent.trim();
 
-const resolved = chartData.map(item => item.resolved);
+    console.log("RAW DATA:", rawData);
 
-const inProgress = chartData.map(item => item.in_progress);
+    if (!rawData) {
+        console.error("Chart data is empty");
+        return;
+    }
 
-const totalSum = totals.reduce((a, b) => a + b, 0);
+    const chartData = JSON.parse(rawData);
 
-document.getElementById('chartTotal').innerText =
-    totalSum + ' tickets in last 14 days';
+    const labels = chartData.map(item => item.date);
 
-new Chart(document.getElementById('ticketChart'), {
+    const totals = chartData.map(item => item.count);
 
-    type: 'bar',
+    const resolved = chartData.map(item => item.resolved);
 
-    data: {
-        labels: labels,
+    const inProgress = chartData.map(item => item.in_progress);
 
-        datasets: [
+    const totalSum = totals.reduce((a, b) => a + b, 0);
 
-            {
-                label: 'Created',
-                data: totals,
-                backgroundColor: 'rgba(99,102,241,0.4)',
-                borderColor: '#6366f1',
-                borderWidth: 2,
-                borderRadius: 6,
-            },
+    document.getElementById('chartTotal').innerText =
+        totalSum + ' tickets in last 14 days';
 
-            {
-                label: 'Resolved',
-                data: resolved,
-                backgroundColor: 'rgba(34,197,94,0.4)',
-                borderColor: '#22c55e',
-                borderWidth: 2,
-                borderRadius: 6,
-            },
+    new Chart(document.getElementById('ticketChart'), {
 
-            {
-                label: 'In Progress',
-                data: inProgress,
-                backgroundColor: 'rgba(59,130,246,0.4)',
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                borderRadius: 6,
-            }
-        ]
-    },
+        type: 'bar',
 
-    options: {
-        responsive: true,
+        data: {
+            labels: labels,
 
-        plugins: {
-            legend: {
-                position: 'top'
-            }
+            datasets: [
+
+                {
+                    label: 'Created',
+                    data: totals,
+                    backgroundColor: 'rgba(99,102,241,0.4)',
+                    borderColor: '#6366f1',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                },
+
+                {
+                    label: 'Resolved',
+                    data: resolved,
+                    backgroundColor: 'rgba(34,197,94,0.4)',
+                    borderColor: '#22c55e',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                },
+
+                {
+                    label: 'In Progress',
+                    data: inProgress,
+                    backgroundColor: 'rgba(59,130,246,0.4)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                }
+            ]
         },
 
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
+        options: {
+            responsive: true,
+
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
                 }
             }
         }
-    }
+    });
+
 });
 
 }
