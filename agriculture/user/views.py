@@ -566,7 +566,7 @@ def admin_dashboard(request):
         'date_to':            date_to,
         'selected_status':    selected_status,
         'selected_assigned':  selected_assigned,
-        'daily_chart_data':   daily_chart_data,  
+        "daily_chart_data":   json.dumps(daily_chart_data),
         'my_tickets_count':   my_tickets_count,              
     })
 # =============================================

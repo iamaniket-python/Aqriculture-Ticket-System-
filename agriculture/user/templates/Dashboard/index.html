@@ -122,14 +122,21 @@
     </div>
   </div>
 
-  <!-- Per Day Chart -->
-  <div class="chart-card">
-    <div class="chart-card-head">
-      <h4>📈 Tickets Per Day (Last 14 Days)</h4>
-      <span id="chartTotal"></span>
-    </div>
-    <canvas id="ticketChart" height="80"></canvas>
+ <!-- Per Day Chart -->
+<div class="chart-card">
+  <div class="chart-card-head">
+    <h4>📈 Tickets Per Day (Last 14 Days)</h4>
+    <span id="chartTotal"></span>
   </div>
+
+  <canvas id="ticketChart" height="80"></canvas>
+</div>
+
+<!-- Hidden JSON Data -->
+<div id="chartDataJson"
+     data-chart='{{ daily_chart_data|escapejs }}'
+     style="display:none;">
+</div>
 
   <!-- Table Card -->
   <div class="table-card">
@@ -528,6 +535,85 @@ function confirmStatus(btn) {
     return false;
   }
   return true;
+}
+const chartElement = document.getElementById('chartDataJson');
+
+if (chartElement) {
+
+    const rawData = chartElement.dataset.chart;
+
+    const chartData = JSON.parse(rawData);
+
+    const labels = chartData.map(item => item.date);
+
+    const totals = chartData.map(item => item.count);
+
+    const resolved = chartData.map(item => item.resolved);
+
+    const inProgress = chartData.map(item => item.in_progress);
+
+    const totalSum = totals.reduce((a, b) => a + b, 0);
+
+    document.getElementById('chartTotal').innerText =
+        totalSum + ' tickets in last 14 days';
+
+    new Chart(document.getElementById('ticketChart'), {
+
+        type: 'bar',
+
+        data: {
+            labels: labels,
+
+            datasets: [
+
+                {
+                    label: 'Created',
+                    data: totals,
+                    backgroundColor: 'rgba(99,102,241,0.4)',
+                    borderColor: '#6366f1',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                },
+
+                {
+                    label: 'Resolved',
+                    data: resolved,
+                    backgroundColor: 'rgba(34,197,94,0.4)',
+                    borderColor: '#22c55e',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                },
+
+                {
+                    label: 'In Progress',
+                    data: inProgress,
+                    backgroundColor: 'rgba(59,130,246,0.4)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                }
+            ]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
 }
 </script>
 
