@@ -1054,8 +1054,7 @@ def edit_staff_info(request, staff_id):
                 return redirect('admin_staff_list')
             user.username = new_username
 
-        user.first_name = request.POST.get('first_name', '').strip()
-        user.last_name  = request.POST.get('last_name', '').strip()
+      
         user.email      = request.POST.get('email', '').strip()
         user.save()
 
