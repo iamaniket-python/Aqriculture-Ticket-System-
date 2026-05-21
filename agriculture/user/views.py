@@ -1,7 +1,7 @@
 import logging
 from xml.dom import ValidationErr
 from django.utils import timezone
-from datetime import timedelta
+from datetime import date, timedelta
 import json
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
@@ -870,30 +870,33 @@ def staff_login(request):
 # =============================================
 @staff_session_required
 def staff_dashboard(request):
-    user      = request.user
-    profile   = get_object_or_404(StaffProfile, user=user, is_approved=True)
-    search    = request.GET.get('search', '')
-    date_from = request.GET.get('date_from', '')
-    date_to   = request.GET.get('date_to', '')
+    user    = request.user
+    profile = get_object_or_404(StaffProfile, user=user, is_approved=True)
+
+    search          = request.GET.get('search', '')
+    date_from       = request.GET.get('date_from', '')
+    date_to         = request.GET.get('date_to', '')
+    selected_status = request.GET.get('status', '')
 
     tickets = Ticket.objects.filter(assigned_to=user)\
-                             .select_related("user", "purchase")\
-                             .order_by("-id")
+                            .select_related("user", "purchase")\
+                            .order_by("-id")
 
-    # ✅ Search filter
+    # ── Filters ──
     if search:
         tickets = tickets.filter(
             Q(user__username__icontains=search) |
             Q(title__icontains=search) |
             Q(purchase__purchase_id__icontains=search)
         )
-
-    # ✅ Date filter
+    if selected_status:
+        tickets = tickets.filter(status=selected_status)
     if date_from:
         tickets = tickets.filter(created_at__date__gte=date_from)
     if date_to:
         tickets = tickets.filter(created_at__date__lte=date_to)
 
+    # ── Stats ──
     stats = tickets.aggregate(
         total       = Count('id'),
         pending     = Count('id', filter=Q(status='pending')),
@@ -901,12 +904,26 @@ def staff_dashboard(request):
         resolved    = Count('id', filter=Q(status='resolved')),
     )
 
+    # ── Per Day Chart — admin wala same pattern, sirf assigned_to=user filter extra ──
+    today = timezone.now().date()
+    daily_chart_data = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        daily_chart_data.append({
+            'date':        day.strftime('%d %b'),
+            'count':       Ticket.objects.filter(assigned_to=user, created_at__date=day).count(),
+            'resolved':    Ticket.objects.filter(assigned_to=user, created_at__date=day, status='resolved').count(),
+            'in_progress': Ticket.objects.filter(assigned_to=user, created_at__date=day, status='in_progress').count(),
+        })
+
+    # ── Pagination ──
     paginator = Paginator(tickets, 10)
     page_obj  = paginator.get_page(request.GET.get('page'))
 
-    recent_messages = TicketComment.objects.filter(ticket__assigned_to=user)\
-                                           .select_related("ticket", "ticket__user")\
-                                           .order_by("-id")[:5]
+    # ── Navbar data ──
+    recent_messages = TicketComment.objects.filter(
+        ticket__assigned_to=user
+    ).select_related("ticket", "ticket__user").order_by("-id")[:5]
 
     unread_count = TicketComment.objects.filter(
         ticket__assigned_to=user, is_read=False
@@ -916,6 +933,7 @@ def staff_dashboard(request):
         **stats,
         "tickets":               page_obj,
         "page_obj":              page_obj,
+        "daily_chart_data":      json.dumps(daily_chart_data),
         "recent_messages":       recent_messages,
         "unread_messages_count": unread_count,
         "assigned_tickets":      page_obj,
@@ -923,9 +941,8 @@ def staff_dashboard(request):
         "search":                search,
         "date_from":             date_from,
         "date_to":               date_to,
+        "selected_status":       selected_status,
     })
-
-
 # =============================================
 # 🚪 STAFF LOGOUT
 # =============================================
