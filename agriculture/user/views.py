@@ -341,7 +341,7 @@ def create_ticket(request):
 
             messages.success(request, "✅ Ticket created successfully!")
 
-            return redirect('profile')
+            return redirect('dashboard_user')
 
         except Purchase.DoesNotExist:
 
@@ -1041,7 +1041,7 @@ def close_ticket(request, ticket_id):
     ticket.save(update_fields=['status'])
     TicketService.invalidate_user_cache(user.id)  
     messages.success(request, "Ticket closed successfully!")
-    return redirect('profile')
+    return redirect('dashboard_user')
 
 
 @admin_session_required
