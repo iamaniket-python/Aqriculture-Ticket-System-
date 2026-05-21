@@ -14,7 +14,6 @@
 }
 .chart-card-head h4 { font-size:15px;font-weight:700;color:#1a1a2e;margin:0; }
 
-/* Chart day filter pills */
 .day-filter { display:flex;gap:6px;flex-wrap:wrap; }
 .day-pill {
   padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
@@ -23,18 +22,46 @@
 .day-pill:hover { border-color:#6366f1;color:#6366f1; }
 .day-pill.active { background:#6366f1;color:#fff;border-color:#6366f1; }
 
-/* ── Filter bar ── */
-.filter-bar {
-  display:flex;flex-wrap:wrap;gap:8px;
-  align-items:center;padding:14px 20px;
-  border-bottom:1px solid #f1f3f9;background:#fafbff;
+/* ── Table top bar ── */
+.table-topbar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid #f1f3f9;
+  flex-wrap:wrap;gap:10px;
 }
-.filter-bar input[type="date"],
-.filter-bar select {
+.table-topbar h4 { font-size:15px;font-weight:700;color:#1a1a2e;margin:0; }
+.table-topbar-right { display:flex;align-items:center;gap:10px; }
+
+/* Filter toggle button */
+.btn-filter-toggle {
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;background:#f3f4f6;color:#374151;
+  border:1.5px solid #e5e7eb;border-radius:10px;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;
+}
+.btn-filter-toggle:hover { background:#e5e7eb; }
+.btn-filter-toggle.active { background:#1a1a2e;color:#fff;border-color:#1a1a2e; }
+.filter-badge {
+  background:#ef4444;color:#fff;padding:1px 6px;
+  border-radius:20px;font-size:10px;font-weight:700;
+}
+
+/* Filter panel — collapsible */
+.filter-panel {
+  display:none;padding:14px 20px;
+  border-bottom:1px solid #f1f3f9;background:#fafbff;
+  animation:fadeIn 0.2s ease;
+}
+.filter-panel.open { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);} }
+
+.filter-inner { display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end; }
+.filter-inner input[type="date"],
+.filter-inner select {
   padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:10px;
   font-size:13px;background:#fff;color:#374151;outline:none;min-width:130px;
 }
-.filter-bar input:focus,.filter-bar select:focus { border-color:#6366f1; }
+.filter-inner input:focus,.filter-inner select:focus { border-color:#6366f1; }
+
 .btn-search {
   padding:8px 18px;background:#1a1a2e;color:white;border:none;
   border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
@@ -47,6 +74,13 @@
   text-decoration:none;display:inline-flex;align-items:center;gap:5px;
 }
 .btn-reset:hover { background:#fecaca; }
+
+/* Active filters tags */
+.filter-tags { display:flex;gap:6px;flex-wrap:wrap;margin-top:10px; }
+.f-tag {
+  padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;
+  background:#eff6ff;color:#1d4ed8;
+}
 
 /* ── Toast ── */
 .toast-wrap { position:fixed;bottom:24px;right:24px;z-index:9999; }
@@ -89,7 +123,8 @@
 @media(max-width:768px) {
   .desktop-table { display:none !important; }
   .mobile-ticket-list { display:block; }
-  .filter-bar { padding:10px 12px; }
+  .table-topbar { padding:10px 12px; }
+  .filter-panel { padding:10px 12px; }
 }
 @media(min-width:769px) {
   .mobile-ticket-list { display:none !important; }
@@ -154,7 +189,6 @@
         <h4>📈 Tickets Per Day</h4>
         <span id="chartTotal" style="font-size:12px;color:#9ca3af;"></span>
       </div>
-      <!-- Day filter pills -->
       <div class="day-filter">
         <button class="day-pill" data-days="7">7 Days</button>
         <button class="day-pill active" data-days="14">14 Days</button>
@@ -167,34 +201,66 @@
   <!-- Table Card -->
   <div class="table-card">
 
-    <!-- Filter Bar -->
-    <!-- <form method="GET" id="filterForm">
-      <div class="filter-bar">
-        <input type="date" name="date_from" value="{{ date_from }}">
-        <input type="date" name="date_to"   value="{{ date_to }}">
-        <select name="status">
-          <option value="">All Status</option>
-          <option value="pending"     {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
-          <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
-          <option value="resolved"    {% if selected_status == 'resolved' %}selected{% endif %}>✅ Resolved</option>
-        </select>
-        <select name="assigned">
-          <option value="">All Assigned</option>
-          <option value="unassigned" {% if selected_assigned == 'unassigned' %}selected{% endif %}>❌ Unassigned</option>
-          {% for staff in staff_users %}
-            <option value="{{ staff.id }}" {% if selected_assigned == staff.id|stringformat:"s" %}selected{% endif %}>
-              👤 {{ staff.username }}
-            </option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="btn-search">🔍 Search</button>
-        <a href="{% url 'admin_dashboard' %}?reset=1" class="btn-reset">✕ Reset</a>
+    <!-- Table Top Bar -->
+    <div class="table-topbar">
+      <div>
+        <h4>🎫 Ticket Management</h4>
+        <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} tickets</span>
       </div>
-    </form> -->
+      <div class="table-topbar-right">
+        <!-- Filter toggle button -->
+        <button class="btn-filter-toggle {% if selected_status or selected_assigned or date_from or date_to %}active{% endif %}"
+                id="filterToggleBtn" onclick="toggleFilter()">
+          <i class="mdi mdi-filter-outline"></i>
+          Filters
+          {% if selected_status or selected_assigned or date_from or date_to %}
+            <span class="filter-badge">
+              {% with count=0 %}
+                {% if selected_status %}{{ count|add:1 }}{% endif %}
+              {% endwith %}
+              ON
+            </span>
+          {% endif %}
+        </button>
+      </div>
+    </div>
 
-    <div class="table-header" style="border-top:none;">
-    
-      <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} tickets</span>
+    <!-- Collapsible Filter Panel -->
+    <div class="filter-panel {% if selected_status or selected_assigned or date_from or date_to %}open{% endif %}"
+         id="filterPanel">
+      <form method="GET" id="filterForm">
+        <div class="filter-inner">
+          <input type="date" name="date_from" value="{{ date_from }}" placeholder="From">
+          <input type="date" name="date_to"   value="{{ date_to }}"   placeholder="To">
+          <select name="status">
+            <option value="">All Status</option>
+            <option value="pending"     {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
+            <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
+            <option value="resolved"    {% if selected_status == 'resolved' %}selected{% endif %}>✅ Resolved</option>
+          </select>
+          <select name="assigned">
+            <option value="">All Assigned</option>
+            <option value="unassigned" {% if selected_assigned == 'unassigned' %}selected{% endif %}>❌ Unassigned</option>
+            {% for staff in staff_users %}
+              <option value="{{ staff.id }}" {% if selected_assigned == staff.id|stringformat:"s" %}selected{% endif %}>
+                👤 {{ staff.username }}
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn-search">🔍 Search</button>
+          <a href="{% url 'admin_dashboard' %}?reset=1" class="btn-reset">✕ Reset</a>
+        </div>
+
+        <!-- Active filter tags -->
+        {% if selected_status or selected_assigned or date_from or date_to %}
+        <div class="filter-tags">
+          {% if selected_status %}<span class="f-tag">Status: {{ selected_status }}</span>{% endif %}
+          {% if selected_assigned %}<span class="f-tag">Assigned: {{ selected_assigned }}</span>{% endif %}
+          {% if date_from %}<span class="f-tag">From: {{ date_from }}</span>{% endif %}
+          {% if date_to %}<span class="f-tag">To: {{ date_to }}</span>{% endif %}
+        </div>
+        {% endif %}
+      </form>
     </div>
 
     <!-- Desktop Table -->
@@ -413,6 +479,14 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+  // ── Filter toggle ──
+  window.toggleFilter = function() {
+    const panel = document.getElementById('filterPanel');
+    const btn   = document.getElementById('filterToggleBtn');
+    panel.classList.toggle('open');
+    btn.classList.toggle('active');
+  };
+
   // ── Chart ──
   const allData = JSON.parse(document.getElementById('chartRawData').textContent.trim());
   let chartInstance = null;
@@ -451,9 +525,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  buildChart(14); // default 14 days
+  buildChart(14);
 
-  // Day filter pills
   document.querySelectorAll('.day-pill').forEach(pill => {
     pill.addEventListener('click', function() {
       document.querySelectorAll('.day-pill').forEach(p => p.classList.remove('active'));
@@ -490,7 +563,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => { w.style.display='none'; }, 3500);
   };
 
-  // ── Assign / Status validation ──
+  // ── Validation ──
   window.confirmResolve = function(btn) {
     const id = btn.getAttribute('data-assigned');
     if (!id || id==='') { showToast('Ticket assign karo pehle — bina assign ke resolve nahi hoga!'); return false; }
