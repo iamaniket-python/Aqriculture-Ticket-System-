@@ -164,6 +164,9 @@
               <div class="msg-content">
                 <div class="msg-sender">{{ msg.sender.username }}</div>
                 <div class="msg-bubble bubble-user">{{ msg.message }}</div>
+                <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding:0 4px;">
+                  {{ msg.created_at|date:"d M Y, H:i" }}
+                </div>
               </div>
             </div>
             {% else %}
@@ -173,6 +176,9 @@
               <div class="msg-content">
                 <div class="msg-sender">Admin</div>
                 <div class="msg-bubble bubble-admin">{{ msg.message }}</div>
+                <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding:0 4px;text-align:right;">
+                  {{ msg.created_at|date:"d M Y, H:i" }}
+                </div>
               </div>
             </div>
             {% endif %}
@@ -208,7 +214,26 @@
 </div>
 
 <script>
- 
+const chatBox = document.getElementById('chatBox');
+if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+function showModal() {
+  document.getElementById('closeModal').classList.add('open');
+}
+function hideModal() {
+  document.getElementById('closeModal').classList.remove('open');
+}
+document.getElementById('closeModal').addEventListener('click', function(e) {
+  if (e.target === this) hideModal();
+});
+
+function openImg(src) {
+  document.getElementById('popupImgSrc').src = src;
+  document.getElementById('imgPopup').classList.add('active');
+}
+function closeImg() {
+  document.getElementById('imgPopup').classList.remove('active');
+}
 </script>
 
 {% endblock %}
