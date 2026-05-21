@@ -291,7 +291,7 @@ tbody tr:last-child td{border-bottom:none;}
 
     <nav class="sidebar-nav">
       <div class="nav-section-title">Menu</div>
-      <a href="{% url 'profile' %}" class="nav-item active" id="nav-dashboard">
+      <a href="{% url 'dashboard_user' %}" class="nav-item active" id="nav-dashboard">
         <i class="mdi mdi-view-dashboard-outline"></i>Dashboard
       </a>
       <a href="#" class="nav-item" onclick="showSection('tickets'); return false;" id="nav-tickets">
@@ -399,7 +399,7 @@ tbody tr:last-child td{border-bottom:none;}
                 </div>
                 <div style="display:flex;gap:8px;align-items:flex-end;">
                   <button type="submit" class="btn-apply">Apply</button>
-                  <a href="{% url 'profile' %}" class="btn-reset">Reset</a>
+                  <a href="{% url 'dashboard_user' %}" class="btn-reset">Reset</a>
                 </div>
               </div>
               {% if product_query or date_from or date_to or status_filter %}
