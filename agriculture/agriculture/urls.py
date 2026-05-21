@@ -32,7 +32,7 @@ urlpatterns = [
     # =========================
     # 👤 USER PANEL
     # =========================
-    path('profile/', views.profile, name='dashboard_user'),
+    path('dashboard/', views.profile, name='dashboard_user'),
     path('create-ticket/', views.create_ticket, name='create_ticket'),
     path('check-tracking/', views.check_tracking, name='check_tracking'),
 

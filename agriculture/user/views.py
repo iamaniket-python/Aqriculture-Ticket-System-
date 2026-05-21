@@ -410,7 +410,7 @@ def check_tracking(request):
         if TrackingUser.objects.filter(tracking_id=tracking_id).exists():
             request.session["tracking_verified"] = True
             request.session["tracking_id"]       = tracking_id
-            return redirect("profile")
+            return redirect("dashboard_user")
 
         logger.warning("Failed tracking attempt: %s", tracking_id)
         return render(request, "UserProfile/check_tracking.html", {
