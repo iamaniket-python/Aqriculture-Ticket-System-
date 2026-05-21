@@ -200,7 +200,7 @@
               <div class="msg-row">
                 <div class="msg-av av-u">{{ comment.sender.username|slice:":1"|upper }}</div>
                 <div class="msg-inner">
-                  <div class="msg-meta">{{ comment.sender.username }} <span class="meta-time">{{ comment.created_at|date:"H:i" }}</span></div>
+                 <div class="msg-meta">{{ comment.sender.username }} <span class="meta-time">{{ comment.created_at|date:"d M Y" }} &nbsp;·&nbsp; {{ comment.created_at|date:"H:i" }}</span></div>
                   <div class="bubble bubble-u">{{ comment.message }}</div>
                 </div>
               </div>
