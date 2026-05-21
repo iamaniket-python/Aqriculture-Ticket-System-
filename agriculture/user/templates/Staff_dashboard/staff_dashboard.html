@@ -1,15 +1,179 @@
-{% extends 'Staff_dashboard/base.html' %} {% block title %}Dashboard{% endblock %} {% block content %}
+{% extends 'Staff_dashboard/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+/* ── Chart Card ── */
+.chart-card {
+  background:#fff;border-radius:16px;border:1px solid #f0f0f5;
+  box-shadow:0 2px 16px rgba(0,0,0,0.05);padding:20px 24px;margin-bottom:24px;
+}
+.chart-card-head {
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;flex-wrap:wrap;gap:10px;
+}
+.chart-card-head h4 { font-size:15px;font-weight:700;color:#1a1a2e;margin:0; }
+
+.day-filter { display:flex;gap:6px;flex-wrap:wrap; }
+.day-pill {
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
+  border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer;transition:all 0.15s;
+}
+.day-pill:hover { border-color:#6366f1;color:#6366f1; }
+.day-pill.active { background:#6366f1;color:#fff;border-color:#6366f1; }
+
+/* ── Table top bar ── */
+.table-topbar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid #f1f3f9;
+  flex-wrap:wrap;gap:10px;
+}
+.table-topbar h4 { font-size:15px;font-weight:700;color:#1a1a2e;margin:0; }
+.table-topbar-right { display:flex;align-items:center;gap:10px; }
+
+/* Filter toggle button */
+.btn-filter-toggle {
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;background:#f3f4f6;color:#374151;
+  border:1.5px solid #e5e7eb;border-radius:10px;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;
+}
+.btn-filter-toggle:hover { background:#e5e7eb; }
+.btn-filter-toggle.active { background:#1a1a2e;color:#fff;border-color:#1a1a2e; }
+.filter-badge {
+  background:#ef4444;color:#fff;padding:1px 6px;
+  border-radius:20px;font-size:10px;font-weight:700;
+}
+
+/* Filter panel — collapsible */
+.filter-panel {
+  display:none;padding:14px 20px;
+  border-bottom:1px solid #f1f3f9;background:#fafbff;
+  animation:fadeIn 0.2s ease;
+}
+.filter-panel.open { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);} }
+
+.filter-inner { display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end; }
+.filter-inner input[type="date"],
+.filter-inner input[type="text"],
+.filter-inner select {
+  padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:10px;
+  font-size:13px;background:#fff;color:#374151;outline:none;min-width:130px;
+}
+.filter-inner input:focus,.filter-inner select:focus { border-color:#6366f1; }
+
+.btn-search {
+  padding:8px 18px;background:#1a1a2e;color:white;border:none;
+  border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-search:hover { background:#2d2d4e; }
+.btn-reset {
+  padding:8px 14px;background:#fee2e2;color:#dc2626;border:none;
+  border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;
+  text-decoration:none;display:inline-flex;align-items:center;gap:5px;
+}
+.btn-reset:hover { background:#fecaca; }
+
+/* Active filter tags */
+.filter-tags { display:flex;gap:6px;flex-wrap:wrap;margin-top:10px; }
+.f-tag {
+  padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;
+  background:#eff6ff;color:#1d4ed8;
+}
+
+/* ── Toast ── */
+.toast-wrap { position:fixed;bottom:24px;right:24px;z-index:9999; }
+.toast-msg {
+  background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:12px;
+  font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  display:flex;align-items:center;gap:8px;animation:slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* ── Mobile ticket cards ── */
+.mobile-ticket-list { display:none; }
+.m-ticket-card {
+  background:#fff;border-radius:12px;border:1px solid #e8eaf0;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.m-tc-top { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px; }
+.m-tc-user { display:flex;align-items:center;gap:8px; }
+.m-tc-avatar {
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;flex-shrink:0;
+}
+.m-tc-name { font-size:13px;font-weight:700;color:#1a1a2e; }
+.m-tc-email { font-size:11px;color:#9ca3af; }
+.m-tc-row { display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px; }
+.m-tc-item .m-label { font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase; }
+.m-tc-item .m-val { font-size:12px;font-weight:600;color:#374151; }
+.m-tc-footer {
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:10px;border-top:1px solid #f3f4f6;margin-top:8px;
+  flex-wrap:wrap;gap:8px;
+}
+
+/* Status pills */
+.status-pill {
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
+  border:none;cursor:pointer;
+}
+.pill-pending   { background:#fef3c7;color:#d97706; }
+.pill-progress  { background:#dbeafe;color:#2563eb; }
+.pill-resolved  { background:#d1fae5;color:#059669; }
+
+@media(max-width:768px) {
+  .desktop-table { display:none !important; }
+  .mobile-ticket-list { display:block; }
+  .table-topbar { padding:10px 12px; }
+  .filter-panel { padding:10px 12px; }
+}
+@media(min-width:769px) {
+  .mobile-ticket-list { display:none !important; }
+}
+</style>
+
+<!-- Chart JSON -->
+<script id="chartRawData" type="application/json">{{ daily_chart_data|safe }}</script>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap" style="display:none;">
+  <div class="toast-msg" id="toastMsg">⚠️ Message</div>
+</div>
+
+<!-- Image Gallery Modal -->
+<div id="galleryModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+     background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);z-index:99999;
+     justify-content:center;align-items:center;flex-direction:column;gap:12px;">
+  <div style="position:relative;max-width:88%;max-height:80vh;">
+    <img id="galleryImg" src="" style="max-width:100%;max-height:75vh;border-radius:12px;display:block;">
+    <div id="galleryNav" style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px;">
+      <button onclick="galleryPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">← Prev</button>
+      <span id="galleryCount" style="color:rgba(255,255,255,0.6);font-size:13px;"></span>
+      <button onclick="galleryNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 18px;border-radius:10px;cursor:pointer;font-size:14px;">Next →</button>
+    </div>
+  </div>
+  <button onclick="closeGallery()" style="position:absolute;top:18px;right:22px;background:rgba(255,255,255,0.12);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;">✕</button>
+</div>
+
 <div class="staff-main">
+
   <!-- Title -->
   <div class="page-title-area">
     <h3>Dashboard</h3>
-    <p>
-      Welcome back, {{ request.user.username }} 👋 — Here are your assigned
-      tickets
-    </p>
+    <p>Welcome back, {{ request.user.username }} 👋 — Here are your assigned tickets</p>
   </div>
 
-  <!-- Stats -->
+  <!-- Stat Cards -->
   <div class="stat-grid">
     <div class="stat-card sc-total">
       <div class="s-icon">🎫</div>
@@ -37,133 +201,149 @@
     </div>
   </div>
 
-  <!-- Table -->
+  <!-- Per Day Chart -->
+  <div class="chart-card">
+    <div class="chart-card-head">
+      <div>
+        <h4>📈 Tickets Per Day</h4>
+        <span id="chartTotal" style="font-size:12px;color:#9ca3af;"></span>
+      </div>
+      <div class="day-filter">
+        <button class="day-pill" data-days="7">7 Days</button>
+        <button class="day-pill active" data-days="14">14 Days</button>
+        <button class="day-pill" data-days="30">30 Days</button>
+      </div>
+    </div>
+    <canvas id="ticketChart" height="80"></canvas>
+  </div>
+
+  <!-- Table Card -->
   <div class="table-card">
-    <div class="table-head">
-      <h4>🎫 Ticket Management</h4>
-      <form
-        method="GET"
-        style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"
-      >
-        <input
-          type="text"
-          name="search"
-          value="{{ search }}"
-          placeholder="🔍 Search title, user..."
-          style="
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            font-size: 13px;
-          "
-        />
-        <input
-          type="date"
-          name="date_from"
-          value="{{ date_from }}"
-          style="
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            font-size: 13px;
-          "
-        />
-        <input
-          type="date"
-          name="date_to"
-          value="{{ date_to }}"
-          style="
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            font-size: 13px;
-          "
-        />
-        <button type="submit" class="btn-search">Search</button>
-        <a href="{% url 'staff_dashboard' %}" class="btn-reset">Reset</a>
+
+    <!-- Table Top Bar -->
+    <div class="table-topbar">
+      <div>
+        <h4>🎫 Ticket Management</h4>
+        <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} tickets</span>
+      </div>
+      <div class="table-topbar-right">
+        <button class="btn-filter-toggle {% if search or selected_status or date_from or date_to %}active{% endif %}"
+                id="filterToggleBtn" onclick="toggleFilter()">
+          <i class="mdi mdi-filter-outline"></i>
+          Filters
+          {% if search or selected_status or date_from or date_to %}
+            <span class="filter-badge">ON</span>
+          {% endif %}
+        </button>
+      </div>
+    </div>
+
+    <!-- Collapsible Filter Panel -->
+    <div class="filter-panel {% if search or selected_status or date_from or date_to %}open{% endif %}"
+         id="filterPanel">
+      <form method="GET" id="filterForm">
+        <div class="filter-inner">
+          <input type="text"  name="search"    value="{{ search }}"    placeholder="🔍 Search title, user...">
+          <input type="date"  name="date_from" value="{{ date_from }}" placeholder="From">
+          <input type="date"  name="date_to"   value="{{ date_to }}"   placeholder="To">
+          <select name="status">
+            <option value="">All Status</option>
+            <option value="pending"     {% if selected_status == 'pending' %}selected{% endif %}>⏳ Pending</option>
+            <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
+            <option value="resolved"    {% if selected_status == 'resolved' %}selected{% endif %}>✅ Resolved</option>
+          </select>
+          <button type="submit" class="btn-search">🔍 Search</button>
+          <a href="{% url 'staff_dashboard' %}" class="btn-reset">✕ Reset</a>
+        </div>
+
+        <!-- Active filter tags -->
+        {% if search or selected_status or date_from or date_to %}
+        <div class="filter-tags">
+          {% if search %}<span class="f-tag">Search: {{ search }}</span>{% endif %}
+          {% if selected_status %}<span class="f-tag">Status: {{ selected_status }}</span>{% endif %}
+          {% if date_from %}<span class="f-tag">From: {{ date_from }}</span>{% endif %}
+          {% if date_to %}<span class="f-tag">To: {{ date_to }}</span>{% endif %}
+        </div>
+        {% endif %}
       </form>
     </div>
-    <div style="overflow-x: auto">
+
+    <!-- Desktop Table -->
+    <div class="table-scroll desktop-table">
       <table class="premium-table">
         <thead>
           <tr>
-            <th>User</th>
-            <th>Order ID</th>
-            <th>Product</th>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Assigned</th>
-            <th>Action</th>
+            <th>User</th><th>Order ID</th><th>Product</th><th>Category</th>
+            <th>Title</th><th>Description</th><th>Created</th>
+            <th>Images</th><th>Doc</th><th>Status</th><th>Assigned</th><th>Action</th>
           </tr>
         </thead>
         <tbody>
           {% for t in tickets %}
           <tr>
-            <!-- User -->
             <td>
               <div class="user-cell">
-                <div class="user-av">
-                  {{ t.user.username|slice:":1"|upper }}
-                </div>
+                <div class="user-av">{{ t.user.username|slice:":1"|upper }}</div>
                 <div>
                   <div class="user-name">{{ t.user.username }}</div>
-                  <div class="user-sub">
-                    {{ t.user.email|truncatechars:20 }}
-                  </div>
+                  <div class="user-sub">{{ t.user.email|truncatechars:20 }}</div>
                 </div>
               </div>
             </td>
+            <td><span class="order-mono">{{ t.purchase.purchase_id|default:"-" }}</span></td>
+            <td style="font-weight:500;">{{ t.purchase.product_name|default:"-"|truncatechars:18 }}</td>
+            <td style="color:#6b7280;">{{ t.category|default:"-" }}</td>
+            <td style="font-weight:600;color:#1a1a2e;">{{ t.title|truncatechars:20 }}</td>
+            <td style="color:#9ca3af;font-size:13px;">{{ t.description|truncatechars:25 }}</td>
+            <td style="font-size:12px;color:#6b7280;white-space:nowrap;">
+              {{ t.created_at|date:"d M Y" }}<br>
+              <span style="font-size:11px;color:#9ca3af;">{{ t.created_at|date:"H:i" }}</span>
+            </td>
 
-            <!-- Order ID -->
+            <!-- Images -->
             <td>
-              <span class="order-mono"
-                >{{ t.purchase.purchase_id|default:"-" }}</span
-              >
+              {% if t.images.count == 0 %}
+                <span style="color:#d1d5db;">—</span>
+              {% else %}
+                <button type="button" data-tid="{{ t.id }}" onclick="openAllImgs(this.dataset.tid)"
+                        style="display:flex;align-items:center;gap:4px;cursor:pointer;background:none;border:none;padding:0;">
+                  {% with first_img=t.images.first %}
+                  <img src="{{ first_img.image.url }}" style="width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb;">
+                  {% endwith %}
+                  {% if t.images.count > 1 %}
+                  <span style="background:#6366f1;color:#fff;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;">+{{ t.images.count|add:"-1" }}</span>
+                  {% endif %}
+                </button>
+                <div id="imgs-{{ t.id }}" style="display:none;">
+                  {% for img in t.images.all %}<span>{{ img.image.url }}</span>{% endfor %}
+                </div>
+              {% endif %}
             </td>
 
-            <!-- Product -->
-            <td style="font-weight: 500">
-              {{ t.purchase.product_name|default:"-"|truncatechars:18 }}
-            </td>
-
-            <!-- Title -->
-            <td style="font-weight: 600; color: #1a1a2e">
-              {{ t.title|truncatechars:22 }}
+            <!-- Doc -->
+            <td>
+              {% if t.document %}<a href="{{ t.document.url }}" target="_blank" class="doc-btn">📄 View</a>
+              {% else %}<span style="color:#d1d5db;">—</span>{% endif %}
             </td>
 
             <!-- Status -->
             <td>
               <div class="dropdown status-dropdown">
-                <button
-                  class="status-pill dropdown-toggle {% if t.status == 'pending' %}pill-pending {% elif t.status == 'in_progress' %}pill-progress {% else %}pill-resolved{% endif %}"
-                  data-bs-toggle="dropdown"
-                >
-                  {% if t.status == 'pending' %}⏳{% elif t.status ==
-                  'in_progress' %}🔄{% else %}✅{% endif %} {{ t.status|title }}
+                <button class="status-pill dropdown-toggle
+                  {% if t.status == 'pending' %}pill-pending
+                  {% elif t.status == 'in_progress' %}pill-progress
+                  {% else %}pill-resolved{% endif %}"
+                  data-bs-toggle="dropdown">
+                  {% if t.status == 'pending' %}⏳
+                  {% elif t.status == 'in_progress' %}🔄
+                  {% else %}✅{% endif %} {{ t.status|title }}
                 </button>
                 <div class="dropdown-menu">
-                  <form
-                    method="POST"
-                    action="{% url 'staff_update_ticket' t.id %}"
-                  >
+                  <form method="POST" action="{% url 'staff_update_ticket' t.id %}">
                     {% csrf_token %}
-                    <button class="dropdown-item" name="status" value="pending">
-                      ⏳ Pending
-                    </button>
-                    <button
-                      class="dropdown-item"
-                      name="status"
-                      value="in_progress"
-                    >
-                      🔄 In Progress
-                    </button>
-                    <button
-                      class="dropdown-item"
-                      name="status"
-                      value="resolved"
-                    >
-                      ✅ Resolved
-                    </button>
+                    <button class="dropdown-item" name="status" value="pending">⏳ Pending</button>
+                    <button class="dropdown-item" name="status" value="in_progress">🔄 In Progress</button>
+                    <button class="dropdown-item" name="status" value="resolved">✅ Resolved</button>
                   </form>
                 </div>
               </div>
@@ -172,76 +352,206 @@
             <!-- Assigned -->
             <td>
               {% if t.assigned_to %}
-              <span class="assigned-tag">👤 {{ t.assigned_to.username }}</span>
+                <span class="assigned-tag">👤 {{ t.assigned_to.username }}</span>
               {% else %}
-              <span style="color: #d1d5db; font-size: 13px">—</span>
+                <span style="color:#d1d5db;font-size:13px;">—</span>
               {% endif %}
             </td>
 
-            <!-- View -->
+            <!-- Action -->
             <td>
-              <a href="{% url 'staff_view_ticket' t.id %}" class="view-btn"
-                >👁 View</a
-              >
+              <a href="{% url 'staff_view_ticket' t.id %}" class="view-btn">👁 View</a>
             </td>
           </tr>
           {% empty %}
-          <tr class="empty-row">
-            <td colspan="7">
-              <div class="e-icon">🎫</div>
-              <p style="font-weight: 600; color: #374151; margin: 0 0 4px">
-                No tickets assigned
-              </p>
-              <span style="font-size: 13px"
-                >Tickets assigned to you will appear here</span
-              >
+          <tr>
+            <td colspan="12">
+              <div class="empty-state">
+                <div>🎫</div>
+                <p style="font-weight:600;color:#374151;">No tickets assigned</p>
+                <span style="font-size:13px;color:#9ca3af;">Tickets assigned to you will appear here</span>
+              </div>
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <!-- Pagination -->
-    <div
-      style="display: flex; justify-content: center; gap: 8px; margin-top: 20px"
-    >
-      {% if page_obj.has_previous %}
-      <a
-        href="?page={{ page_obj.previous_page_number }}&search={{ search }}"
-        style="
-          padding: 8px 16px;
-          border-radius: 8px;
-          background: #f3f4f6;
-          color: #374151;
-          text-decoration: none;
-        "
-        >← Prev</a
-      >
-      {% endif %}
-      <span
-        style="
-          padding: 8px 16px;
-          border-radius: 8px;
-          background: #6366f1;
-          color: white;
-        "
-      >
-        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-      </span>
-      {% if page_obj.has_next %}
-      <a
-        href="?page={{ page_obj.next_page_number }}&search={{ search }}"
-        style="
-          padding: 8px 16px;
-          border-radius: 8px;
-          background: #f3f4f6;
-          color: #374151;
-          text-decoration: none;
-        "
-        >Next →</a
-      >
-      {% endif %}
+
+    <!-- Mobile Cards -->
+    <div class="mobile-ticket-list">
+      {% for t in tickets %}
+      <div class="m-ticket-card">
+        <div class="m-tc-top">
+          <div class="m-tc-user">
+            <div class="m-tc-avatar">{{ t.user.username|slice:":1"|upper }}</div>
+            <div>
+              <div class="m-tc-name">{{ t.user.username }}</div>
+              <div class="m-tc-email">{{ t.user.email|truncatechars:22 }}</div>
+            </div>
+          </div>
+          {% if t.status == 'resolved' %}
+            <span class="status-pill pill-resolved" style="font-size:11px;padding:4px 10px;">✅ Resolved</span>
+          {% elif t.status == 'in_progress' %}
+            <span class="status-pill pill-progress" style="font-size:11px;padding:4px 10px;">🔄 In Progress</span>
+          {% else %}
+            <span class="status-pill pill-pending" style="font-size:11px;padding:4px 10px;">⏳ Pending</span>
+          {% endif %}
+        </div>
+        <div class="m-tc-row">
+          <div class="m-tc-item">
+            <div class="m-label">Order ID</div>
+            <div class="m-val" style="font-family:monospace;">{{ t.purchase.purchase_id|default:"-" }}</div>
+          </div>
+          <div class="m-tc-item">
+            <div class="m-label">Product</div>
+            <div class="m-val">{{ t.purchase.product_name|default:"-"|truncatechars:16 }}</div>
+          </div>
+          <div class="m-tc-item">
+            <div class="m-label">Category</div>
+            <div class="m-val">{{ t.category|default:"-" }}</div>
+          </div>
+          <div class="m-tc-item">
+            <div class="m-label">Date</div>
+            <div class="m-val">{{ t.created_at|date:"d M Y" }}</div>
+          </div>
+        </div>
+        {% if t.title %}
+        <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">{{ t.title|truncatechars:40 }}</div>
+        {% endif %}
+        <div style="font-size:12px;color:#9ca3af;margin-bottom:8px;">{{ t.description|truncatechars:60 }}</div>
+        <div class="m-tc-footer">
+          <div style="display:flex;align-items:center;gap:8px;">
+            {% if t.assigned_to %}
+              <span style="font-size:11px;background:#ede9fe;color:#6d28d9;padding:3px 9px;border-radius:20px;font-weight:600;">👤 {{ t.assigned_to.username }}</span>
+            {% endif %}
+            {% if t.document %}
+              <a href="{{ t.document.url }}" target="_blank" style="font-size:11px;color:#2563eb;font-weight:600;">📄 Doc</a>
+            {% endif %}
+          </div>
+          <a href="{% url 'staff_view_ticket' t.id %}" class="view-btn" style="font-size:12px;padding:6px 12px;">👁 View</a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:40px;color:#9ca3af;">
+        <div style="font-size:32px;margin-bottom:8px;">🎫</div>
+        <p style="font-weight:600;color:#374151;">No tickets assigned</p>
+      </div>
+      {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;flex-wrap:wrap;gap:10px;">
+      <span style="font-size:12px;color:#9ca3af;">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} total
+      </span>
+      <div style="display:flex;gap:6px;">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ selected_status }}&date_from={{ date_from }}&date_to={{ date_to }}"
+             style="padding:7px 14px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:13px;">← Prev</a>
+        {% endif %}
+        <span style="padding:7px 14px;border-radius:8px;background:#6366f1;color:white;font-size:13px;">{{ page_obj.number }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ selected_status }}&date_from={{ date_from }}&date_to={{ date_to }}"
+             style="padding:7px 14px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:13px;">Next →</a>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 </div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  // ── Filter toggle ──
+  window.toggleFilter = function() {
+    const panel = document.getElementById('filterPanel');
+    const btn   = document.getElementById('filterToggleBtn');
+    panel.classList.toggle('open');
+    btn.classList.toggle('active');
+  };
+
+  // ── Chart ──
+  const allData = JSON.parse(document.getElementById('chartRawData').textContent.trim());
+  let chartInstance = null;
+
+  function buildChart(days) {
+    const data   = allData.slice(-days);
+    const labels = data.map(d => d.date);
+    const totals = data.map(d => d.count);
+    const res    = data.map(d => d.resolved);
+    const inp    = data.map(d => d.in_progress);
+    const sum    = totals.reduce((a,b) => a+b, 0);
+    document.getElementById('chartTotal').textContent = sum + ' tickets in ' + days + ' days';
+
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(document.getElementById('ticketChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label:'Created',     data:totals, backgroundColor:'rgba(99,102,241,0.35)', borderColor:'#6366f1', borderWidth:2, borderRadius:6 },
+          { label:'Resolved',    data:res,    backgroundColor:'rgba(34,197,94,0.35)',  borderColor:'#22c55e', borderWidth:2, borderRadius:6 },
+          { label:'In Progress', data:inp,    backgroundColor:'rgba(59,130,246,0.35)', borderColor:'#3b82f6', borderWidth:2, borderRadius:6 },
+        ]
+      },
+      options: {
+        responsive:true,
+        plugins: {
+          legend:{ display:true, position:'top', labels:{ font:{size:11}, boxWidth:12, padding:14 } },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}` } }
+        },
+        scales: {
+          x:{ grid:{display:false}, ticks:{font:{size:11}} },
+          y:{ beginAtZero:true, ticks:{stepSize:1,font:{size:11}}, grid:{color:'#f3f4f6'} }
+        }
+      }
+    });
+  }
+
+  buildChart(14);
+
+  document.querySelectorAll('.day-pill').forEach(pill => {
+    pill.addEventListener('click', function() {
+      document.querySelectorAll('.day-pill').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      buildChart(parseInt(this.dataset.days));
+    });
+  });
+
+  // ── Image Gallery ──
+  let galleryUrls = [], galleryIdx = 0;
+  window.openAllImgs = function(tid) {
+    const c = document.getElementById('imgs-' + tid);
+    if (!c) return;
+    galleryUrls = Array.from(c.querySelectorAll('span')).map(s => s.textContent.trim());
+    if (!galleryUrls.length) return;
+    galleryIdx = 0; showGalleryImg();
+    document.getElementById('galleryModal').style.display = 'flex';
+    document.getElementById('galleryNav').style.display = galleryUrls.length > 1 ? 'flex' : 'none';
+  };
+  function showGalleryImg() {
+    document.getElementById('galleryImg').src = galleryUrls[galleryIdx];
+    document.getElementById('galleryCount').textContent = (galleryIdx+1) + ' / ' + galleryUrls.length;
+  }
+  window.galleryPrev = () => { galleryIdx=(galleryIdx-1+galleryUrls.length)%galleryUrls.length; showGalleryImg(); };
+  window.galleryNext = () => { galleryIdx=(galleryIdx+1)%galleryUrls.length; showGalleryImg(); };
+  window.closeGallery = () => { document.getElementById('galleryModal').style.display='none'; };
+  document.getElementById('galleryModal').addEventListener('click', function(e) { if(e.target===this) closeGallery(); });
+
+  // ── Toast ──
+  window.showToast = function(msg) {
+    const w = document.getElementById('toastWrap');
+    document.getElementById('toastMsg').innerHTML = '⚠️ ' + msg;
+    w.style.display = 'block';
+    setTimeout(() => { w.style.display='none'; }, 3500);
+  };
+
+});
+</script>
+{% endblock %}
+
 {% endblock %}
