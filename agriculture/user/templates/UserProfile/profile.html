@@ -483,11 +483,11 @@ tbody tr:last-child td{border-bottom:none;}
                   {% if page_obj.number == num %}
                     <span class="pg-btn active">{{ num }}</span>
                   {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <a href="?page={{ num }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">{{ num }}</a>
+                    <a href="?page={{ num }}&product={{ product_query }}" class="pg-btn">{{ num }}</a>
                   {% endif %}
                 {% endfor %}
                 {% if page_obj.has_next %}
-                  <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">Next →</a>
+                  <a href="?page={{ page_obj.next_page_number }}" class="pg-btn">Next →</a>
                 {% endif %}
               </div>
             </div>
