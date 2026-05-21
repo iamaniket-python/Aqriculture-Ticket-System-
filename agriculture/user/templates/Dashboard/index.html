@@ -466,7 +466,7 @@
         {% endif %}
         <span style="padding:7px 14px;border-radius:8px;background:#6366f1;color:white;font-size:13px;">{{ page_obj.number }}</span>
         {% if page_obj.has_next %}
-          <a href="page={{ page_obj.next_page_number }}"
+          <a href="?page={{ page_obj.next_page_number }}"
              style="padding:7px 14px;border-radius:8px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:13px;">Next →</a>
         {% endif %}
       </div>
