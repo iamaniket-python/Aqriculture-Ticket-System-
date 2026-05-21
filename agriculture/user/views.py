@@ -120,7 +120,7 @@ def login_page(request):
         profile = Profile.objects.filter(mobile=mobile).first()
         user = profile.user
         refresh = RefreshToken.for_user(user)
-        response = redirect('profile')
+        response = redirect('dashboard_user')
         set_auth_cookies(response, refresh)
         return response
 
@@ -164,7 +164,7 @@ def verify_otp_view(request):
         request.session.pop('pending_mobile', None)
 
         refresh  = RefreshToken.for_user(user)
-        response = redirect('profile')
+        response = redirect('dashboard_user')
         set_auth_cookies(response, refresh)
         return response
 
