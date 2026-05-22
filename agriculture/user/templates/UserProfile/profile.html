@@ -291,7 +291,7 @@ tbody tr:last-child td{border-bottom:none;}
 
     <nav class="sidebar-nav">
       <div class="nav-section-title">Menu</div>
-      <a href="{% url 'dashboard_user' %}" class="nav-item active" id="nav-dashboard">
+      <a href="{% url 'profile' %}" class="nav-item active" id="nav-dashboard">
         <i class="mdi mdi-view-dashboard-outline"></i>Dashboard
       </a>
       <a href="#" class="nav-item" onclick="showSection('tickets'); return false;" id="nav-tickets">
@@ -365,7 +365,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="card">
           <div class="card-header"><h5>🔍 Filter Tickets</h5></div>
           <div class="card-body">
-            <form method="GET">
+            <form method="GET" onsubmit="cleanFilterForm(this)">
               <div class="filter-row">
                 <div class="filter-group">
                   <label>Product Name</label>
@@ -399,7 +399,7 @@ tbody tr:last-child td{border-bottom:none;}
                 </div>
                 <div style="display:flex;gap:8px;align-items:flex-end;">
                   <button type="submit" class="btn-apply">Apply</button>
-                  <a href="{% url 'dashboard_user' %}" class="btn-reset">Reset</a>
+                  <a href="{% url 'profile' %}" class="btn-reset">Reset</a>
                 </div>
               </div>
               {% if product_query or date_from or date_to or status_filter %}
@@ -477,17 +477,17 @@ tbody tr:last-child td{border-bottom:none;}
               <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
               <div class="pg-btns">
                 {% if page_obj.has_previous %}
-                  <a href="?page={{ page_obj.previous_page_number }}" class="pg-btn">← Prev</a>
+                  <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">← Prev</a>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                   {% if page_obj.number == num %}
                     <span class="pg-btn active">{{ num }}</span>
                   {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <a href="?page={{ num }}" class="pg-btn">{{ num }}</a>
+                    <a href="?page={{ num }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">{{ num }}</a>
                   {% endif %}
                 {% endfor %}
                 {% if page_obj.has_next %}
-                  <a href="?page={{ page_obj.next_page_number }}" class="pg-btn">Next →</a>
+                  <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">Next →</a>
                 {% endif %}
               </div>
             </div>
@@ -554,7 +554,19 @@ tbody tr:last-child td{border-bottom:none;}
           </div>
           {% endfor %}
 
-         
+          {% if page_obj.has_other_pages %}
+          <div class="pg-wrap">
+            <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <div class="pg-btns">
+              {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">← Prev</a>
+              {% endif %}
+              {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">Next →</a>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
         </div>
 
       </div>
@@ -635,6 +647,13 @@ tbody tr:last-child td{border-bottom:none;}
 </div>
 
 <script>
+function cleanFilterForm(form) {
+  Array.from(form.elements).forEach(el => {
+    if (el.name && !el.value) el.disabled = true;
+  });
+  return true;
+}
+
 function goTicket(el) { window.location = el.getAttribute('data-href'); }
 
 function toggleSidebar() {
