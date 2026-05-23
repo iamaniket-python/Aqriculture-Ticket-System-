@@ -471,28 +471,28 @@ tbody tr:last-child td{border-bottom:none;}
             </table>
           </div>
 
-          {% if page_obj.has_other_pages %}
-          <div style="padding:14px 16px;">
-            <div class="pg-wrap">
-              <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-              <div class="pg-btns">
-                <!-- {% if page_obj.has_previous %}
-                  <a href="?page={{ page_obj.previous_page_number }}" class="pg-btn">← Prev</a>
-                {% endif %} -->
-                {% for num in page_obj.paginator.page_range %}
-                  {% if page_obj.number == num %}
-                    <span class="pg-btn active">{{ num }}</span>
-                  {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <a href="?page={{ num }}&product={{ product_query }}&date_from={{ date_from }}&date_to={{ date_to }}&status={{ status_filter }}&per_page={{ request.GET.per_page }}" class="pg-btn">{{ num }}</a>
-                  {% endif %}
-                {% endfor %}
-                <!-- {% if page_obj.has_next %}
-                  <a href="?page={{ page_obj.next_page_number }}" class="pg-btn">Next →</a>
-                {% endif %} -->
-              </div>
-            </div>
-          </div>
-          {% endif %}
+         {% if page_obj.has_other_pages %}
+<div style="padding:14px 16px;">
+  <div class="pg-wrap">
+    <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="pg-btns">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}" class="pg-btn">← Prev</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <span class="pg-btn active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?page={{ num }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}" class="pg-btn">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}" class="pg-btn">Next →</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
         </div>
 
         <!-- Cards — Mobile -->
