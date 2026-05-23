@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.shortcuts import redirect
 
-from user.services.auth_service import get_user_from_token   # ✅ moved to top
+from user.services.auth_service import get_user_from_token 
 
 logger = logging.getLogger(__name__)
 
