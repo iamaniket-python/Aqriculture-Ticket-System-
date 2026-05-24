@@ -1,557 +1,191 @@
-{% extends 'Base/base.html' %}
-{% block title %}Create Ticket{% endblock %}
-{% block content %}
-{% load static %}
+{% extends 'Base/base.html' %} {% block title %}Create Ticket{% endblock %}
+{%block content %} {% load static %}
+
+<br><br><br>
+
+<div class="ticket-wrapper">
+  <div class="ticket-card">
+    <h2>🎫 Create Ticket</h2>
+{% if messages %}
+  {% for message in messages %}
+    <div style="background:#fef2f2;color:#991b1b;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:13px;font-weight:500;border:1px solid #fca5a5;">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+    <!-- STEP 1: ORDER SELECT -->
+    <form method="GET">
+      <label>Select Your Order ID <span style="color:red;">*</span></label>
+      <select name="purchase" onchange="this.form.submit()">
+        <option value="">Select Order</option>
+        {% for p in purchases %}
+          <option value="{{ p.purchase_id }}"
+            {% if selected_purchase == p.purchase_id %}selected{% endif %}>
+            {{ p.purchase_id }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+
+    <br>
+
+    <!-- STEP 2: MAIN FORM -->
+    <form method="POST" enctype="multipart/form-data" id="ticketForm">
+      {% csrf_token %}
+
+      <input type="hidden" name="purchase" value="{{ selected_purchase }}">
+
+      <!-- PRODUCT -->
+      <label>Select Product <span style="color:red;">*</span></label>
+      {% if selected_purchase %}
+        <select name="product" required>
+          <option value="">Select Product</option>
+          {% for item in products %}
+            <option value="{{ item.product_name }}"
+              {% if selected_product == item.product_name %}selected{% endif %}>
+              {{ item.product_name }}
+            </option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <select disabled>
+          <option>Select order first</option>
+        </select>
+      {% endif %}
+
+      <!-- CATEGORY -->
+      <label>Category <span style="color:red;">*</span></label>
+      <select name="category" id="categorySelect" required onchange="handleCategory(this.value)">
+        <option value="">Select Category</option>
+        <option value="Product Issue">Product Issue</option>
+        <option value="Delivery Issue">Delivery Issue</option>
+        <option value="Payment Issue">Payment Issue</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <!-- OTHER BOX -->
+      <div id="otherBox" style="display:none;">
+        <label>✏️ Please specify <span style="color:red;">*</span></label>
+        <input
+          type="text"
+          id="otherInput"
+          name="other"
+          placeholder="Describe your issue category..."
+          style="width:100%;"
+        />
+      </div>
+
+      <!-- TITLE -->
+      <label>Title <span style="color:red;">*</span></label>
+      <input name="title" placeholder="Enter Issue Title" required />
+
+      <!-- DESCRIPTION -->
+      <label>Description <span style="color:red;">*</span></label>
+      <textarea name="description" placeholder="Describe your issue" required></textarea>
+
+      <!-- IMAGES -->
+      <label>📷 Upload Images</label>
+      <input
+        type="file"
+        id="imageInput"
+        name="images"
+        multiple
+        accept="image/*"
+        style="display:none"
+      />
+      <button type="button" onclick="openFilePicker()" class="upload-btn">
+        + Select Images
+      </button>
+      <div id="previewContainer" class="preview-box"></div>
+
+      <!-- DOCUMENT -->
+      <label>📄 Upload Document</label>
+      <input type="file" name="document" />
+
+      <!-- SUBMIT BUTTON -->
+      <button type="submit" id="submitBtn">Submit Ticket</button>
+
+      <!-- LOADER -->
+      <div id="loaderMsg" style="display:none;text-align:center;margin-top:12px;">
+        <div style="display:inline-block;width:24px;height:24px;border:3px solid #6366f1;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <span style="margin-left:8px;color:#6366f1;font-weight:600;">Please wait...</span>
+      </div>
+
+    </form>
+  </div>
+</div>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-:root{
-  --ink:#0f0f0f;
-  --ink2:#4a4a4a;
-  --ink3:#8a8a8a;
-  --surface:#fafaf8;
-  --surface2:#f2f0eb;
-  --border:#e0ddd6;
-  --accent:#2d5a3d;
-  --accent-light:#eaf2ec;
-  --red:#c0392b;
-  --white:#fff;
-  --radius:14px;
-}
-
-*{box-sizing:border-box;margin:0;padding:0;}
-
-.ticket-page{
-  font-family:'DM Sans',sans-serif;
-  background:var(--surface);
-  min-height:100vh;
-  padding:32px 16px 64px;
-  color:var(--ink);
-  margin:-1.5rem;
-}
-
-.page-wrap{max-width:640px;margin:0 auto;}
-
-/* Header */
-.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:36px;}
-.header-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--accent-light);color:var(--accent);
-  font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;
-  padding:4px 12px;border-radius:100px;margin-bottom:10px;
-}
-.header-title{
-  font-family:'Instrument Serif',serif;
-  font-size:34px;line-height:1.15;color:var(--ink);font-style:italic;
-}
-.header-title em{font-style:normal;color:var(--accent);}
-.header-sub{font-size:13px;color:var(--ink3);margin-top:6px;font-weight:400;}
-
-.step-dots{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:4px;}
-.dot-step{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all 0.3s;}
-.dot-step.active{background:var(--accent);transform:scale(1.3);}
-
-/* Progress */
-.progress-bar-wrap{height:3px;background:var(--border);border-radius:10px;margin-bottom:28px;overflow:hidden;}
-.progress-bar-fill{height:100%;background:var(--accent);border-radius:10px;width:10%;transition:width 0.5s cubic-bezier(0.4,0,0.2,1);}
-
-/* Step panels */
-.step-panel{display:none;animation:fadeUp 0.35s ease both;}
-.step-panel.active{display:block;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-
-.step-num{
-  font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
-  color:var(--ink3);margin-bottom:4px;display:flex;align-items:center;gap:8px;
-}
-.step-num::after{content:'';flex:1;height:1px;background:var(--border);}
-.section-title{font-size:16px;font-weight:500;color:var(--ink);margin-bottom:20px;}
-
-/* Fields */
-.field{margin-bottom:20px;}
-.field label{
-  display:block;font-size:12px;font-weight:600;letter-spacing:0.4px;
-  color:var(--ink2);margin-bottom:8px;text-transform:uppercase;
-}
-.field label .req{color:var(--red);margin-left:2px;}
-.field input,.field select,.field textarea{
-  width:100%;padding:13px 16px;
-  background:var(--white);border:1.5px solid var(--border);
-  border-radius:var(--radius);font-size:14px;font-family:'DM Sans',sans-serif;
-  color:var(--ink);outline:none;transition:border-color 0.2s,box-shadow 0.2s;
-  appearance:none;-webkit-appearance:none;
-}
-.field select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8a8a' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center;padding-right:40px;
-}
-.field input:focus,.field select:focus,.field textarea:focus{
-  border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,90,61,0.1);
-}
-.field textarea{min-height:110px;resize:vertical;line-height:1.6;}
-
-/* Error banner */
-.error-banner{
-  background:#fef2f2;color:var(--red);padding:12px 16px;
-  border-radius:10px;margin-bottom:20px;font-size:13px;
-  font-weight:500;border:1px solid #fca5a5;display:flex;align-items:center;gap:8px;
-}
-
-/* Order cards */
-.order-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
-.order-card{
-  padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius);
-  cursor:pointer;transition:all 0.2s;background:var(--white);display:flex;flex-direction:column;gap:3px;
-}
-.order-card:hover{border-color:var(--accent);background:var(--accent-light);}
-.order-card.selected{border-color:var(--accent);background:var(--accent-light);}
-.order-id{font-size:13px;font-weight:600;color:var(--ink);font-family:monospace;}
-.order-meta{font-size:11px;color:var(--ink3);}
-
-/* Category pills */
-.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.cat-pill{
-  padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);
-  cursor:pointer;transition:all 0.2s;background:var(--white);
-  display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--ink2);
-}
-.cat-pill:hover{border-color:var(--accent);background:var(--accent-light);color:var(--ink);}
-.cat-pill.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
-.cat-icon{font-size:16px;}
-
-.other-reveal{overflow:hidden;max-height:0;transition:max-height 0.3s ease,opacity 0.3s;opacity:0;}
-.other-reveal.open{max-height:120px;opacity:1;margin-top:12px;}
-
-/* Image upload */
-.upload-zone{
-  border:1.5px dashed var(--border);border-radius:var(--radius);
-  padding:28px 20px;text-align:center;cursor:pointer;
-  transition:all 0.2s;background:var(--white);
-}
-.upload-zone:hover{border-color:var(--accent);background:var(--accent-light);}
-.upload-icon{font-size:28px;margin-bottom:4px;}
-
-.preview-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-.preview-item{
-  position:relative;width:72px;height:72px;border-radius:10px;
-  overflow:hidden;border:1px solid var(--border);
-  animation:popIn 0.25s ease both;
-}
-@keyframes popIn{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
-.preview-item img{width:100%;height:100%;object-fit:cover;}
-.remove-x{
-  position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;
-  background:rgba(0,0,0,0.6);color:#fff;display:flex;align-items:center;justify-content:center;
-  font-size:10px;cursor:pointer;font-weight:700;border:none;
-}
-
-/* Doc upload */
-.doc-row{
-  display:flex;align-items:center;gap:10px;padding:12px 16px;
-  border:1.5px solid var(--border);border-radius:var(--radius);
-  background:var(--white);cursor:pointer;transition:border-color 0.2s;
-}
-.doc-row:hover{border-color:var(--accent);}
-.doc-name{font-size:13px;color:var(--ink2);flex:1;}
-.doc-chip{font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-light);padding:3px 8px;border-radius:6px;}
-
-/* Buttons */
-.btn-row{display:flex;gap:10px;margin-top:28px;}
-.btn-next{
-  flex:1;padding:15px;border:none;border-radius:var(--radius);
-  background:var(--ink);color:var(--white);font-size:14px;font-weight:600;
-  font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.btn-next:hover{background:var(--accent);transform:translateY(-1px);}
-.btn-back{
-  padding:15px 20px;border:1.5px solid var(--border);border-radius:var(--radius);
-  background:transparent;color:var(--ink2);font-size:14px;font-weight:500;
-  font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;
-}
-.btn-back:hover{border-color:var(--ink2);color:var(--ink);}
-.btn-submit{
-  flex:1;padding:16px;border:none;border-radius:var(--radius);
-  background:var(--accent);color:var(--white);font-size:15px;font-weight:600;
-  font-family:'Instrument Serif',serif;font-style:italic;
-  cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.btn-submit:hover{background:#1e4029;transform:translateY(-1px);}
-.btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
-
-/* Summary */
-.summary-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;}
-.summary-row{display:flex;padding:12px 16px;border-bottom:1px solid var(--surface2);align-items:flex-start;gap:12px;}
-.summary-row:last-child{border-bottom:none;}
-.summary-key{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.4px;min-width:90px;padding-top:1px;}
-.summary-val{font-size:13px;color:var(--ink);font-weight:500;flex:1;word-break:break-word;}
-
-/* Spinner */
-.spinner{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Product select */
-.product-select-wrap{display:none;}
-.product-select-wrap.visible{display:block;}
-
-@media(max-width:480px){
-  .order-grid{grid-template-columns:1fr;}
-  .header-title{font-size:26px;}
-  .ticket-page{padding:16px 12px 48px;}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
 
-<div class="ticket-page">
-<div class="page-wrap">
-
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <div class="header-badge">Support Portal</div>
-      <div class="header-title">Raise a <em>Ticket</em></div>
-      <div class="header-sub">We'll get back to you within 24 hours</div>
-    </div>
-    <div class="step-dots">
-      <div class="dot-step active" id="dot1"></div>
-      <div class="dot-step" id="dot2"></div>
-      <div class="dot-step" id="dot3"></div>
-      <div class="dot-step" id="dot4"></div>
-    </div>
-  </div>
-
-  <!-- Progress Bar -->
-  <div class="progress-bar-wrap">
-    <div class="progress-bar-fill" id="progressFill"></div>
-  </div>
-
-  {% if messages %}
-    {% for message in messages %}
-      <div class="error-banner">❌ {{ message }}</div>
-    {% endfor %}
-  {% endif %}
-
-  <!-- Real form wrapping everything — submits on step 4 -->
-  <form method="POST" enctype="multipart/form-data" id="ticketForm" action="{% url 'create_ticket' %}">
-    {% csrf_token %}
-
-    <!-- Hidden fields updated by JS -->
-    <input type="hidden" name="purchase"    id="hPurchase"    value="{{ selected_purchase }}">
-    <input type="hidden" name="product"     id="hProduct"     value="{{ selected_product }}">
-    <input type="hidden" name="category"    id="hCategory"    value="">
-    <input type="hidden" name="other"       id="hOther"       value="">
-    <input type="hidden" name="title"       id="hTitle"       value="">
-    <input type="hidden" name="description" id="hDescription" value="">
-
-    <!-- ── STEP 1: ORDER ── -->
-    <div class="step-panel active" id="step1">
-      <div class="step-num">Step 1 <span style="color:var(--ink3);">of 4</span></div>
-      <div class="section-title">Which order is this about?</div>
-
-      <div class="order-grid" id="orderGrid">
-        {% for p in purchases %}
-        <div class="order-card {% if selected_purchase == p.purchase_id %}selected{% endif %}"
-             data-id="{{ p.purchase_id }}">
-          <div class="order-id">{{ p.purchase_id }}</div>
-          <div class="order-meta">{{ p.product_name|default:"" }} · {{ p.created_at|date:"d M Y"|default:"" }}</div>
-        </div>
-        {% empty %}
-        <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--ink3);font-size:14px;">
-          No orders found. Please make a purchase first.
-        </div>
-        {% endfor %}
-      </div>
-
-      <!-- Product select (shown after order card selected) -->
-      <div class="product-select-wrap {% if selected_purchase %}visible{% endif %}" id="productWrap" style="margin-top:16px;">
-        <div class="field">
-          <label>Select Product <span class="req">*</span></label>
-          <select id="productSelect" onchange="document.getElementById('hProduct').value=this.value">
-            <option value="">Select Product</option>
-            {% for item in products %}
-              <option value="{{ item.product_name }}" {% if selected_product == item.product_name %}selected{% endif %}>
-                {{ item.product_name }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button type="button" class="btn-next" onclick="goStep(2)">Continue →</button>
-      </div>
-    </div>
-
-    <!-- ── STEP 2: ISSUE ── -->
-    <div class="step-panel" id="step2">
-      <div class="step-num">Step 2 <span style="color:var(--ink3);">of 4</span></div>
-      <div class="section-title">What's the issue?</div>
-
-      <div class="field">
-        <label>Category <span class="req">*</span></label>
-        <div class="cat-grid" id="catGrid">
-          <div class="cat-pill selected" data-cat="Product Issue"><span class="cat-icon">📦</span>Product Issue</div>
-          <div class="cat-pill" data-cat="Delivery Issue"><span class="cat-icon">🚚</span>Delivery Issue</div>
-          <div class="cat-pill" data-cat="Payment Issue"><span class="cat-icon">💳</span>Payment Issue</div>
-          <div class="cat-pill" data-cat="Other"><span class="cat-icon">✏️</span>Other</div>
-        </div>
-        <div class="other-reveal" id="otherReveal">
-          <div class="field" style="margin-bottom:0;margin-top:12px;">
-            <label>Please specify <span class="req">*</span></label>
-            <input type="text" id="otherInput" placeholder="Describe your issue category...">
-          </div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Title <span class="req">*</span></label>
-        <input type="text" id="issueTitle" placeholder="e.g. Screen is cracked on arrival">
-      </div>
-
-      <div class="field">
-        <label>Description <span class="req">*</span></label>
-        <textarea id="issueDesc" placeholder="Describe what happened in detail..."></textarea>
-      </div>
-
-      <div class="btn-row">
-        <button type="button" class="btn-back" onclick="goStep(1)">← Back</button>
-        <button type="button" class="btn-next" onclick="goStep(3)">Continue →</button>
-      </div>
-    </div>
-
-    <!-- ── STEP 3: ATTACHMENTS ── -->
-    <div class="step-panel" id="step3">
-      <div class="step-num">Step 3 <span style="color:var(--ink3);">of 4</span></div>
-      <div class="section-title">Any attachments? <span style="font-size:13px;font-weight:400;color:var(--ink3);">(optional)</span></div>
-
-      <div class="field">
-        <label>Photos</label>
-        <div class="upload-zone" onclick="document.getElementById('imageInput').click()">
-          <div class="upload-icon">🖼</div>
-          <div style="font-size:13px;font-weight:500;color:var(--ink2);">Click to add photos</div>
-          <p style="font-size:12px;color:var(--ink3);margin-top:4px;">JPG, PNG, WEBP supported</p>
-        </div>
-        <input type="file" id="imageInput" name="images" accept="image/*" multiple style="display:none">
-        <div class="preview-grid" id="previewGrid"></div>
-      </div>
-
-      <div class="field">
-        <label>Document</label>
-        <div class="doc-row" onclick="document.getElementById('docFile').click()">
-          <span style="font-size:20px;">📄</span>
-          <span class="doc-name" id="docName">Attach invoice, warranty, etc.</span>
-          <span class="doc-chip" id="docChip" style="display:none;">Selected</span>
-        </div>
-        <input type="file" id="docFile" name="document" style="display:none" accept=".pdf,.doc,.docx,.jpg,.png">
-      </div>
-
-      <div class="btn-row">
-        <button type="button" class="btn-back" onclick="goStep(2)">← Back</button>
-        <button type="button" class="btn-next" onclick="goStep(4)">Continue →</button>
-      </div>
-    </div>
-
-    <!-- ── STEP 4: REVIEW & SUBMIT ── -->
-    <div class="step-panel" id="step4">
-      <div class="step-num">Step 4 <span style="color:var(--ink3);">of 4</span></div>
-      <div class="section-title">Review & submit</div>
-
-      <div class="summary-card">
-        <div class="summary-row">
-          <div class="summary-key">Order</div>
-          <div class="summary-val" id="s-order">—</div>
-        </div>
-        <div class="summary-row">
-          <div class="summary-key">Product</div>
-          <div class="summary-val" id="s-product">—</div>
-        </div>
-        <div class="summary-row">
-          <div class="summary-key">Category</div>
-          <div class="summary-val" id="s-cat">—</div>
-        </div>
-        <div class="summary-row">
-          <div class="summary-key">Title</div>
-          <div class="summary-val" id="s-title">—</div>
-        </div>
-        <div class="summary-row">
-          <div class="summary-key">Description</div>
-          <div class="summary-val" id="s-desc">—</div>
-        </div>
-        <div class="summary-row">
-          <div class="summary-key">Attachments</div>
-          <div class="summary-val" id="s-attach">None</div>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button type="button" class="btn-back" onclick="goStep(3)">← Back</button>
-        <button type="submit" class="btn-submit" id="submitBtn">Submit Ticket ✦</button>
-      </div>
-
-      <div id="loaderMsg" style="display:none;text-align:center;margin-top:16px;">
-        <div class="spinner" style="border-color:var(--accent);border-top-color:transparent;"></div>
-        <span style="margin-left:8px;color:var(--accent);font-weight:600;font-size:13px;">Please wait…</span>
-      </div>
-    </div>
-
-  </form>
-</div>
-</div>
-
 <script>
-let currentStep = 1;
-let selectedOrder = '{{ selected_purchase|default:"" }}';
-let selectedCat   = 'Product Issue';
-let selectedFiles = [];
-
-const PROGRESS = {1:10, 2:40, 3:70, 4:100};
-
-/* ── Step navigation ── */
-function goStep(n) {
-  // Validate before advancing
-  if (n > currentStep) {
-    if (currentStep === 1) {
-      if (!selectedOrder) { alert('Please select an order.'); return; }
-      let prod = document.getElementById('productSelect').value;
-      if (!prod) { alert('Please select a product.'); return; }
-      document.getElementById('hProduct').value = prod;
-    }
-    if (currentStep === 2) {
-      let title = document.getElementById('issueTitle').value.trim();
-      let desc  = document.getElementById('issueDesc').value.trim();
-      if (!title || !desc) { alert('Please fill in title and description.'); return; }
-      if (selectedCat === 'Other' && !document.getElementById('otherInput').value.trim()) {
-        alert('Please specify your issue category.'); return;
-      }
-      // Sync hidden fields
-      document.getElementById('hCategory').value    = selectedCat;
-      document.getElementById('hOther').value       = document.getElementById('otherInput').value.trim();
-      document.getElementById('hTitle').value       = title;
-      document.getElementById('hDescription').value = desc;
-    }
-  }
-
-  document.getElementById('step' + currentStep).classList.remove('active');
-  currentStep = n;
-  document.getElementById('step' + currentStep).classList.add('active');
-
-  // Update dots + progress
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById('dot' + i).classList.toggle('active', i <= currentStep);
-  }
-  document.getElementById('progressFill').style.width = PROGRESS[currentStep] + '%';
-
-  if (n === 4) buildSummary();
-  window.scrollTo({top: 0, behavior: 'smooth'});
-}
-
-/* ── Order card selection ── */
-document.getElementById('orderGrid').addEventListener('click', function(e) {
-  let card = e.target.closest('.order-card');
-  if (!card) return;
-  document.querySelectorAll('.order-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
-  selectedOrder = card.dataset.id;
-  document.getElementById('hPurchase').value = selectedOrder;
-
-  // Show product dropdown and reload page to fetch products
-  // (If products are already loaded via context, just show the wrap)
-  document.getElementById('productWrap').classList.add('visible');
-});
-
-/* ── Category pill selection ── */
-document.getElementById('catGrid').addEventListener('click', function(e) {
-  let pill = e.target.closest('.cat-pill');
-  if (!pill) return;
-  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('selected'));
-  pill.classList.add('selected');
-  selectedCat = pill.dataset.cat;
-  let reveal = document.getElementById('otherReveal');
-  selectedCat === 'Other' ? reveal.classList.add('open') : reveal.classList.remove('open');
-});
-
-/* ── Image upload & preview ── */
-document.getElementById('imageInput').addEventListener('change', function(e) {
-  Array.from(e.target.files).forEach(f => selectedFiles.push(f));
-  renderPreviews();
-});
-
-function renderPreviews() {
-  let grid = document.getElementById('previewGrid');
-  grid.innerHTML = '';
-  selectedFiles.forEach((file, i) => {
-    let reader = new FileReader();
-    reader.onload = function(e) {
-      let div = document.createElement('div');
-      div.className = 'preview-item';
-      div.innerHTML = '<img src="' + e.target.result + '"><button type="button" class="remove-x" onclick="removeImg(' + i + ')">✕</button>';
-      grid.appendChild(div);
-    };
-    reader.readAsDataURL(file);
+  // ✅ Form submit pe loader
+  document.getElementById('ticketForm').addEventListener('submit', function() {
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerText = '⏳ Submitting...';
+    document.getElementById('loaderMsg').style.display = 'block';
   });
-  // Sync FileInput
-  let dt = new DataTransfer();
-  selectedFiles.forEach(f => dt.items.add(f));
-  document.getElementById('imageInput').files = dt.files;
-}
 
-function removeImg(i) {
-  selectedFiles.splice(i, 1);
-  renderPreviews();
-}
-
-/* ── Doc upload ── */
-document.getElementById('docFile').addEventListener('change', function(e) {
-  if (e.target.files[0]) {
-    document.getElementById('docName').textContent = e.target.files[0].name;
-    document.getElementById('docChip').style.display = 'inline-block';
+  // ✅ Category Other
+  function handleCategory(value) {
+    let otherBox   = document.getElementById("otherBox");
+    let otherInput = document.getElementById("otherInput");
+    if (value === "Other") {
+      otherBox.style.display = "block";
+      otherInput.required    = true;
+    } else {
+      otherBox.style.display = "none";
+      otherInput.required    = false;
+      otherInput.value       = "";
+    }
   }
-});
 
-/* ── Summary builder ── */
-function buildSummary() {
-  let cat = selectedCat === 'Other'
-    ? 'Other — ' + (document.getElementById('otherInput').value || '')
-    : selectedCat;
-  let prod = document.getElementById('productSelect').value;
-  document.getElementById('s-order').textContent   = selectedOrder || '—';
-  document.getElementById('s-product').textContent = prod || '—';
-  document.getElementById('s-cat').textContent     = cat || '—';
-  document.getElementById('s-title').textContent   = document.getElementById('issueTitle').value || '—';
-  document.getElementById('s-desc').textContent    = document.getElementById('issueDesc').value || '—';
-  let docFile = document.getElementById('docFile').files[0];
-  let parts   = [];
-  if (selectedFiles.length) parts.push(selectedFiles.length + ' photo' + (selectedFiles.length > 1 ? 's' : ''));
-  if (docFile) parts.push('1 document');
-  document.getElementById('s-attach').textContent = parts.length ? parts.join(', ') : 'None';
-}
+  // ✅ Image preview
+  document.addEventListener("DOMContentLoaded", function () {
+    function openFilePicker() {
+      document.getElementById("imageInput").click();
+    }
+    window.openFilePicker = openFilePicker;
 
-/* ── Form submit loader ── */
-document.getElementById('ticketForm').addEventListener('submit', function() {
-  // Final sync before submit
-  document.getElementById('hCategory').value    = selectedCat;
-  document.getElementById('hOther').value       = document.getElementById('otherInput').value.trim();
-  document.getElementById('hTitle').value       = document.getElementById('issueTitle').value.trim();
-  document.getElementById('hDescription').value = document.getElementById('issueDesc').value.trim();
-  document.getElementById('hPurchase').value    = selectedOrder;
+    let selectedFiles = [];
 
-  let btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Submitting…';
-  document.getElementById('loaderMsg').style.display = 'flex';
-});
-
-/* ── Init: set default hidden category ── */
-document.getElementById('hCategory').value = selectedCat;
-// Inside the order card click handler, after setting selectedOrder:
-fetch(`/get-products/?purchase=${selectedOrder}`)
-  .then(r => r.json())
-  .then(data => {
-    let sel = document.getElementById('productSelect');
-    sel.innerHTML = '<option value="">Select Product</option>';
-    data.products.forEach(p => {
-      sel.innerHTML += `<option value="${p}">${p}</option>`;
+    document.getElementById("imageInput").addEventListener("change", function (e) {
+      Array.from(e.target.files).forEach(file => selectedFiles.push(file));
+      renderPreview();
     });
+
+    function renderPreview() {
+      let container = document.getElementById("previewContainer");
+      container.innerHTML = "";
+      selectedFiles.forEach((file, index) => {
+        let reader = new FileReader();
+        reader.onload = function (e) {
+          let div = document.createElement("div");
+          div.classList.add("preview-item");
+          div.innerHTML = `
+            <img src="${e.target.result}">
+            <div class="remove-btn" onclick="removeImage(${index})">✖</div>
+          `;
+          container.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+      });
+      updateFileInput();
+    }
+
+    window.removeImage = function (index) {
+      selectedFiles.splice(index, 1);
+      renderPreview();
+    };
+
+    function updateFileInput() {
+      let dt = new DataTransfer();
+      selectedFiles.forEach(file => dt.items.add(file));
+      document.getElementById("imageInput").files = dt.files;
+    }
   });
 </script>
 
