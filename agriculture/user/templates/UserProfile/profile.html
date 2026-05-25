@@ -4,314 +4,479 @@
 {% block content %}
 {% load static %}
 
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 <style>
+:root{
+  --bg:#0f1117;
+  --bg2:#161b27;
+  --bg3:#1e2535;
+  --surface:#1e2535;
+  --surface2:#252d3d;
+  --surface3:#2d3650;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --accent:#3b82f6;
+  --accent2:#6366f1;
+  --accent-glow:rgba(59,130,246,0.25);
+  --green:#10b981;
+  --green-glow:rgba(16,185,129,0.2);
+  --amber:#f59e0b;
+  --amber-glow:rgba(245,158,11,0.2);
+  --red:#ef4444;
+  --red-glow:rgba(239,68,68,0.2);
+  --text:#f1f5f9;
+  --text2:#94a3b8;
+  --text3:#475569;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+  --sidebar-w:270px;
+  --radius:16px;
+}
+
 *{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);}
 
-.app-layout{display:flex;min-height:100vh;margin:-1.5rem;background:#f3f4f6;}
+/* ══ LAYOUT ══ */
+.app{display:flex;min-height:100vh;margin:-1.5rem;}
 
-/* ── Sidebar ── */
+/* ══ SIDEBAR ══ */
 .sidebar{
-  width:260px;min-width:260px;background:#111827;
+  width:var(--sidebar-w);min-width:var(--sidebar-w);
+  background:var(--bg2);
+  border-right:1px solid var(--border);
   display:flex;flex-direction:column;
   position:fixed;top:0;left:0;height:100vh;
-  z-index:1000;transition:transform 0.3s ease;
-  overflow-y:auto;
+  z-index:1000;
+  transition:transform 0.3s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;overflow-x:hidden;
 }
-.sidebar-header{
-  padding:20px;border-bottom:1px solid rgba(255,255,255,0.08);
-  display:flex;align-items:center;gap:12px;flex-shrink:0;
+
+.sb-header{
+  padding:22px 20px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  flex-shrink:0;
 }
-.sidebar-logo{height:36px;object-fit:contain;}
-.sidebar-brand{color:#fff;font-size:15px;font-weight:700;}
-.sidebar-user{
-  padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;
+.sb-logo{height:32px;object-fit:contain;}
+.sb-brand{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-0.3px;}
+
+.sb-user{
+  padding:18px 20px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
 }
-.user-avatar-big{
-  width:48px;height:48px;border-radius:50%;
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+.sb-avatar{
+  width:44px;height:44px;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
   display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:700;color:#fff;margin-bottom:10px;
+  font-size:18px;font-weight:800;color:#fff;
+  margin-bottom:10px;
+  box-shadow:0 4px 16px var(--accent-glow);
 }
-.user-info-name{color:#fff;font-size:14px;font-weight:600;margin-bottom:2px;}
-.user-info-phone{color:#9ca3af;font-size:12px;}
-.user-info-row{display:flex;align-items:center;gap:6px;color:#9ca3af;font-size:12px;margin-top:4px;}
-.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto;}
-.nav-section-title{padding:8px 20px;font-size:11px;font-weight:600;color:#4b5563;text-transform:uppercase;letter-spacing:0.8px;}
+.sb-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.sb-phone{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px;}
+.sb-addr{font-size:11px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:5px;}
+
+.sb-nav{flex:1;padding:10px 12px;overflow-y:auto;}
+.sb-section-title{
+  padding:8px 10px;
+  font-size:10px;font-weight:700;
+  color:var(--text3);text-transform:uppercase;letter-spacing:1px;
+  margin-top:4px;
+}
 .nav-item{
   display:flex;align-items:center;gap:10px;
-  padding:11px 20px;color:#9ca3af;font-size:13px;
-  text-decoration:none;transition:all 0.15s;cursor:pointer;
-  border-left:3px solid transparent;
-  background:none;width:100%;text-align:left;font-family:inherit;
+  padding:10px 12px;
+  color:var(--text2);font-size:13px;font-weight:500;
+  border-radius:10px;margin-bottom:2px;
+  cursor:pointer;transition:all 0.15s;
+  border:none;background:none;width:100%;text-align:left;font-family:var(--font);
 }
-.nav-item:hover{background:rgba(255,255,255,0.05);color:#fff;}
-.nav-item.active{background:rgba(99,102,241,0.15);color:#818cf8;border-left-color:#6366f1;}
-.nav-item i{font-size:16px;width:18px;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{
+  background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(99,102,241,0.1));
+  color:var(--accent);
+  box-shadow:inset 0 0 0 1px rgba(59,130,246,0.2);
+}
+.nav-item i{font-size:16px;width:18px;flex-shrink:0;}
 .nav-badge{
-  margin-left:auto;background:#ef4444;color:#fff;
-  padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;
+  margin-left:auto;
+  background:var(--red);color:#fff;
+  padding:2px 7px;border-radius:20px;
+  font-size:10px;font-weight:700;
+  flex-shrink:0;
 }
-.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0;}
+
+.sb-footer{
+  padding:14px 20px;
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
 .logout-btn{
+  display:flex;align-items:center;gap:8px;
+  color:#ef4444;font-size:13px;font-weight:500;
+  text-decoration:none;padding:10px 12px;border-radius:10px;
+  transition:background 0.15s;
+}
+.logout-btn:hover{background:rgba(239,68,68,0.08);color:#ef4444;}
+
+/* Overlay */
+.sb-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.6);z-index:999;
+  backdrop-filter:blur(2px);
+}
+.sb-overlay.active{display:block;}
+
+/* ══ MAIN ══ */
+.main{
+  margin-left:var(--sidebar-w);
+  flex:1;display:flex;flex-direction:column;min-height:100vh;
+}
+
+/* ── Topbar ── */
+.topbar{
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:12px 20px;
   display:flex;align-items:center;gap:10px;
-  color:#ef4444;font-size:13px;text-decoration:none;padding:10px 0;
-}
-.logout-btn:hover{opacity:0.8;color:#ef4444;}
-
-/* Mobile overlay */
-.sidebar-overlay{
-  display:none;position:fixed;top:0;left:0;
-  width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;
-}
-.sidebar-overlay.active{display:block;}
-
-/* ── Main Content ── */
-.main-content{margin-left:260px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
-
-/* Top navbar */
-.top-navbar{
-  background:#fff;padding:12px 16px;
-  border-bottom:1px solid #e5e7eb;
-  display:flex;align-items:center;
-  position:sticky;top:0;z-index:100;gap:10px;
+  position:sticky;top:0;z-index:100;
   min-width:0;
 }
 .hamburger{
   display:none;background:none;border:none;cursor:pointer;
-  padding:6px;flex-shrink:0;border-radius:8px;
+  padding:6px;border-radius:8px;flex-shrink:0;
 }
-.hamburger:hover{background:#f3f4f6;}
-.hamburger span{display:block;width:22px;height:2px;background:#374151;margin:5px 0;transition:0.3s;border-radius:2px;}
-.top-navbar-right{
+.hamburger:hover{background:var(--surface2);}
+.hamburger span{display:block;width:20px;height:2px;background:var(--text2);margin:4px 0;border-radius:2px;transition:0.3s;}
+
+.topbar-right{
   display:flex;align-items:center;gap:8px;
   flex:1;justify-content:flex-end;min-width:0;
 }
-.greeting-text{
-  font-size:13px;color:#6b7280;
+.greeting{
+  font-size:13px;color:var(--text2);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  min-width:0;flex-shrink:1;
+  flex-shrink:1;min-width:0;
 }
-.btn-create-ticket{
-  background:#111827;color:#fff;border:none;
-  padding:8px 12px;border-radius:10px;font-size:13px;
-  font-weight:600;text-decoration:none;cursor:pointer;
-  display:inline-flex;align-items:center;gap:5px;
-  white-space:nowrap;flex-shrink:0;
-}
-.btn-create-ticket:hover{background:#374151;color:#fff;}
 
-/* ── Notification Icon ── */
-.notif-wrapper{position:relative;flex-shrink:0;}
+/* Notif */
+.notif-wrap{position:relative;flex-shrink:0;}
 .notif-btn{
-  background:#f3f4f6;border:none;border-radius:10px;
-  width:38px;height:38px;
+  width:38px;height:38px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border2);
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:18px;position:relative;
-  transition:background 0.15s;
+  font-size:17px;cursor:pointer;position:relative;
+  transition:all 0.15s;
 }
-.notif-btn:hover{background:#e5e7eb;}
-.notif-count{
-  position:absolute;top:-4px;right:-4px;
-  background:#ef4444;color:#fff;
+.notif-btn:hover{background:var(--surface3);border-color:rgba(255,255,255,0.2);}
+.notif-dot{
+  position:absolute;top:-3px;right:-3px;
+  min-width:18px;height:18px;border-radius:9px;
+  background:var(--red);color:#fff;
   font-size:10px;font-weight:700;
-  min-width:17px;height:17px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  border:2px solid #fff;padding:0 3px;
-  animation:pulse-notif 1.5s infinite;
+  border:2px solid var(--bg2);padding:0 4px;
+  animation:pop 1.8s ease infinite;
 }
-@keyframes pulse-notif{
-  0%,100%{transform:scale(1);}
-  50%{transform:scale(1.2);}
-}
+@keyframes pop{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 
-/* Dropdown */
-.notif-dropdown{
+.notif-dd{
   display:none;position:absolute;
-  top:calc(100% + 10px);right:0;
-  width:300px;background:#fff;
-  border:1px solid #e5e7eb;border-radius:14px;
-  box-shadow:0 8px 30px rgba(0,0,0,0.12);
-  z-index:500;overflow:hidden;
+  top:calc(100% + 8px);right:0;
+  width:310px;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  z-index:600;overflow:hidden;
+  animation:ddIn 0.15s ease;
 }
-.notif-dropdown.open{display:block;}
-.notif-dd-header{
-  padding:12px 16px;border-bottom:1px solid #f3f4f6;
-  font-size:13px;font-weight:700;color:#111827;
+.notif-dd.open{display:block;}
+@keyframes ddIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.notif-dd-head{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
 }
-.notif-dd-header span{color:#6b7280;font-weight:500;font-size:12px;}
-.notif-list{max-height:320px;overflow-y:auto;}
+.notif-dd-head strong{font-size:13px;font-weight:700;color:var(--text);}
+.notif-dd-head span{
+  font-size:11px;color:var(--accent);font-weight:600;
+  background:rgba(59,130,246,0.1);padding:2px 8px;border-radius:10px;
+}
+.notif-list{max-height:300px;overflow-y:auto;}
 .notif-item{
-  display:flex;flex-direction:column;gap:3px;
-  padding:12px 16px;border-bottom:1px solid #f9fafb;
-  text-decoration:none;transition:background 0.15s;cursor:pointer;
+  display:block;padding:13px 16px;
+  border-bottom:1px solid var(--border);
+  text-decoration:none;
+  transition:background 0.12s;
 }
-.notif-item:hover{background:#f9fafb;}
+.notif-item:hover{background:var(--surface2);}
 .notif-item:last-child{border-bottom:none;}
-.notif-item-top{display:flex;align-items:center;justify-content:space-between;}
-.notif-ticket-id{
-  font-size:11px;font-weight:700;color:#6366f1;
-  background:#eff6ff;padding:2px 8px;border-radius:20px;
+.ni-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.ni-pid{
+  font-size:11px;font-weight:600;
+  color:var(--accent);
+  font-family:var(--mono);
+  background:rgba(59,130,246,0.1);
+  padding:2px 8px;border-radius:6px;
 }
-.notif-time{font-size:11px;color:#9ca3af;}
-.notif-msg{
-  font-size:13px;color:#374151;font-weight:500;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.notif-sender{font-size:11px;color:#9ca3af;}
-.notif-empty{padding:28px;text-align:center;color:#9ca3af;font-size:13px;}
-.notif-empty div{font-size:28px;margin-bottom:8px;}
+.ni-time{font-size:11px;color:var(--text3);}
+.ni-msg{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.ni-sender{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;}
+.notif-empty{padding:32px 16px;text-align:center;}
+.notif-empty div{font-size:32px;margin-bottom:8px;}
+.notif-empty p{font-size:13px;color:var(--text3);}
 
-/* Page content */
-.page-content{padding:16px;flex:1;}
+/* Create ticket btn */
+.btn-new{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:none;border-radius:10px;
+  font-size:13px;font-weight:700;font-family:var(--font);
+  text-decoration:none;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
+  transition:opacity 0.15s,transform 0.1s;
+  box-shadow:0 4px 14px var(--accent-glow);
+}
+.btn-new:hover{opacity:0.9;transform:translateY(-1px);color:#fff;}
+
+/* ── Page body ── */
+.page{padding:20px;flex:1;}
 
 /* Stats */
-.stat-row{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:10px;margin-bottom:16px;
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.stat{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;padding:16px;
+  position:relative;overflow:hidden;
+  transition:border-color 0.15s;
 }
-.stat-box{
-  background:#fff;border-radius:12px;padding:14px 16px;
-  border:1px solid #e5e7eb;
+.stat:hover{border-color:var(--border2);}
+.stat::before{
+  content:'';position:absolute;
+  top:-20px;right:-20px;
+  width:70px;height:70px;border-radius:50%;
+  opacity:0.12;
 }
-.stat-label{font-size:11px;color:#9ca3af;margin-bottom:4px;font-weight:500;}
-.stat-val{font-size:22px;font-weight:700;color:#111827;}
-.stat-val.inprog{color:#2563eb;}
-.stat-val.pending{color:#d97706;}
-.stat-val.resolved{color:#16a34a;}
+.stat.s-total::before{background:var(--accent);}
+.stat.s-pending::before{background:var(--amber);}
+.stat.s-progress::before{background:var(--accent);}
+.stat.s-resolved::before{background:var(--green);}
+.stat-lbl{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.stat-num{font-size:26px;font-weight:800;letter-spacing:-1px;}
+.stat.s-total .stat-num{color:var(--text);}
+.stat.s-pending .stat-num{color:var(--amber);}
+.stat.s-progress .stat-num{color:var(--accent);}
+.stat.s-resolved .stat-num{color:var(--green);}
+.stat-icon{position:absolute;bottom:12px;right:14px;font-size:22px;opacity:0.25;}
 
-/* Cards */
-.card{background:#fff;border-radius:14px;border:1px solid #e5e7eb;margin-bottom:14px;overflow:hidden;}
-.card-header{
-  padding:12px 16px;border-bottom:1px solid #f3f4f6;
+/* Section card */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:14px;overflow:hidden;
+}
+.card-head{
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
 }
-.card-header h5{font-size:14px;font-weight:700;color:#111827;margin:0;}
-.card-body{padding:14px 16px;}
-
-/* Profile Info */
-.profile-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
-.info-item .info-label{font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
-.info-item .info-val{font-size:14px;color:#111827;font-weight:500;}
+.card-head h5{font-size:14px;font-weight:700;color:var(--text);margin:0;}
+.card-body{padding:16px 18px;}
 
 /* Filter */
 .filter-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
-.filter-group{display:flex;flex-direction:column;gap:4px;min-width:130px;flex:1;}
-.filter-group label{font-size:12px;color:#6b7280;font-weight:500;}
-.filter-group input,.filter-group select{
-  padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;
-  font-size:13px;color:#111827;width:100%;
+.fg{display:flex;flex-direction:column;gap:5px;min-width:120px;flex:1;}
+.fg label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;}
+.fg input,.fg select{
+  padding:9px 12px;
+  background:var(--bg);
+  border:1px solid var(--border2);
+  border-radius:9px;font-size:13px;
+  color:var(--text);width:100%;
+  font-family:var(--font);
+  transition:border-color 0.15s;
+  -webkit-appearance:none;appearance:none;
 }
-.filter-actions{display:flex;gap:8px;align-items:flex-end;}
-.btn-apply{padding:9px 16px;background:#111827;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
-.btn-reset{padding:9px 14px;background:#f3f4f6;color:#374151;border-radius:8px;font-size:13px;text-decoration:none;display:inline-block;white-space:nowrap;}
-.filter-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-.f-tag{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;}
-.f-tag.blue{background:#eff6ff;color:#1d4ed8;}
-.f-tag.green{background:#f0fdf4;color:#166534;}
-.f-tag.amber{background:#fefce8;color:#854d0e;}
+.fg select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2394a3b8' d='M5 7L0.5 2.5h9z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;
+}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--accent);}
+.filter-btns{display:flex;gap:8px;align-items:flex-end;}
+.btn-apply{
+  padding:9px 18px;background:var(--accent);color:#fff;
+  border:none;border-radius:9px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:var(--font);white-space:nowrap;
+  transition:opacity 0.15s;
+}
+.btn-apply:hover{opacity:0.85;}
+.btn-reset{
+  padding:9px 14px;background:var(--surface2);color:var(--text2);
+  border-radius:9px;font-size:13px;text-decoration:none;
+  display:inline-block;white-space:nowrap;border:1px solid var(--border2);
+  transition:background 0.15s;
+}
+.btn-reset:hover{background:var(--surface3);color:var(--text);}
+.ftags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.ftag{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.ftag.blue{background:rgba(59,130,246,0.12);color:var(--accent);}
+.ftag.green{background:rgba(16,185,129,0.12);color:var(--green);}
+.ftag.amber{background:rgba(245,158,11,0.12);color:var(--amber);}
 
 /* Table */
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px;}
-thead tr{background:#f9fafb;}
-th{padding:10px 12px;text-align:left;font-weight:600;color:#6b7280;font-size:12px;border-bottom:1px solid #e5e7eb;white-space:nowrap;}
-td{padding:11px 12px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-align:middle;}
-tbody tr{cursor:pointer;transition:background 0.15s;}
-tbody tr:hover{background:#f9fafb;}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:620px;}
+thead tr{background:var(--bg);}
+th{
+  padding:10px 14px;text-align:left;
+  font-weight:600;color:var(--text3);font-size:11px;
+  border-bottom:1px solid var(--border);
+  text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;
+}
+td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;}
+tbody tr{cursor:pointer;transition:background 0.12s;}
+tbody tr:hover{background:var(--surface2);}
 tbody tr:last-child td{border-bottom:none;}
-.order-pill{background:#f3f4f6;color:#111827;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;font-family:monospace;}
-.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;}
-.s-pending{background:#fef3c7;color:#d97706;}
-.s-resolved{background:#dcfce7;color:#16a34a;}
-.s-progress{background:#dbeafe;color:#2563eb;}
-.dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;}
-.thumb-img{width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb;cursor:pointer;margin-right:3px;}
-.doc-link{display:inline-flex;align-items:center;gap:4px;color:#2563eb;font-size:12px;text-decoration:none;font-weight:500;}
+
+.pill{
+  background:var(--bg);color:var(--text);
+  padding:3px 10px;border-radius:6px;
+  font-size:12px;font-weight:600;
+  font-family:var(--mono);
+  border:1px solid var(--border2);
+}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+.b-pending{background:rgba(245,158,11,0.12);color:var(--amber);}
+.b-resolved{background:rgba(16,185,129,0.12);color:var(--green);}
+.b-progress{background:rgba(59,130,246,0.12);color:var(--accent);}
+.dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0;}
+
+.thumb{width:32px;height:32px;border-radius:7px;object-fit:cover;border:1px solid var(--border2);cursor:pointer;margin-right:3px;transition:opacity 0.15s;}
+.thumb:hover{opacity:0.8;}
+.doc-link{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:12px;text-decoration:none;font-weight:500;}
+.doc-link:hover{opacity:0.8;}
+
 .chat-btn{
   display:inline-flex;align-items:center;gap:5px;
-  padding:6px 10px;background:#111827;color:#fff;
-  border-radius:8px;font-size:12px;font-weight:600;
+  padding:6px 11px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border-radius:8px;
+  font-size:12px;font-weight:600;
   text-decoration:none;white-space:nowrap;
+  transition:opacity 0.15s,transform 0.1s;
+  box-shadow:0 2px 8px var(--accent-glow);
 }
-.chat-btn:hover{background:#374151;color:#fff;}
-.empty-state{text-align:center;padding:36px;color:#9ca3af;}
-.empty-state div{font-size:32px;margin-bottom:8px;}
+.chat-btn:hover{opacity:0.85;transform:translateY(-1px);color:#fff;}
+
+.empty-state{text-align:center;padding:40px;color:var(--text3);}
+.empty-state div{font-size:36px;margin-bottom:10px;}
+.empty-state p{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.empty-state span{font-size:13px;}
 
 /* Pagination */
 .pg-wrap{display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:10px;}
-.pg-info{font-size:12px;color:#9ca3af;}
+.pg-info{font-size:12px;color:var(--text3);}
 .pg-btns{display:flex;gap:6px;flex-wrap:wrap;}
-.pg-btn{padding:6px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;color:#374151;text-decoration:none;}
-.pg-btn.active{background:#111827;color:#fff;border-color:#111827;}
+.pg-btn{
+  padding:6px 12px;border:1px solid var(--border2);
+  border-radius:8px;font-size:13px;
+  background:var(--surface2);color:var(--text2);text-decoration:none;
+  transition:all 0.12s;
+}
+.pg-btn:hover{background:var(--surface3);color:var(--text);}
+.pg-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
-/* Image Modal */
+/* Profile section */
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
+.pf-item .pf-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px;}
+.pf-item .pf-val{font-size:14px;color:var(--text);font-weight:600;}
+
+/* Coming soon */
+.coming-soon{text-align:center;padding:44px 20px;}
+.coming-soon .cs-icon{font-size:44px;margin-bottom:12px;}
+.coming-soon h6{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.coming-soon p{font-size:13px;color:var(--text3);}
+
+/* Modal */
 .img-modal{
-  display:none;position:fixed;top:0;left:0;
-  width:100%;height:100%;background:rgba(0,0,0,0.85);
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.9);
   z-index:9999;justify-content:center;align-items:center;padding:20px;
+  backdrop-filter:blur(8px);
 }
 .img-modal.active{display:flex;}
-.img-modal img{max-width:100%;max-height:90vh;border-radius:12px;object-fit:contain;}
+.img-modal img{max-width:100%;max-height:90vh;border-radius:14px;object-fit:contain;box-shadow:0 30px 80px rgba(0,0,0,0.6);}
 
 /* Toast */
 .toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:calc(100vw - 32px);}
 .toast-msg{
-  padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;
-  background:#fff;border:1px solid #e5e7eb;
-  box-shadow:0 4px 20px rgba(0,0,0,0.1);
+  padding:12px 16px;border-radius:12px;font-size:13px;font-weight:500;
+  background:var(--surface);border:1px solid var(--border2);
+  box-shadow:0 8px 30px rgba(0,0,0,0.4);
   animation:slideIn 0.3s ease;
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;gap:10px;color:var(--text);
 }
 @keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
 
-/* Coming soon */
-.coming-soon{text-align:center;padding:40px 20px;}
-.coming-soon .cs-icon{font-size:40px;margin-bottom:12px;}
-.coming-soon h6{font-size:15px;font-weight:700;color:#111827;margin-bottom:6px;}
-.coming-soon p{font-size:13px;color:#9ca3af;}
-
 /* Mobile ticket cards */
-.mobile-card-view{display:none;}
-.desktop-table{display:block;}
-.ticket-card{
-  background:#fff;border:1px solid #e5e7eb;border-radius:12px;
-  padding:14px;cursor:pointer;transition:box-shadow 0.15s;margin-bottom:10px;
+.mob-cards{display:none;}
+.desk-tbl{display:block;}
+
+.tkt-card{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:14px;padding:14px;
+  cursor:pointer;margin-bottom:10px;
+  transition:border-color 0.15s,transform 0.1s;
+  position:relative;overflow:hidden;
 }
-.ticket-card:active{box-shadow:0 0 0 2px #6366f1;}
-.tc-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-.tc-label{font-size:11px;color:#9ca3af;margin-bottom:2px;}
-.tc-val{font-size:13px;color:#111827;font-weight:500;}
-.tc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6;}
+.tkt-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3px;background:var(--surface3);
+  transition:background 0.15s;
+}
+.tkt-card.pending::before{background:var(--amber);}
+.tkt-card.resolved::before{background:var(--green);}
+.tkt-card.in_progress::before{background:var(--accent);}
+.tkt-card:active{transform:scale(0.99);}
+.tc-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.tc-lbl{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.4px;}
+.tc-val{font-size:13px;color:var(--text);font-weight:600;}
+.tc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
 
 /* ══ MOBILE ══ */
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%);}
   .sidebar.open{transform:translateX(0);}
-  .main-content{margin-left:0 !important;}
-  .hamburger{display:block !important;}
-  .top-navbar{padding:10px 12px;}
-  .stat-row{grid-template-columns:1fr 1fr !important;gap:8px;}
-  .stat-val{font-size:18px;}
-  .stat-label{font-size:10px;}
-  .stat-box{padding:12px 14px;}
-  .page-content{padding:10px;}
+  .main{margin-left:0!important;}
+  .hamburger{display:block!important;}
+  .topbar{padding:10px 14px;}
+  .greeting{display:none;}
+  .stats{grid-template-columns:1fr 1fr!important;gap:8px;}
+  .stat-num{font-size:20px;}
+  .stat-lbl{font-size:10px;}
+  .stat{padding:14px;}
+  .page{padding:12px;}
   .filter-row{flex-direction:column;}
-  .filter-group{min-width:unset;width:100%;}
-  .filter-group input,.filter-group select{width:100%;}
-  .filter-actions{width:100%;justify-content:stretch;}
-  .filter-actions .btn-apply,.filter-actions .btn-reset{flex:1;text-align:center;}
-  .desktop-table{display:none !important;}
-  .mobile-card-view{display:block !important;}
+  .fg{min-width:unset;width:100%;}
+  .filter-btns{width:100%;}
+  .filter-btns .btn-apply,.filter-btns .btn-reset{flex:1;text-align:center;}
+  .desk-tbl{display:none!important;}
+  .mob-cards{display:block!important;}
   .toast-container{top:10px;right:10px;left:10px;}
-  .greeting-text{display:none;}
-  .notif-dropdown{right:-10px;width:280px;}
+  .notif-dd{right:-8px;width:290px;}
 }
 </style>
 
 <!-- Image Modal -->
 <div class="img-modal" id="imgModal">
-  <img id="modalImg" src="" alt="Ticket image">
+  <img id="modalImg" src="" alt="">
 </div>
 
 <!-- Toast -->
@@ -326,26 +491,27 @@ tbody tr:last-child td{border-bottom:none;}
 </div>
 {% endif %}
 
-<!-- Sidebar Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="sb-overlay" id="sbOverlay" onclick="closeSb()"></div>
 
-<div class="app-layout">
+<div class="app">
 
-  <!-- ── SIDEBAR ── -->
+  <!-- ══ SIDEBAR ══ -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <img src="{% static 'image/ff.png' %}" class="sidebar-logo" alt="Logo">
+    <div class="sb-header">
+      <img src="{% static 'image/ff.png' %}" class="sb-logo" alt="Logo">
     </div>
-    <div class="sidebar-user">
-      <div class="user-avatar-big">{{ user.username|slice:":1"|upper }}</div>
-      <div class="user-info-name">{{ user.username }}</div>
-      <div class="user-info-phone">📱 {{ user.profile.mobile|default:"-" }}</div>
+
+    <div class="sb-user">
+      <div class="sb-avatar">{{ user.username|slice:":1"|upper }}</div>
+      <div class="sb-name">{{ user.username }}</div>
+      <div class="sb-phone">📱 {{ user.profile.mobile|default:"-" }}</div>
       {% if user.profile.address %}
-      <div class="user-info-row">📍 {{ user.profile.address|truncatechars:30 }}</div>
+      <div class="sb-addr">📍 {{ user.profile.address|truncatechars:28 }}</div>
       {% endif %}
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-title">Menu</div>
+
+    <nav class="sb-nav">
+      <div class="sb-section-title">Main Menu</div>
       <button class="nav-item active" id="nav-tickets" onclick="showSection('tickets')">
         <i class="mdi mdi-ticket-outline"></i>My Tickets
         <span class="nav-badge">{{ page_obj.paginator.count }}</span>
@@ -353,7 +519,7 @@ tbody tr:last-child td{border-bottom:none;}
       <button class="nav-item" id="nav-profile" onclick="showSection('profile')">
         <i class="mdi mdi-account-outline"></i>Profile
       </button>
-      <div class="nav-section-title" style="margin-top:8px;">Orders</div>
+      <div class="sb-section-title">Orders</div>
       <button class="nav-item" id="nav-pickup" onclick="showSection('pickup')">
         <i class="mdi mdi-package-up"></i>Pickup
       </button>
@@ -361,127 +527,126 @@ tbody tr:last-child td{border-bottom:none;}
         <i class="mdi mdi-truck-delivery-outline"></i>Delivery
       </button>
     </nav>
-    <div class="sidebar-footer">
+
+    <div class="sb-footer">
       <a href="{% url 'user_logout' %}" class="logout-btn">
         <i class="mdi mdi-logout" style="font-size:16px;"></i>Logout
       </a>
     </div>
   </aside>
 
-  <!-- ── MAIN CONTENT ── -->
-  <div class="main-content">
+  <!-- ══ MAIN ══ -->
+  <div class="main">
 
-    <!-- Top Navbar -->
-    <div class="top-navbar">
-      <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
+    <!-- Topbar -->
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSb()" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
-      <div class="top-navbar-right">
-        <span class="greeting-text">{{ emoji }} {{ greeting }}, {{ user.username }}!</span>
+      <div class="topbar-right">
+        <span class="greeting">{{ emoji }} {{ greeting }}, {{ user.username }}!</span>
 
-        <!-- ── MESSAGE NOTIFICATION ICON ── -->
-        <div class="notif-wrapper" id="notifWrapper">
-          <button class="notif-btn" onclick="toggleNotif(event)" aria-label="Messages">
+        <!-- Notification -->
+        <div class="notif-wrap" id="notifWrap">
+          <button class="notif-btn" onclick="toggleNotif(event)">
             💬
             {% if unread_notif_count > 0 %}
-              <span class="notif-count">{{ unread_notif_count }}</span>
+              <span class="notif-dot">{{ unread_notif_count }}</span>
             {% endif %}
           </button>
-          <div class="notif-dropdown" id="notifDropdown">
-            <div class="notif-dd-header">
-              💬Messages
+          <div class="notif-dd" id="notifDd">
+            <div class="notif-dd-head">
+              <strong>💬 Messages</strong>
               <span>{{ unread_notif_count }} unread</span>
             </div>
             <div class="notif-list">
               {% if unread_notifications %}
                 {% for comment in unread_notifications %}
                 <a href="{% url 'user_ticket_chat' comment.ticket.id %}" class="notif-item">
-                  <div class="notif-item-top">
-                    <span class="notif-ticket-id">
-                      {% if comment.ticket.purchase %}
-                        {{ comment.ticket.purchase.purchase_id }}
-                      {% else %}
-                        Ticket #{{ comment.ticket.id }}
-                      {% endif %}
+                  <div class="ni-top">
+                    <span class="ni-pid">
+                      {% if comment.ticket.purchase %}{{ comment.ticket.purchase.purchase_id }}{% else %}#{{ comment.ticket.id }}{% endif %}
                     </span>
-                    <span class="notif-time">{{ comment.created_at|timesince }} ago</span>
+                    <span class="ni-time">{{ comment.created_at|timesince }} ago</span>
                   </div>
-                  <div class="notif-msg">{{ comment.message|truncatechars:55 }}</div>
-                  <div class="notif-sender">👤 {{ comment.sender.username }}</div>
+                  <div class="ni-msg">{{ comment.message|truncatechars:55 }}</div>
+                  <div class="ni-sender">👤 {{ comment.sender.username }}</div>
                 </a>
                 {% endfor %}
               {% else %}
                 <div class="notif-empty">
                   <div>💬</div>
-                  Koi naya message nahi
+                  <p>Koi naya message nahi</p>
                 </div>
               {% endif %}
             </div>
           </div>
         </div>
-        <!-- ── END NOTIFICATION ── -->
 
         {% if has_purchase %}
-          <a href="{% url 'create_ticket' %}" class="btn-create-ticket">
-            <span>+</span> Create Ticket
-          </a>
+          <a href="{% url 'create_ticket' %}" class="btn-new">+ New Ticket</a>
         {% endif %}
       </div>
     </div>
 
-    <!-- Page Content -->
-    <div class="page-content">
+    <!-- Page -->
+    <div class="page">
 
       <!-- Stats -->
-      <div class="stat-row">
-        <div class="stat-box">
-          <div class="stat-label">Total</div>
-          <div class="stat-val">{{ page_obj.paginator.count }}</div>
+      <div class="stats">
+        <div class="stat s-total">
+          <div class="stat-lbl">Total</div>
+          <div class="stat-num">{{ page_obj.paginator.count }}</div>
+          <div class="stat-icon">🎫</div>
         </div>
-        <div class="stat-box">
-          <div class="stat-label">Pending</div>
-          <div class="stat-val pending">{{ pending_count|default:"0" }}</div>
+        <div class="stat s-pending">
+          <div class="stat-lbl">Pending</div>
+          <div class="stat-num">{{ pending_count|default:"0" }}</div>
+          <div class="stat-icon">⏳</div>
         </div>
-        <div class="stat-box">
-          <div class="stat-label">In Progress</div>
-          <div class="stat-val inprog">{{ progress_count|default:"0" }}</div>
+        <div class="stat s-progress">
+          <div class="stat-lbl">In Progress</div>
+          <div class="stat-num">{{ progress_count|default:"0" }}</div>
+          <div class="stat-icon">🔄</div>
         </div>
-        <div class="stat-box">
-          <div class="stat-label">Resolved</div>
-          <div class="stat-val resolved">{{ resolved_count|default:"0" }}</div>
+        <div class="stat s-resolved">
+          <div class="stat-lbl">Resolved</div>
+          <div class="stat-num">{{ resolved_count|default:"0" }}</div>
+          <div class="stat-icon">✅</div>
         </div>
       </div>
 
-      <!-- ── TICKETS SECTION ── -->
+      <!-- ── TICKETS ── -->
       <div id="section-tickets">
 
+        <!-- Filter -->
         <div class="card">
-          <div class="card-header"><h5>🔍 Filter Tickets</h5></div>
+          <div class="card-head"><h5>🔍 Filter Tickets</h5></div>
           <div class="card-body">
-            <form method="GET" onsubmit="cleanFilterForm(this)">
+            <form method="GET" onsubmit="cleanForm(this)">
               <div class="filter-row">
-                <div class="filter-group">
-                  <label>Product Name</label>
-                  <input type="text" name="product" value="{{ product_query }}" placeholder="Search...">
+                <div class="fg">
+                  <label>Product</label>
+                  <input type="text" name="product" value="{{ product_query }}" placeholder="Search product...">
                 </div>
-                <div class="filter-group">
+                <div class="fg">
                   <label>Status</label>
                   <select name="status">
-                    <option value="">All Status</option>
+                    <option value="">All</option>
                     <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>⏳ Pending</option>
                     <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
                     <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>✅ Resolved</option>
                   </select>
                 </div>
-                <div class="filter-group">
+                <div class="fg">
                   <label>From</label>
                   <input type="date" name="date_from" value="{{ date_from }}">
                 </div>
-                <div class="filter-group">
+                <div class="fg">
                   <label>To</label>
                   <input type="date" name="date_to" value="{{ date_to }}">
                 </div>
-                <div class="filter-group">
+                <div class="fg">
                   <label>Show</label>
                   <select name="per_page">
                     <option value="10" {% if request.GET.per_page == '10' or not request.GET.per_page %}selected{% endif %}>10 / page</option>
@@ -490,17 +655,17 @@ tbody tr:last-child td{border-bottom:none;}
                     <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50 / page</option>
                   </select>
                 </div>
-                <div class="filter-actions">
+                <div class="filter-btns">
                   <button type="submit" class="btn-apply">Apply</button>
                   <a href="{% url 'dashboard_user' %}" class="btn-reset">Reset</a>
                 </div>
               </div>
               {% if product_query or date_from or date_to or status_filter %}
-              <div class="filter-tags">
-                {% if product_query %}<span class="f-tag blue">📦 "{{ product_query }}"</span>{% endif %}
-                {% if status_filter %}<span class="f-tag amber">{{ status_filter }}</span>{% endif %}
-                {% if date_from %}<span class="f-tag green">From: {{ date_from }}</span>{% endif %}
-                {% if date_to %}<span class="f-tag green">To: {{ date_to }}</span>{% endif %}
+              <div class="ftags">
+                {% if product_query %}<span class="ftag blue">📦 "{{ product_query }}"</span>{% endif %}
+                {% if status_filter %}<span class="ftag amber">{{ status_filter }}</span>{% endif %}
+                {% if date_from %}<span class="ftag green">From: {{ date_from }}</span>{% endif %}
+                {% if date_to %}<span class="ftag green">To: {{ date_to }}</span>{% endif %}
               </div>
               {% endif %}
             </form>
@@ -508,44 +673,44 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
 
         <!-- Desktop Table -->
-        <div class="card desktop-table">
-          <div class="card-header">
+        <div class="card desk-tbl">
+          <div class="card-head">
             <h5>📌 My Tickets</h5>
-            <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} total</span>
+            <span style="font-size:12px;color:var(--text3);">{{ page_obj.paginator.count }} total</span>
           </div>
-          <div class="table-wrap">
+          <div class="tbl-wrap">
             <table>
               <thead>
                 <tr>
                   <th>#</th><th>Order ID</th><th>Product</th><th>Category</th>
-                  <th>Date</th><th>Images</th><th>Document</th><th>Status</th><th>Chat</th>
+                  <th>Date</th><th>Images</th><th>Doc</th><th>Status</th><th>Chat</th>
                 </tr>
               </thead>
               <tbody>
                 {% for ticket in page_obj %}
                 <tr data-href="{% url 'user_ticket_chat' ticket.id %}" onclick="goTicket(this)">
-                  <td style="color:#9ca3af;">{{ forloop.counter }}</td>
-                  <td>{% if ticket.purchase %}<span class="order-pill">{{ ticket.purchase.purchase_id }}</span>{% else %}-{% endif %}</td>
-                  <td style="font-weight:500;">{% if ticket.purchase %}{{ ticket.purchase.product_name }}{% else %}-{% endif %}</td>
-                  <td>{{ ticket.category|default:"-" }}</td>
-                  <td style="color:#6b7280;white-space:nowrap;">{{ ticket.created_at|date:"d M Y" }}</td>
+                  <td style="color:var(--text3);">{{ forloop.counter }}</td>
+                  <td>{% if ticket.purchase %}<span class="pill">{{ ticket.purchase.purchase_id }}</span>{% else %}<span style="color:var(--text3);">—</span>{% endif %}</td>
+                  <td style="font-weight:600;color:var(--text);">{% if ticket.purchase %}{{ ticket.purchase.product_name }}{% else %}—{% endif %}</td>
+                  <td>{{ ticket.category|default:"—" }}</td>
+                  <td style="white-space:nowrap;color:var(--text3);">{{ ticket.created_at|date:"d M Y" }}</td>
                   <td>
                     {% for img in ticket.images.all %}
-                      <img src="{{ img.image.url }}" class="thumb-img" onclick="event.stopPropagation();openImage(this.src)">
-                    {% empty %}-{% endfor %}
+                      <img src="{{ img.image.url }}" class="thumb" onclick="event.stopPropagation();openImg(this.src)">
+                    {% empty %}<span style="color:var(--text3);">—</span>{% endfor %}
                   </td>
                   <td>
                     {% if ticket.document %}
                       <a href="{{ ticket.document.url }}" target="_blank" class="doc-link" onclick="event.stopPropagation()">📄 View</a>
-                    {% else %}-{% endif %}
+                    {% else %}<span style="color:var(--text3);">—</span>{% endif %}
                   </td>
                   <td>
                     {% if ticket.status == 'pending' %}
-                      <span class="status-badge s-pending"><span class="dot" style="background:#d97706;"></span>Pending</span>
+                      <span class="badge b-pending"><span class="dot" style="background:var(--amber);"></span>Pending</span>
                     {% elif ticket.status == 'resolved' %}
-                      <span class="status-badge s-resolved"><span class="dot" style="background:#16a34a;"></span>Resolved</span>
+                      <span class="badge b-resolved"><span class="dot" style="background:var(--green);"></span>Resolved</span>
                     {% elif ticket.status == 'in_progress' %}
-                      <span class="status-badge s-progress"><span class="dot" style="background:#2563eb;"></span>In Progress</span>
+                      <span class="badge b-progress"><span class="dot" style="background:var(--accent);"></span>In Progress</span>
                     {% endif %}
                   </td>
                   <td>
@@ -554,9 +719,10 @@ tbody tr:last-child td{border-bottom:none;}
                 </tr>
                 {% empty %}
                 <tr><td colspan="9">
-                  <div class="empty-state"><div>🎫</div>
-                    <p style="font-weight:600;color:#374151;margin:0 0 4px;">No tickets found</p>
-                    <span style="font-size:13px;">Create a new ticket to get started</span>
+                  <div class="empty-state">
+                    <div>🎫</div>
+                    <p>No tickets found</p>
+                    <span>Create a new ticket to get started</span>
                   </div>
                 </td></tr>
                 {% endfor %}
@@ -564,7 +730,7 @@ tbody tr:last-child td{border-bottom:none;}
             </table>
           </div>
           {% if page_obj.has_other_pages %}
-          <div style="padding:14px 16px;">
+          <div style="padding:14px 18px;">
             <div class="pg-wrap">
               <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
               <div class="pg-btns">
@@ -588,48 +754,48 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
 
         <!-- Mobile Cards -->
-        <div class="mobile-card-view">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <span style="font-size:13px;font-weight:600;color:#374151;">📌 My Tickets</span>
-            <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} total</span>
+        <div class="mob-cards">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <span style="font-size:13px;font-weight:700;color:var(--text);">📌 My Tickets</span>
+            <span style="font-size:12px;color:var(--text3);">{{ page_obj.paginator.count }} total</span>
           </div>
           {% for ticket in page_obj %}
-          <div class="ticket-card" data-href="{% url 'user_ticket_chat' ticket.id %}" onclick="goTicket(this)">
+          <div class="tkt-card {{ ticket.status }}" data-href="{% url 'user_ticket_chat' ticket.id %}" onclick="goTicket(this)">
             <div class="tc-row">
               <div>
-                <div class="tc-label">Order ID</div>
+                <div class="tc-lbl">Order ID</div>
                 <div class="tc-val">
-                  {% if ticket.purchase %}<span class="order-pill">{{ ticket.purchase.purchase_id }}</span>{% else %}-{% endif %}
+                  {% if ticket.purchase %}<span class="pill">{{ ticket.purchase.purchase_id }}</span>{% else %}—{% endif %}
                 </div>
               </div>
               <div>
                 {% if ticket.status == 'pending' %}
-                  <span class="status-badge s-pending"><span class="dot" style="background:#d97706;"></span>Pending</span>
+                  <span class="badge b-pending"><span class="dot" style="background:var(--amber);"></span>Pending</span>
                 {% elif ticket.status == 'resolved' %}
-                  <span class="status-badge s-resolved"><span class="dot" style="background:#16a34a;"></span>Resolved</span>
+                  <span class="badge b-resolved"><span class="dot" style="background:var(--green);"></span>Resolved</span>
                 {% elif ticket.status == 'in_progress' %}
-                  <span class="status-badge s-progress"><span class="dot" style="background:#2563eb;"></span>In Progress</span>
+                  <span class="badge b-progress"><span class="dot" style="background:var(--accent);"></span>In Progress</span>
                 {% endif %}
               </div>
             </div>
-            <div style="margin-bottom:6px;">
-              <div class="tc-label">Product</div>
-              <div class="tc-val">{% if ticket.purchase %}{{ ticket.purchase.product_name }}{% else %}-{% endif %}</div>
+            <div style="margin-bottom:8px;">
+              <div class="tc-lbl">Product</div>
+              <div class="tc-val">{% if ticket.purchase %}{{ ticket.purchase.product_name }}{% else %}—{% endif %}</div>
             </div>
-            <div style="display:flex;gap:16px;margin-bottom:4px;">
+            <div style="display:flex;gap:20px;margin-bottom:4px;">
               <div>
-                <div class="tc-label">Category</div>
-                <div class="tc-val" style="font-size:12px;">{{ ticket.category|default:"-" }}</div>
+                <div class="tc-lbl">Category</div>
+                <div class="tc-val" style="font-size:12px;font-weight:500;">{{ ticket.category|default:"—" }}</div>
               </div>
               <div>
-                <div class="tc-label">Date</div>
-                <div class="tc-val" style="font-size:12px;">{{ ticket.created_at|date:"d M Y" }}</div>
+                <div class="tc-lbl">Date</div>
+                <div class="tc-val" style="font-size:12px;font-weight:500;">{{ ticket.created_at|date:"d M Y" }}</div>
               </div>
             </div>
             <div class="tc-footer">
               <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
                 {% for img in ticket.images.all %}
-                  <img src="{{ img.image.url }}" class="thumb-img" onclick="event.stopPropagation();openImage(this.src)">
+                  <img src="{{ img.image.url }}" class="thumb" onclick="event.stopPropagation();openImg(this.src)">
                 {% endfor %}
                 {% if ticket.document %}
                   <a href="{{ ticket.document.url }}" target="_blank" class="doc-link" onclick="event.stopPropagation()">📄 Doc</a>
@@ -639,12 +805,13 @@ tbody tr:last-child td{border-bottom:none;}
             </div>
           </div>
           {% empty %}
-          <div class="empty-state" style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;">
+          <div class="empty-state" style="background:var(--surface);border-radius:14px;border:1px solid var(--border);">
             <div>🎫</div>
-            <p style="font-weight:600;color:#374151;margin:0 0 4px;">No tickets found</p>
-            <span style="font-size:13px;">Create a new ticket to get started</span>
+            <p>No tickets found</p>
+            <span>Create a new ticket to get started</span>
           </div>
           {% endfor %}
+
           {% if page_obj.has_other_pages %}
           <div class="pg-wrap" style="margin-top:14px;">
             <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
@@ -662,41 +829,26 @@ tbody tr:last-child td{border-bottom:none;}
 
       </div><!-- /section-tickets -->
 
-      <!-- Profile Section -->
+      <!-- Profile -->
       <div id="section-profile" style="display:none;">
         <div class="card">
-          <div class="card-header"><h5>👤 My Profile</h5></div>
+          <div class="card-head"><h5>👤 My Profile</h5></div>
           <div class="card-body">
-            <div class="profile-info-grid">
-              <div class="info-item">
-                <div class="info-label">Full Name</div>
-                <div class="info-val">{{ user.get_full_name|default:user.username }}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">Username</div>
-                <div class="info-val">{{ user.username }}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">Email</div>
-                <div class="info-val">{{ user.email|default:"-" }}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">Phone</div>
-                <div class="info-val">{{ user.profile.mobile|default:"-" }}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">Total Tickets</div>
-                <div class="info-val">{{ page_obj.paginator.count }}</div>
-              </div>
+            <div class="profile-grid">
+              <div class="pf-item"><div class="pf-lbl">Full Name</div><div class="pf-val">{{ user.get_full_name|default:user.username }}</div></div>
+              <div class="pf-item"><div class="pf-lbl">Username</div><div class="pf-val">{{ user.username }}</div></div>
+              <div class="pf-item"><div class="pf-lbl">Email</div><div class="pf-val">{{ user.email|default:"—" }}</div></div>
+              <div class="pf-item"><div class="pf-lbl">Phone</div><div class="pf-val">{{ user.profile.mobile|default:"—" }}</div></div>
+              <div class="pf-item"><div class="pf-lbl">Total Tickets</div><div class="pf-val">{{ page_obj.paginator.count }}</div></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Pickup Section -->
+      <!-- Pickup -->
       <div id="section-pickup" style="display:none;">
         <div class="card">
-          <div class="card-header"><h5>📦 Pickup</h5></div>
+          <div class="card-head"><h5>📦 Pickup</h5></div>
           <div class="card-body">
             <div class="coming-soon">
               <div class="cs-icon">📦</div>
@@ -707,10 +859,10 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
 
-      <!-- Delivery Section -->
+      <!-- Delivery -->
       <div id="section-delivery" style="display:none;">
         <div class="card">
-          <div class="card-header"><h5>🚚 Delivery</h5></div>
+          <div class="card-head"><h5>🚚 Delivery</h5></div>
           <div class="card-body">
             <div class="coming-soon">
               <div class="cs-icon">🚚</div>
@@ -721,82 +873,64 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
 
-    </div><!-- /page-content -->
-  </div><!-- /main-content -->
-</div><!-- /app-layout -->
+    </div><!-- /page -->
+  </div><!-- /main -->
+</div><!-- /app -->
 
 <script>
-function cleanFilterForm(form) {
-  Array.from(form.elements).forEach(el => {
-    if (el.name && !el.value) el.disabled = true;
-  });
-  return true;
+function cleanForm(form){
+  Array.from(form.elements).forEach(el=>{if(el.name&&!el.value)el.disabled=true;});
 }
+function goTicket(el){window.location=el.getAttribute('data-href');}
 
-function goTicket(el) {
-  window.location = el.getAttribute('data-href');
+function toggleSb(){
+  var sb=document.getElementById('sidebar'),ov=document.getElementById('sbOverlay');
+  sb.classList.toggle('open');ov.classList.toggle('active');
+  document.body.style.overflow=sb.classList.contains('open')?'hidden':'';
 }
-
-function toggleSidebar() {
-  var sidebar = document.getElementById('sidebar');
-  var overlay = document.getElementById('sidebarOverlay');
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('active');
-  document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
-}
-
-function closeSidebar() {
+function closeSb(){
   document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('active');
-  document.body.style.overflow = '';
+  document.getElementById('sbOverlay').classList.remove('active');
+  document.body.style.overflow='';
 }
 
-var SECTIONS = ['tickets', 'profile', 'pickup', 'delivery'];
-function showSection(name) {
-  SECTIONS.forEach(function(s) {
-    var sec = document.getElementById('section-' + s);
-    var nav = document.getElementById('nav-' + s);
-    if (sec) sec.style.display = (s === name) ? 'block' : 'none';
-    if (nav) nav.classList.toggle('active', s === name);
+var SECTIONS=['tickets','profile','pickup','delivery'];
+function showSection(name){
+  SECTIONS.forEach(function(s){
+    var sec=document.getElementById('section-'+s);
+    var nav=document.getElementById('nav-'+s);
+    if(sec)sec.style.display=(s===name)?'block':'none';
+    if(nav)nav.classList.toggle('active',s===name);
   });
-  closeSidebar();
+  closeSb();
 }
 
-function openImage(src) {
-  document.getElementById('modalImg').src = src;
+function openImg(src){
+  document.getElementById('modalImg').src=src;
   document.getElementById('imgModal').classList.add('active');
 }
-document.getElementById('imgModal').addEventListener('click', function() {
-  this.classList.remove('active');
-});
+document.getElementById('imgModal').addEventListener('click',function(){this.classList.remove('active');});
 
-window.addEventListener('resize', function() {
-  if (window.innerWidth > 768) {
+window.addEventListener('resize',function(){
+  if(window.innerWidth>768){
     document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('active');
-    document.body.style.overflow = '';
+    document.getElementById('sbOverlay').classList.remove('active');
+    document.body.style.overflow='';
   }
 });
 
-setTimeout(function() {
-  var t = document.getElementById('toastContainer');
-  if (t) {
-    t.style.opacity = '0';
-    t.style.transition = 'opacity 0.3s';
-    setTimeout(function() { t.remove(); }, 300);
-  }
-}, 4500);
+setTimeout(function(){
+  var t=document.getElementById('toastContainer');
+  if(t){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove();},300);}
+},4500);
 
-// ── Notification dropdown ──
-function toggleNotif(e) {
+function toggleNotif(e){
   e.stopPropagation();
-  document.getElementById('notifDropdown').classList.toggle('open');
+  document.getElementById('notifDd').classList.toggle('open');
 }
-document.addEventListener('click', function(e) {
-  var wrapper = document.getElementById('notifWrapper');
-  if (wrapper && !wrapper.contains(e.target)) {
-    document.getElementById('notifDropdown').classList.remove('open');
-  }
+document.addEventListener('click',function(e){
+  var w=document.getElementById('notifWrap');
+  if(w&&!w.contains(e.target))document.getElementById('notifDd').classList.remove('open');
 });
 </script>
 
