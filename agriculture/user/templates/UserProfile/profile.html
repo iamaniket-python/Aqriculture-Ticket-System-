@@ -8,26 +8,26 @@
 
 <style>
 :root{
-  --bg:#0f1117;
-  --bg2:#161b27;
-  --bg3:#1e2535;
-  --surface:#1e2535;
-  --surface2:#252d3d;
-  --surface3:#2d3650;
-  --border:rgba(255,255,255,0.07);
-  --border2:rgba(255,255,255,0.12);
+  --bg:#f3f4f6;
+  --bg2:#ffffff;
+  --bg3:#f9fafb;
+  --surface:#ffffff;
+  --surface2:#f9fafb;
+  --surface3:#f0f2f5;
+  --border:rgba(0,0,0,0.07);
+  --border2:rgba(0,0,0,0.12);
   --accent:#3b82f6;
   --accent2:#6366f1;
-  --accent-glow:rgba(59,130,246,0.25);
+  --accent-glow:rgba(59,130,246,0.18);
   --green:#10b981;
-  --green-glow:rgba(16,185,129,0.2);
+  --green-glow:rgba(16,185,129,0.15);
   --amber:#f59e0b;
-  --amber-glow:rgba(245,158,11,0.2);
+  --amber-glow:rgba(245,158,11,0.15);
   --red:#ef4444;
-  --red-glow:rgba(239,68,68,0.2);
-  --text:#f1f5f9;
-  --text2:#94a3b8;
-  --text3:#475569;
+  --red-glow:rgba(239,68,68,0.15);
+  --text:#111827;
+  --text2:#4b5563;
+  --text3:#9ca3af;
   --font:'Plus Jakarta Sans',sans-serif;
   --mono:'DM Mono',monospace;
   --sidebar-w:270px;
@@ -43,7 +43,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);}
 /* ══ SIDEBAR ══ */
 .sidebar{
   width:var(--sidebar-w);min-width:var(--sidebar-w);
-  background:var(--bg2);
+  background:#111827;
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;
   position:fixed;top:0;left:0;height:100vh;
@@ -54,16 +54,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);}
 
 .sb-header{
   padding:22px 20px 18px;
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid rgba(255,255,255,0.08);
   display:flex;align-items:center;gap:10px;
   flex-shrink:0;
 }
 .sb-logo{height:32px;object-fit:contain;}
-.sb-brand{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-0.3px;}
+.sb-brand{font-size:15px;font-weight:800;color:#f1f5f9;letter-spacing:-0.3px;}
 
 .sb-user{
   padding:18px 20px;
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid rgba(255,255,255,0.08);
   flex-shrink:0;
 }
 .sb-avatar{
@@ -74,26 +74,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);}
   margin-bottom:10px;
   box-shadow:0 4px 16px var(--accent-glow);
 }
-.sb-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;}
-.sb-phone{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px;}
-.sb-addr{font-size:11px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:5px;}
+.sb-name{font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:3px;}
+.sb-phone{font-size:12px;color:#6b7280;display:flex;align-items:center;gap:5px;}
+.sb-addr{font-size:11px;color:#6b7280;margin-top:4px;display:flex;align-items:center;gap:5px;}
 
 .sb-nav{flex:1;padding:10px 12px;overflow-y:auto;}
 .sb-section-title{
   padding:8px 10px;
   font-size:10px;font-weight:700;
-  color:var(--text3);text-transform:uppercase;letter-spacing:1px;
+  color:#4b5563;text-transform:uppercase;letter-spacing:1px;
   margin-top:4px;
 }
 .nav-item{
   display:flex;align-items:center;gap:10px;
   padding:10px 12px;
-  color:var(--text2);font-size:13px;font-weight:500;
+  color:#9ca3af;font-size:13px;font-weight:500;
   border-radius:10px;margin-bottom:2px;
   cursor:pointer;transition:all 0.15s;
   border:none;background:none;width:100%;text-align:left;font-family:var(--font);
 }
-.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#fff;}
 .nav-item.active{
   background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(99,102,241,0.1));
   color:var(--accent);
@@ -110,7 +110,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);}
 
 .sb-footer{
   padding:14px 20px;
-  border-top:1px solid var(--border);
+  border-top:1px solid rgba(255,255,255,0.08);
   flex-shrink:0;
 }
 .logout-btn{
@@ -137,7 +137,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);}
 
 /* ── Topbar ── */
 .topbar{
-  background:var(--bg2);
+  background:#ffffff;
   border-bottom:1px solid var(--border);
   padding:12px 20px;
   display:flex;align-items:center;gap:10px;
@@ -186,7 +186,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);}
   display:none;position:absolute;
   top:calc(100% + 8px);right:0;
   width:310px;
-  background:var(--bg2);
+  background:#ffffff;
   border:1px solid var(--border2);
   border-radius:16px;
   box-shadow:0 20px 60px rgba(0,0,0,0.5);
@@ -212,7 +212,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);}
   text-decoration:none;
   transition:background 0.12s;
 }
-.notif-item:hover{background:var(--surface2);}
+.notif-item:hover{background:#f9fafb;}
 .notif-item:last-child{border-bottom:none;}
 .ni-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
 .ni-pid{
@@ -295,7 +295,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);}
 .fg label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;}
 .fg input,.fg select{
   padding:9px 12px;
-  background:var(--bg);
+  background:#f9fafb;
   border:1px solid var(--border2);
   border-radius:9px;font-size:13px;
   color:var(--text);width:100%;
@@ -417,7 +417,7 @@ tbody tr:last-child td{border-bottom:none;}
 .toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:calc(100vw - 32px);}
 .toast-msg{
   padding:12px 16px;border-radius:12px;font-size:13px;font-weight:500;
-  background:var(--surface);border:1px solid var(--border2);
+  background:#ffffff;border:1px solid #e5e7eb;
   box-shadow:0 8px 30px rgba(0,0,0,0.4);
   animation:slideIn 0.3s ease;
   display:flex;align-items:center;gap:10px;color:var(--text);
@@ -805,7 +805,7 @@ tbody tr:last-child td{border-bottom:none;}
             </div>
           </div>
           {% empty %}
-          <div class="empty-state" style="background:var(--surface);border-radius:14px;border:1px solid var(--border);">
+          <div class="empty-state" style="background:#ffffff;border-radius:14px;border:1px solid #e5e7eb;">
             <div>🎫</div>
             <p>No tickets found</p>
             <span>Create a new ticket to get started</span>
