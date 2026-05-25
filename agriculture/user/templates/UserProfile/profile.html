@@ -23,7 +23,6 @@
 }
 .sidebar-logo{height:36px;object-fit:contain;}
 .sidebar-brand{color:#fff;font-size:15px;font-weight:700;}
-
 .sidebar-user{
   padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;
 }
@@ -36,7 +35,6 @@
 .user-info-name{color:#fff;font-size:14px;font-weight:600;margin-bottom:2px;}
 .user-info-phone{color:#9ca3af;font-size:12px;}
 .user-info-row{display:flex;align-items:center;gap:6px;color:#9ca3af;font-size:12px;margin-top:4px;}
-
 .sidebar-nav{flex:1;padding:12px 0;overflow-y:auto;}
 .nav-section-title{padding:8px 20px;font-size:11px;font-weight:600;color:#4b5563;text-transform:uppercase;letter-spacing:0.8px;}
 .nav-item{
@@ -53,7 +51,6 @@
   margin-left:auto;background:#ef4444;color:#fff;
   padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;
 }
-
 .sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0;}
 .logout-btn{
   display:flex;align-items:center;gap:10px;
@@ -79,14 +76,12 @@
   position:sticky;top:0;z-index:100;gap:10px;
   min-width:0;
 }
-/* FIXED: hamburger hidden on desktop, shown on mobile */
 .hamburger{
   display:none;background:none;border:none;cursor:pointer;
   padding:6px;flex-shrink:0;border-radius:8px;
 }
 .hamburger:hover{background:#f3f4f6;}
 .hamburger span{display:block;width:22px;height:2px;background:#374151;margin:5px 0;transition:0.3s;border-radius:2px;}
-
 .top-navbar-right{
   display:flex;align-items:center;gap:8px;
   flex:1;justify-content:flex-end;min-width:0;
@@ -105,13 +100,74 @@
 }
 .btn-create-ticket:hover{background:#374151;color:#fff;}
 
+/* ── Notification Icon ── */
+.notif-wrapper{position:relative;flex-shrink:0;}
+.notif-btn{
+  background:#f3f4f6;border:none;border-radius:10px;
+  width:38px;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;position:relative;
+  transition:background 0.15s;
+}
+.notif-btn:hover{background:#e5e7eb;}
+.notif-count{
+  position:absolute;top:-4px;right:-4px;
+  background:#ef4444;color:#fff;
+  font-size:10px;font-weight:700;
+  min-width:17px;height:17px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;padding:0 3px;
+  animation:pulse-notif 1.5s infinite;
+}
+@keyframes pulse-notif{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.2);}
+}
+
+/* Dropdown */
+.notif-dropdown{
+  display:none;position:absolute;
+  top:calc(100% + 10px);right:0;
+  width:300px;background:#fff;
+  border:1px solid #e5e7eb;border-radius:14px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.12);
+  z-index:500;overflow:hidden;
+}
+.notif-dropdown.open{display:block;}
+.notif-dd-header{
+  padding:12px 16px;border-bottom:1px solid #f3f4f6;
+  font-size:13px;font-weight:700;color:#111827;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.notif-dd-header span{color:#6b7280;font-weight:500;font-size:12px;}
+.notif-list{max-height:320px;overflow-y:auto;}
+.notif-item{
+  display:flex;flex-direction:column;gap:3px;
+  padding:12px 16px;border-bottom:1px solid #f9fafb;
+  text-decoration:none;transition:background 0.15s;cursor:pointer;
+}
+.notif-item:hover{background:#f9fafb;}
+.notif-item:last-child{border-bottom:none;}
+.notif-item-top{display:flex;align-items:center;justify-content:space-between;}
+.notif-ticket-id{
+  font-size:11px;font-weight:700;color:#6366f1;
+  background:#eff6ff;padding:2px 8px;border-radius:20px;
+}
+.notif-time{font-size:11px;color:#9ca3af;}
+.notif-msg{
+  font-size:13px;color:#374151;font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.notif-sender{font-size:11px;color:#9ca3af;}
+.notif-empty{padding:28px;text-align:center;color:#9ca3af;font-size:13px;}
+.notif-empty div{font-size:28px;margin-bottom:8px;}
+
 /* Page content */
 .page-content{padding:16px;flex:1;}
 
-/* Stats — FIXED: responsive columns */
+/* Stats */
 .stat-row{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
+  display:grid;grid-template-columns:repeat(4,1fr);
   gap:10px;margin-bottom:16px;
 }
 .stat-box{
@@ -164,7 +220,6 @@ td{padding:11px 12px;border-bottom:1px solid #f3f4f6;color:#374151;vertical-alig
 tbody tr{cursor:pointer;transition:background 0.15s;}
 tbody tr:hover{background:#f9fafb;}
 tbody tr:last-child td{border-bottom:none;}
-
 .order-pill{background:#f3f4f6;color:#111827;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;font-family:monospace;}
 .status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;}
 .s-pending{background:#fef3c7;color:#d97706;}
@@ -190,7 +245,7 @@ tbody tr:last-child td{border-bottom:none;}
 .pg-btn{padding:6px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;color:#374151;text-decoration:none;}
 .pg-btn.active{background:#111827;color:#fff;border-color:#111827;}
 
-/* Image Modal — FIXED: no position:fixed inside iframe, use viewport trick */
+/* Image Modal */
 .img-modal{
   display:none;position:fixed;top:0;left:0;
   width:100%;height:100%;background:rgba(0,0,0,0.85);
@@ -216,67 +271,42 @@ tbody tr:last-child td{border-bottom:none;}
 .coming-soon h6{font-size:15px;font-weight:700;color:#111827;margin-bottom:6px;}
 .coming-soon p{font-size:13px;color:#9ca3af;}
 
-/* ══════════════════════════════════════
-   MOBILE STYLES
-══════════════════════════════════════ */
-@media(max-width:768px){
-
-  /* Sidebar hidden by default, slides in */
-  .sidebar{transform:translateX(-100%);}
-  .sidebar.open{transform:translateX(0);}
-
-  /* Main content takes full width */
-  .main-content{margin-left:0 !important;}
-
-  /* Show hamburger */
-  .hamburger{display:block !important;}
-
-  .top-navbar{padding:10px 12px;}
-
-  /* Stats: 2x2 grid on mobile */
-  .stat-row{
-    grid-template-columns:1fr 1fr !important;
-    gap:8px;
-  }
-  .stat-val{font-size:18px;}
-  .stat-label{font-size:10px;}
-  .stat-box{padding:12px 14px;}
-
-  .page-content{padding:10px;}
-
-  /* Filter: full width inputs */
-  .filter-row{flex-direction:column;}
-  .filter-group{min-width:unset;width:100%;}
-  .filter-group input,.filter-group select{width:100%;}
-  .filter-actions{width:100%;justify-content:stretch;}
-  .filter-actions .btn-apply,.filter-actions .btn-reset{flex:1;text-align:center;}
-
-  /* Hide desktop table, show mobile cards */
-  .desktop-table{display:none !important;}
-  .mobile-card-view{display:block !important;}
-
-  .toast-container{top:10px;right:10px;left:10px;}
-
-  .greeting-text{display:none;}
-
-  /* Ticket cards spacing */
-  .ticket-card{margin-bottom:10px;}
-}
-
 /* Mobile ticket cards */
 .mobile-card-view{display:none;}
 .desktop-table{display:block;}
-
 .ticket-card{
   background:#fff;border:1px solid #e5e7eb;border-radius:12px;
-  padding:14px;cursor:pointer;
-  transition:box-shadow 0.15s;
+  padding:14px;cursor:pointer;transition:box-shadow 0.15s;margin-bottom:10px;
 }
 .ticket-card:active{box-shadow:0 0 0 2px #6366f1;}
 .tc-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
 .tc-label{font-size:11px;color:#9ca3af;margin-bottom:2px;}
 .tc-val{font-size:13px;color:#111827;font-weight:500;}
 .tc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6;}
+
+/* ══ MOBILE ══ */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main-content{margin-left:0 !important;}
+  .hamburger{display:block !important;}
+  .top-navbar{padding:10px 12px;}
+  .stat-row{grid-template-columns:1fr 1fr !important;gap:8px;}
+  .stat-val{font-size:18px;}
+  .stat-label{font-size:10px;}
+  .stat-box{padding:12px 14px;}
+  .page-content{padding:10px;}
+  .filter-row{flex-direction:column;}
+  .filter-group{min-width:unset;width:100%;}
+  .filter-group input,.filter-group select{width:100%;}
+  .filter-actions{width:100%;justify-content:stretch;}
+  .filter-actions .btn-apply,.filter-actions .btn-reset{flex:1;text-align:center;}
+  .desktop-table{display:none !important;}
+  .mobile-card-view{display:block !important;}
+  .toast-container{top:10px;right:10px;left:10px;}
+  .greeting-text{display:none;}
+  .notif-dropdown{right:-10px;width:280px;}
+}
 </style>
 
 <!-- Image Modal -->
@@ -306,7 +336,6 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="sidebar-header">
       <img src="{% static 'image/ff.png' %}" class="sidebar-logo" alt="Logo">
     </div>
-
     <div class="sidebar-user">
       <div class="user-avatar-big">{{ user.username|slice:":1"|upper }}</div>
       <div class="user-info-name">{{ user.username }}</div>
@@ -315,10 +344,8 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="user-info-row">📍 {{ user.profile.address|truncatechars:30 }}</div>
       {% endif %}
     </div>
-
     <nav class="sidebar-nav">
       <div class="nav-section-title">Menu</div>
-      <!-- FIXED: all nav items are buttons with onclick, consistent IDs -->
       <button class="nav-item active" id="nav-tickets" onclick="showSection('tickets')">
         <i class="mdi mdi-ticket-outline"></i>My Tickets
         <span class="nav-badge">{{ page_obj.paginator.count }}</span>
@@ -334,7 +361,6 @@ tbody tr:last-child td{border-bottom:none;}
         <i class="mdi mdi-truck-delivery-outline"></i>Delivery
       </button>
     </nav>
-
     <div class="sidebar-footer">
       <a href="{% url 'user_logout' %}" class="logout-btn">
         <i class="mdi mdi-logout" style="font-size:16px;"></i>Logout
@@ -347,12 +373,54 @@ tbody tr:last-child td{border-bottom:none;}
 
     <!-- Top Navbar -->
     <div class="top-navbar">
-      <!-- FIXED: hamburger properly shown on mobile -->
       <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
         <span></span><span></span><span></span>
       </button>
       <div class="top-navbar-right">
         <span class="greeting-text">{{ emoji }} {{ greeting }}, {{ user.username }}!</span>
+
+        <!-- ── MESSAGE NOTIFICATION ICON ── -->
+        <div class="notif-wrapper" id="notifWrapper">
+          <button class="notif-btn" onclick="toggleNotif(event)" aria-label="Messages">
+            💬
+            {% if unread_notif_count > 0 %}
+              <span class="notif-count">{{ unread_notif_count }}</span>
+            {% endif %}
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-dd-header">
+              💬 Admin Messages
+              <span>{{ unread_notif_count }} unread</span>
+            </div>
+            <div class="notif-list">
+              {% if unread_notifications %}
+                {% for comment in unread_notifications %}
+                <a href="{% url 'user_ticket_chat' comment.ticket.id %}" class="notif-item">
+                  <div class="notif-item-top">
+                    <span class="notif-ticket-id">
+                      {% if comment.ticket.purchase %}
+                        {{ comment.ticket.purchase.purchase_id }}
+                      {% else %}
+                        Ticket #{{ comment.ticket.id }}
+                      {% endif %}
+                    </span>
+                    <span class="notif-time">{{ comment.created_at|timesince }} ago</span>
+                  </div>
+                  <div class="notif-msg">{{ comment.message|truncatechars:55 }}</div>
+                  <div class="notif-sender">👤 {{ comment.sender.username }}</div>
+                </a>
+                {% endfor %}
+              {% else %}
+                <div class="notif-empty">
+                  <div>💬</div>
+                  Koi naya message nahi
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <!-- ── END NOTIFICATION ── -->
+
         {% if has_purchase %}
           <a href="{% url 'create_ticket' %}" class="btn-create-ticket">
             <span>+</span> Create Ticket
@@ -387,7 +455,6 @@ tbody tr:last-child td{border-bottom:none;}
       <!-- ── TICKETS SECTION ── -->
       <div id="section-tickets">
 
-        <!-- Filters -->
         <div class="card">
           <div class="card-header"><h5>🔍 Filter Tickets</h5></div>
           <div class="card-body">
@@ -423,7 +490,6 @@ tbody tr:last-child td{border-bottom:none;}
                     <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50 / page</option>
                   </select>
                 </div>
-                <!-- FIXED: filter actions in their own div for mobile layout -->
                 <div class="filter-actions">
                   <button type="submit" class="btn-apply">Apply</button>
                   <a href="{% url 'dashboard_user' %}" class="btn-reset">Reset</a>
@@ -441,7 +507,7 @@ tbody tr:last-child td{border-bottom:none;}
           </div>
         </div>
 
-        <!-- Table — Desktop -->
+        <!-- Desktop Table -->
         <div class="card desktop-table">
           <div class="card-header">
             <h5>📌 My Tickets</h5>
@@ -497,7 +563,6 @@ tbody tr:last-child td{border-bottom:none;}
               </tbody>
             </table>
           </div>
-
           {% if page_obj.has_other_pages %}
           <div style="padding:14px 16px;">
             <div class="pg-wrap">
@@ -522,13 +587,12 @@ tbody tr:last-child td{border-bottom:none;}
           {% endif %}
         </div>
 
-        <!-- ── MOBILE CARDS ── -->
+        <!-- Mobile Cards -->
         <div class="mobile-card-view">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <span style="font-size:13px;font-weight:600;color:#374151;">📌 My Tickets</span>
             <span style="font-size:12px;color:#9ca3af;">{{ page_obj.paginator.count }} total</span>
           </div>
-
           {% for ticket in page_obj %}
           <div class="ticket-card" data-href="{% url 'user_ticket_chat' ticket.id %}" onclick="goTicket(this)">
             <div class="tc-row">
@@ -581,7 +645,6 @@ tbody tr:last-child td{border-bottom:none;}
             <span style="font-size:13px;">Create a new ticket to get started</span>
           </div>
           {% endfor %}
-
           {% if page_obj.has_other_pages %}
           <div class="pg-wrap" style="margin-top:14px;">
             <span class="pg-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
@@ -599,7 +662,7 @@ tbody tr:last-child td{border-bottom:none;}
 
       </div><!-- /section-tickets -->
 
-      <!-- ── PROFILE SECTION ── -->
+      <!-- Profile Section -->
       <div id="section-profile" style="display:none;">
         <div class="card">
           <div class="card-header"><h5>👤 My Profile</h5></div>
@@ -621,18 +684,6 @@ tbody tr:last-child td{border-bottom:none;}
                 <div class="info-label">Phone</div>
                 <div class="info-val">{{ user.profile.mobile|default:"-" }}</div>
               </div>
-              <!-- <div class="info-item">
-                <div class="info-label">Address</div>
-                <div class="info-val">{{ user.profile.address|default:"-" }}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">City</div>
-                <div class="info-val">{{ user.profile.city|default:"-" }}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">Pincode</div>
-                <div class="info-val">{{ user.profile.pincode|default:"-" }}</div>
-              </div> -->
               <div class="info-item">
                 <div class="info-label">Total Tickets</div>
                 <div class="info-val">{{ page_obj.paginator.count }}</div>
@@ -642,7 +693,7 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
 
-      <!-- ── PICKUP SECTION ── -->
+      <!-- Pickup Section -->
       <div id="section-pickup" style="display:none;">
         <div class="card">
           <div class="card-header"><h5>📦 Pickup</h5></div>
@@ -656,7 +707,7 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
 
-      <!-- ── DELIVERY SECTION ── -->
+      <!-- Delivery Section -->
       <div id="section-delivery" style="display:none;">
         <div class="card">
           <div class="card-header"><h5>🚚 Delivery</h5></div>
@@ -675,7 +726,6 @@ tbody tr:last-child td{border-bottom:none;}
 </div><!-- /app-layout -->
 
 <script>
-// Clean empty filter params before submit
 function cleanFilterForm(form) {
   Array.from(form.elements).forEach(el => {
     if (el.name && !el.value) el.disabled = true;
@@ -683,18 +733,15 @@ function cleanFilterForm(form) {
   return true;
 }
 
-// Navigate to ticket
 function goTicket(el) {
   window.location = el.getAttribute('data-href');
 }
 
-// FIXED: Sidebar toggle — works on mobile
 function toggleSidebar() {
   var sidebar = document.getElementById('sidebar');
   var overlay = document.getElementById('sidebarOverlay');
   sidebar.classList.toggle('open');
   overlay.classList.toggle('active');
-  // Prevent body scroll when sidebar is open
   document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
 }
 
@@ -704,9 +751,7 @@ function closeSidebar() {
   document.body.style.overflow = '';
 }
 
-// FIXED: showSection with correct section IDs, closes sidebar on mobile
 var SECTIONS = ['tickets', 'profile', 'pickup', 'delivery'];
-
 function showSection(name) {
   SECTIONS.forEach(function(s) {
     var sec = document.getElementById('section-' + s);
@@ -717,7 +762,6 @@ function showSection(name) {
   closeSidebar();
 }
 
-// Image modal
 function openImage(src) {
   document.getElementById('modalImg').src = src;
   document.getElementById('imgModal').classList.add('active');
@@ -726,7 +770,6 @@ document.getElementById('imgModal').addEventListener('click', function() {
   this.classList.remove('active');
 });
 
-// Close sidebar on resize to desktop
 window.addEventListener('resize', function() {
   if (window.innerWidth > 768) {
     document.getElementById('sidebar').classList.remove('open');
@@ -735,7 +778,6 @@ window.addEventListener('resize', function() {
   }
 });
 
-// Auto-dismiss toast
 setTimeout(function() {
   var t = document.getElementById('toastContainer');
   if (t) {
@@ -744,6 +786,18 @@ setTimeout(function() {
     setTimeout(function() { t.remove(); }, 300);
   }
 }, 4500);
+
+// ── Notification dropdown ──
+function toggleNotif(e) {
+  e.stopPropagation();
+  document.getElementById('notifDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  var wrapper = document.getElementById('notifWrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    document.getElementById('notifDropdown').classList.remove('open');
+  }
+});
 </script>
 
 {% endblock %}
