@@ -1,201 +1,381 @@
 {% extends 'Base/base.html' %} {% block title %}Create Ticket{% endblock %}
 {% block content %} {% load static %}
 
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 
-.ct-page{
-  min-height:100vh;background:#f3f4f6;
-  display:flex;align-items:flex-start;justify-content:center;
-  padding:32px 16px 48px;
+<style>
+:root{
+  --ink:#0d1117;
+  --ink2:#1c2333;
+  --ink3:#2d3748;
+  --surface:#ffffff;
+  --surface2:#f7f8fc;
+  --surface3:#f0f2f8;
+  --border:#e2e6f0;
+  --border2:#cbd2e8;
+  --accent:#2563eb;
+  --accent-soft:#eff4ff;
+  --accent2:#7c3aed;
+  --green:#059669;
+  --green-soft:#ecfdf5;
+  --red:#dc2626;
+  --red-soft:#fef2f2;
+  --amber:#d97706;
+  --text:#111827;
+  --text2:#4b5563;
+  --text3:#9ca3af;
+  --radius:14px;
+  --font:'Sora',sans-serif;
+  --mono:'JetBrains Mono',monospace;
 }
 
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);}
+
+/* ── Page ── */
+.ct-page{
+  min-height:100vh;
+  background:var(--surface2);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37,99,235,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 80%, rgba(124,58,237,0.05) 0%, transparent 60%);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:36px 16px 60px;
+}
+
+/* ── Card ── */
 .ct-card{
-  background:#fff;border-radius:20px;
-  border:1px solid #e5e7eb;
-  width:100%;max-width:640px;
-  box-shadow:0 4px 24px rgba(0,0,0,0.06);
+  width:100%;max-width:660px;
+  background:var(--surface);
+  border-radius:24px;
+  border:1px solid var(--border);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.04),
+    0 8px 32px rgba(0,0,0,0.07),
+    0 32px 64px rgba(0,0,0,0.04);
   overflow:hidden;
 }
 
-/* Header */
+/* ── Header ── */
 .ct-header{
-  background:linear-gradient(135deg,#111827 0%,#1f2937 100%);
-  padding:28px 32px;
+  position:relative;overflow:hidden;
+  background:var(--ink);
+  padding:32px 36px 28px;
+}
+.ct-header::before{
+  content:'';position:absolute;
+  top:-60px;right:-60px;
+  width:220px;height:220px;
+  background:radial-gradient(circle, rgba(37,99,235,0.25) 0%, transparent 70%);
+  border-radius:50%;
+}
+.ct-header::after{
+  content:'';position:absolute;
+  bottom:-40px;left:20px;
+  width:160px;height:160px;
+  background:radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+  border-radius:50%;
+}
+.ct-header-inner{position:relative;z-index:1;}
+.ct-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);
+  padding:4px 12px;border-radius:20px;
+  font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);
+  letter-spacing:0.5px;text-transform:uppercase;
+  margin-bottom:12px;
 }
 .ct-header h2{
-  color:#fff;font-size:20px;font-weight:700;
-  display:flex;align-items:center;gap:10px;margin-bottom:4px;
+  font-size:22px;font-weight:700;color:#fff;
+  margin-bottom:6px;line-height:1.3;
 }
-.ct-header p{color:#9ca3af;font-size:13px;}
+.ct-header p{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.5;}
 
-/* Body */
-.ct-body{padding:28px 32px;}
+/* ── Progress steps ── */
+.ct-steps{
+  display:flex;align-items:center;
+  padding:0 36px;
+  background:var(--surface2);
+  border-bottom:1px solid var(--border);
+}
+.step{
+  display:flex;align-items:center;gap:8px;
+  padding:14px 0;flex:1;position:relative;
+}
+.step:not(:last-child)::after{
+  content:'';position:absolute;right:0;top:50%;
+  width:calc(100% - 80px);height:1px;
+  background:var(--border2);
+  transform:translateY(-50%);
+  left:50px;
+}
+.step-num{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;
+  background:var(--surface3);color:var(--text3);
+  border:2px solid var(--border);
+  flex-shrink:0;transition:all 0.2s;z-index:1;
+}
+.step.done .step-num{background:var(--green);color:#fff;border-color:var(--green);}
+.step.active .step-num{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.15);}
+.step-label{font-size:11px;font-weight:600;color:var(--text3);}
+.step.active .step-label{color:var(--accent);}
+.step.done .step-label{color:var(--green);}
+
+/* ── Body ── */
+.ct-body{padding:28px 36px 0;}
 
 /* Alert */
 .ct-alert{
-  background:#fef2f2;color:#991b1b;
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--red-soft);color:var(--red);
   padding:12px 16px;border-radius:10px;
-  margin-bottom:20px;font-size:13px;font-weight:500;
+  margin-bottom:24px;font-size:13px;font-weight:500;
   border:1px solid #fca5a5;
-  display:flex;align-items:center;gap:8px;
 }
 
-/* Section divider */
-.ct-section{
-  margin-bottom:24px;
-  padding-bottom:24px;
-  border-bottom:1px solid #f3f4f6;
+/* Section */
+.ct-section{margin-bottom:28px;}
+.ct-section-head{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:18px;
 }
-.ct-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
-.ct-section-title{
-  font-size:11px;font-weight:700;color:#6366f1;
-  text-transform:uppercase;letter-spacing:0.8px;
-  margin-bottom:14px;display:flex;align-items:center;gap:6px;
+.section-icon{
+  width:32px;height:32px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
 }
+.si-blue{background:var(--accent-soft);}
+.si-purple{background:#f5f3ff;}
+.si-green{background:var(--green-soft);}
+.ct-section-head h3{
+  font-size:13px;font-weight:700;color:var(--text);
+  letter-spacing:-0.01em;
+}
+.ct-section-head p{font-size:11px;color:var(--text3);margin-top:1px;}
+.ct-divider{height:1px;background:var(--border);margin-bottom:28px;}
 
-/* Form fields */
+/* Fields */
 .field{margin-bottom:16px;}
 .field:last-child{margin-bottom:0;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
 .field label{
-  display:block;font-size:12px;font-weight:600;
-  color:#374151;margin-bottom:6px;
+  display:flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:600;color:var(--text2);
+  margin-bottom:7px;letter-spacing:0.01em;
 }
-.field label .req{color:#ef4444;margin-left:2px;}
+.field label .req{color:var(--red);font-size:11px;}
+.field label .opt{
+  font-size:10px;font-weight:500;color:var(--text3);
+  background:var(--surface3);padding:1px 7px;border-radius:10px;
+  margin-left:4px;
+}
+
 .field input,
 .field select,
 .field textarea{
-  width:100%;padding:10px 14px;
-  border:1.5px solid #e5e7eb;border-radius:10px;
-  font-size:14px;color:#111827;
-  background:#fff;transition:border-color 0.15s,box-shadow 0.15s;
-  font-family:inherit;
+  width:100%;padding:11px 14px;
+  border:1.5px solid var(--border);border-radius:10px;
+  font-size:13.5px;color:var(--text);
+  background:var(--surface);
+  transition:border-color 0.15s,box-shadow 0.15s,background 0.15s;
+  font-family:var(--font);
   -webkit-appearance:none;appearance:none;
 }
 .field select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%239ca3af' d='M5 7L0.5 2.5h9z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
   background-position:right 14px center;
-  padding-right:36px;
+  padding-right:36px;cursor:pointer;
 }
 .field input:focus,
 .field select:focus,
 .field textarea:focus{
   outline:none;
-  border-color:#6366f1;
-  box-shadow:0 0 0 3px rgba(99,102,241,0.1);
+  border-color:var(--accent);
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(37,99,235,0.1);
 }
-.field input:disabled,
-.field select:disabled{
-  background:#f9fafb;color:#9ca3af;cursor:not-allowed;
+.field input:disabled,.field select:disabled{
+  background:var(--surface3);color:var(--text3);
+  cursor:not-allowed;border-color:var(--border);
 }
-.field textarea{resize:vertical;min-height:100px;}
+.field textarea{resize:vertical;min-height:110px;line-height:1.6;}
 
-/* Other input (hidden by default) */
-.other-box{
-  margin-top:10px;
-  padding:14px;
-  background:#f9fafb;border-radius:10px;
-  border:1.5px dashed #c7d2fe;
-  display:none;
+/* Select order styled */
+.order-select-wrap{
+  position:relative;
 }
-.other-box label{font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;}
+.order-select-wrap .mono-pill{
+  position:absolute;right:44px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:11px;color:var(--accent);
+  background:var(--accent-soft);padding:2px 8px;border-radius:6px;
+  pointer-events:none;display:none;
+}
+
+/* Other box */
+.other-box{
+  display:none;margin-top:10px;
+  padding:14px 16px;
+  background:var(--surface2);
+  border:1.5px dashed var(--border2);
+  border-radius:10px;
+  animation:fadeSlide 0.2s ease;
+}
+@keyframes fadeSlide{
+  from{opacity:0;transform:translateY(-6px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.other-box label{
+  font-size:12px;font-weight:600;color:var(--text2);
+  margin-bottom:7px;display:flex;align-items:center;gap:4px;
+}
 .other-box input{
   width:100%;padding:10px 14px;
-  border:1.5px solid #e5e7eb;border-radius:10px;
-  font-size:14px;color:#111827;font-family:inherit;
+  border:1.5px solid var(--border);border-radius:9px;
+  font-size:13px;color:var(--text);font-family:var(--font);
+  background:var(--surface);transition:border-color 0.15s,box-shadow 0.15s;
 }
 .other-box input:focus{
-  outline:none;border-color:#6366f1;
-  box-shadow:0 0 0 3px rgba(99,102,241,0.1);
+  outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.1);
 }
 
-/* File upload */
-.upload-area{
-  border:2px dashed #e5e7eb;border-radius:12px;
-  padding:20px;text-align:center;
-  cursor:pointer;transition:all 0.15s;
-  background:#fafafa;
+/* Image upload */
+.img-upload-area{
+  border:2px dashed var(--border2);
+  border-radius:12px;padding:22px 20px;
+  text-align:center;cursor:pointer;
+  transition:all 0.2s;background:var(--surface2);
+  position:relative;
 }
-.upload-area:hover{border-color:#6366f1;background:#f5f3ff;}
-.upload-area .upload-icon{font-size:28px;margin-bottom:6px;}
-.upload-area p{font-size:13px;color:#6b7280;margin-bottom:10px;}
-.upload-area .btn-pick{
+.img-upload-area:hover{
+  border-color:var(--accent);
+  background:var(--accent-soft);
+}
+.img-upload-area:hover .upload-icon-wrap{transform:scale(1.05);}
+.upload-icon-wrap{
+  width:48px;height:48px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--border);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:10px;
+  transition:transform 0.2s;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.img-upload-area h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.img-upload-area p{font-size:12px;color:var(--text3);}
+.btn-pick{
   display:inline-flex;align-items:center;gap:6px;
-  padding:8px 16px;background:#111827;color:#fff;
-  border:none;border-radius:8px;font-size:13px;font-weight:600;
-  cursor:pointer;transition:background 0.15s;
+  padding:8px 18px;background:var(--ink);color:#fff;
+  border:none;border-radius:8px;font-size:12px;font-weight:600;
+  cursor:pointer;margin-top:12px;font-family:var(--font);
+  transition:background 0.15s,transform 0.1s;
 }
-.upload-area .btn-pick:hover{background:#374151;}
+.btn-pick:hover{background:var(--ink3);transform:translateY(-1px);}
+.btn-pick:active{transform:translateY(0);}
 
-/* Image preview grid */
 .preview-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));
   gap:8px;margin-top:12px;
 }
 .preview-item{
   position:relative;border-radius:10px;overflow:hidden;
-  aspect-ratio:1;border:1px solid #e5e7eb;
+  aspect-ratio:1;border:1.5px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
 .preview-item img{width:100%;height:100%;object-fit:cover;display:block;}
-.preview-item .remove-btn{
+.remove-btn{
   position:absolute;top:4px;right:4px;
   width:20px;height:20px;border-radius:50%;
-  background:rgba(0,0,0,0.6);color:#fff;
-  font-size:10px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-weight:700;line-height:1;
+  background:rgba(15,15,15,0.75);color:#fff;
+  font-size:9px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-weight:700;
+  transition:background 0.15s;
+  backdrop-filter:blur(4px);
 }
-.preview-item .remove-btn:hover{background:#ef4444;}
+.remove-btn:hover{background:var(--red);}
 
 /* Doc upload */
-.doc-upload{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:10px;
-  background:#fafafa;cursor:pointer;transition:border-color 0.15s;
+.doc-upload-label{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;
+  border:1.5px solid var(--border);border-radius:12px;
+  background:var(--surface2);cursor:pointer;
+  transition:border-color 0.15s,background 0.15s;
 }
-.doc-upload:hover{border-color:#6366f1;}
-.doc-upload .doc-icon{font-size:22px;}
-.doc-upload-text p{font-size:13px;color:#374151;font-weight:500;margin-bottom:1px;}
-.doc-upload-text span{font-size:11px;color:#9ca3af;}
-.doc-upload input{display:none;}
-#docLabel{font-size:12px;color:#6366f1;font-weight:600;margin-top:6px;display:none;}
+.doc-upload-label:hover{border-color:var(--accent);background:var(--accent-soft);}
+.doc-icon-wrap{
+  width:38px;height:38px;border-radius:9px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.doc-text p{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.doc-text span{font-size:11px;color:var(--text3);}
+.doc-name{
+  display:none;margin-top:8px;
+  font-size:12px;color:var(--green);font-weight:600;
+  display:flex;align-items:center;gap:6px;
+}
+#docName{display:none;}
 
-/* Submit */
+/* ── Footer ── */
 .ct-footer{
-  padding:20px 32px 28px;
-  border-top:1px solid #f3f4f6;
+  padding:24px 36px 32px;
+  border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:12px;
+  margin-top:4px;
 }
-.btn-submit{
-  width:100%;padding:14px;
-  background:#111827;color:#fff;
-  border:none;border-radius:12px;
-  font-size:15px;font-weight:700;
-  cursor:pointer;transition:background 0.15s;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.btn-submit:hover{background:#374151;}
-.btn-submit:disabled{background:#9ca3af;cursor:not-allowed;}
 
-/* Loader */
+.btn-submit{
+  width:100%;padding:15px;
+  background:var(--ink);color:#fff;
+  border:none;border-radius:12px;
+  font-size:14px;font-weight:700;font-family:var(--font);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background 0.15s,transform 0.1s,box-shadow 0.15s;
+  letter-spacing:0.01em;
+  box-shadow:0 2px 8px rgba(0,0,0,0.12);
+}
+.btn-submit:hover{
+  background:var(--ink3);
+  transform:translateY(-1px);
+  box-shadow:0 6px 20px rgba(0,0,0,0.15);
+}
+.btn-submit:active{transform:translateY(0);}
+.btn-submit:disabled{
+  background:#d1d5db;color:#9ca3af;
+  cursor:not-allowed;transform:none;box-shadow:none;
+}
+
 .loader-msg{
-  display:none;text-align:center;margin-top:14px;
-  color:#6366f1;font-size:13px;font-weight:600;
-  align-items:center;justify-content:center;gap:8px;
+  display:none;
+  align-items:center;justify-content:center;gap:10px;
+  font-size:13px;font-weight:600;color:var(--accent);
 }
 .spinner{
-  display:inline-block;width:18px;height:18px;
-  border:2.5px solid #c7d2fe;border-top-color:#6366f1;
-  border-radius:50%;animation:spin 0.8s linear infinite;
+  width:16px;height:16px;
+  border:2.5px solid #bfdbfe;
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin 0.7s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* Mobile */
+/* ── Mobile ── */
 @media(max-width:640px){
-  .ct-page{padding:0;}
+  .ct-page{padding:0;background:var(--surface);}
   .ct-card{border-radius:0;border:none;box-shadow:none;min-height:100vh;}
-  .ct-header{padding:20px;}
-  .ct-body{padding:20px;}
-  .ct-footer{padding:16px 20px 32px;}
+  .ct-header{padding:24px 20px 20px;}
+  .ct-steps{padding:0 20px;}
+  .ct-body{padding:22px 20px 0;}
+  .ct-footer{padding:20px 20px 36px;}
+  .field-row{grid-template-columns:1fr;}
+  .step-label{display:none;}
 }
 </style>
 
@@ -204,123 +384,189 @@
 
     <!-- Header -->
     <div class="ct-header">
-      <h2>🎫 Create Ticket</h2>
-      <p>Fill in the details below and our team will get back to you shortly.</p>
+      <div class="ct-header-inner">
+        <div class="ct-badge">🌾 Support Ticket</div>
+        <h2>Create a New Ticket</h2>
+        <p>Fill in the details below and our team will respond shortly.</p>
+      </div>
+    </div>
+
+    <!-- Steps indicator -->
+    <div class="ct-steps">
+      <div class="step done" id="step1">
+        <div class="step-num">✓</div>
+        <div>
+          <div class="step-label">Order</div>
+        </div>
+      </div>
+      <div class="step active" id="step2">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-label">Details</div>
+        </div>
+      </div>
+      <div class="step" id="step3">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-label">Attachments</div>
+        </div>
+      </div>
     </div>
 
     <!-- Body -->
     <div class="ct-body">
 
-      <!-- Alerts -->
       {% if messages %}
         {% for message in messages %}
         <div class="ct-alert">⚠️ {{ message }}</div>
         {% endfor %}
       {% endif %}
 
-      <!-- Section 1: Order -->
+      <!-- ORDER SELECT -->
       <div class="ct-section">
-        <div class="ct-section-title">📦 Order Details</div>
+        <div class="ct-section-head">
+          <div class="section-icon si-blue">📦</div>
+          <div>
+            <h3>Select Your Order</h3>
+            <p>Choose the order this ticket is related to</p>
+          </div>
+        </div>
         <form method="GET" id="orderForm">
           <div class="field">
             <label>Order ID <span class="req">*</span></label>
-            <select name="purchase" onchange="document.getElementById('orderForm').submit()">
-              <option value="">— Select Order —</option>
-              {% for p in purchases %}
-                <option value="{{ p.purchase_id }}"
-                  {% if selected_purchase == p.purchase_id %}selected{% endif %}>
-                  {{ p.purchase_id }}
-                </option>
-              {% endfor %}
-            </select>
+            <div class="order-select-wrap">
+              <select name="purchase" onchange="document.getElementById('orderForm').submit()">
+                <option value="">— Choose an order —</option>
+                {% for p in purchases %}
+                  <option value="{{ p.purchase_id }}"
+                    {% if selected_purchase == p.purchase_id %}selected{% endif %}>
+                    {{ p.purchase_id }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
         </form>
       </div>
 
-      <!-- Section 2: Ticket Details -->
+      <div class="ct-divider"></div>
+
+      <!-- MAIN FORM -->
       <form method="POST" enctype="multipart/form-data" id="ticketForm">
         {% csrf_token %}
         <input type="hidden" name="purchase" value="{{ selected_purchase }}">
 
+        <!-- Product & Category -->
         <div class="ct-section">
-          <div class="ct-section-title">🛒 Product & Category</div>
-
-          <div class="field">
-            <label>Product <span class="req">*</span></label>
-            {% if selected_purchase %}
-              <select name="product" required>
-                <option value="">— Select Product —</option>
-                {% for item in products %}
-                  <option value="{{ item.product_name }}"
-                    {% if selected_product == item.product_name %}selected{% endif %}>
-                    {{ item.product_name }}
-                  </option>
-                {% endfor %}
-              </select>
-            {% else %}
-              <select disabled>
-                <option>Select an order first</option>
-              </select>
-            {% endif %}
+          <div class="ct-section-head">
+            <div class="section-icon si-purple">🛒</div>
+            <div>
+              <h3>Product & Category</h3>
+              <p>What product and issue type is this about?</p>
+            </div>
           </div>
 
-          <div class="field">
-            <label>Category <span class="req">*</span></label>
-            <select name="category" required onchange="handleCategory(this.value)">
-              <option value="">— Select Category —</option>
-              <option value="Product Issue">Product Issue</option>
-              <option value="Delivery Issue">Delivery Issue</option>
-              <option value="Payment Issue">Payment Issue</option>
-              <option value="Other">Other</option>
-            </select>
-            <div class="other-box" id="otherBox">
-              <label>✏️ Please specify <span class="req">*</span></label>
-              <input type="text" id="otherInput" name="other" placeholder="Describe your issue category...">
+          <div class="field-row">
+            <div class="field">
+              <label>Product <span class="req">*</span></label>
+              {% if selected_purchase %}
+                <select name="product" required>
+                  <option value="">— Select product —</option>
+                  {% for item in products %}
+                    <option value="{{ item.product_name }}"
+                      {% if selected_product == item.product_name %}selected{% endif %}>
+                      {{ item.product_name }}
+                    </option>
+                  {% endfor %}
+                </select>
+              {% else %}
+                <select disabled>
+                  <option>Select order first</option>
+                </select>
+              {% endif %}
             </div>
+
+            <div class="field">
+              <label>Category <span class="req">*</span></label>
+              <select name="category" required onchange="handleCategory(this.value)">
+                <option value="">— Select category —</option>
+                <option value="Product Issue">Product Issue</option>
+                <option value="Delivery Issue">Delivery Issue</option>
+                <option value="Payment Issue">Payment Issue</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="other-box" id="otherBox">
+            <label>✏️ Please specify <span class="req">*</span></label>
+            <input type="text" id="otherInput" name="other"
+              placeholder="Describe your issue category...">
           </div>
         </div>
 
+        <div class="ct-divider"></div>
+
+        <!-- Issue Details -->
         <div class="ct-section">
-          <div class="ct-section-title">📝 Issue Details</div>
+          <div class="ct-section-head">
+            <div class="section-icon si-blue">📝</div>
+            <div>
+              <h3>Issue Details</h3>
+              <p>Describe your problem clearly</p>
+            </div>
+          </div>
 
           <div class="field">
             <label>Title <span class="req">*</span></label>
-            <input type="text" name="title" placeholder="e.g. Product not working after delivery" required>
+            <input type="text" name="title"
+              placeholder="e.g. Product damaged on delivery" required>
           </div>
 
           <div class="field">
             <label>Description <span class="req">*</span></label>
-            <textarea name="description" placeholder="Describe your issue in detail..." required></textarea>
+            <textarea name="description"
+              placeholder="Please describe your issue in detail. Include any relevant information that will help us resolve it faster..." required></textarea>
           </div>
         </div>
 
+        <div class="ct-divider"></div>
+
+        <!-- Attachments -->
         <div class="ct-section">
-          <div class="ct-section-title">📎 Attachments</div>
+          <div class="ct-section-head">
+            <div class="section-icon si-green">📎</div>
+            <div>
+              <h3>Attachments</h3>
+              <p>Add images or documents to support your ticket</p>
+            </div>
+          </div>
 
           <div class="field">
-            <label>Images <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
-            <div class="upload-area" onclick="document.getElementById('imageInput').click()">
-              <div class="upload-icon">🖼️</div>
-              <p>Click to select images</p>
-              <button type="button" class="btn-pick">+ Add Images</button>
+            <label>Images <span class="opt">optional</span></label>
+            <div class="img-upload-area" onclick="document.getElementById('imageInput').click()">
+              <div class="upload-icon-wrap">🖼️</div>
+              <h4>Drop images here or click to browse</h4>
+              <p>JPG, PNG, WEBP supported</p>
+              <button type="button" class="btn-pick">+ Select Images</button>
             </div>
             <input type="file" id="imageInput" name="images" multiple accept="image/*" style="display:none;">
             <div class="preview-grid" id="previewContainer"></div>
           </div>
 
-          <div class="field">
-            <label>Document <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
-            <label for="docInput">
-              <div class="doc-upload">
-                <div class="doc-icon">📄</div>
-                <div class="doc-upload-text">
-                  <p>Click to upload document</p>
-                  <span>PDF, DOC, DOCX, XLS, etc.</span>
-                </div>
+          <div class="field" style="margin-top:16px;">
+            <label>Document <span class="opt">optional</span></label>
+            <label for="docInput" class="doc-upload-label">
+              <div class="doc-icon-wrap">📄</div>
+              <div class="doc-text">
+                <p>Click to upload a document</p>
+                <span>PDF, DOC, DOCX, XLS accepted</span>
               </div>
             </label>
-            <input type="file" id="docInput" name="document">
-            <div id="docLabel"></div>
+            <input type="file" id="docInput" name="document" style="display:none;">
+            <div id="docName" style="display:none;margin-top:8px;font-size:12px;color:#059669;font-weight:600;">
+              ✅ <span id="docNameText"></span>
+            </div>
           </div>
         </div>
 
@@ -331,21 +577,23 @@
         <button type="submit" form="ticketForm" class="btn-submit" id="submitBtn">
           🎫 Submit Ticket
         </button>
-        <div class="loader-msg" id="loaderMsg" style="display:flex;">
-          <div class="spinner"></div> Please wait, submitting...
+        <div class="loader-msg" id="loaderMsg">
+          <div class="spinner"></div>
+          Submitting your ticket, please wait...
         </div>
       </div>
 
     </div><!-- /ct-card -->
   </div><!-- /ct-page -->
 
-</form><!-- close ticketForm -->
+</form>
 
 <script>
 // Form submit loader
 document.getElementById('ticketForm').addEventListener('submit', function() {
-  document.getElementById('submitBtn').disabled = true;
-  document.getElementById('submitBtn').innerHTML = '⏳ Submitting...';
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Submitting...';
   document.getElementById('loaderMsg').style.display = 'flex';
 });
 
@@ -356,6 +604,7 @@ function handleCategory(value) {
   if (value === 'Other') {
     box.style.display = 'block';
     input.required    = true;
+    input.focus();
   } else {
     box.style.display = 'none';
     input.required    = false;
@@ -406,12 +655,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Doc file name show
   document.getElementById('docInput').addEventListener('change', function() {
-    var label = document.getElementById('docLabel');
+    var nameEl  = document.getElementById('docName');
+    var nameText = document.getElementById('docNameText');
     if (this.files.length > 0) {
-      label.style.display = 'block';
-      label.textContent   = '✅ ' + this.files[0].name;
+      nameEl.style.display  = 'block';
+      nameText.textContent  = this.files[0].name;
     } else {
-      label.style.display = 'none';
+      nameEl.style.display  = 'none';
     }
   });
 });
