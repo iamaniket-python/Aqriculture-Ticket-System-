@@ -386,6 +386,13 @@ def ticket_chat(request, ticket_id):
                                   .select_related('sender')\
                                   .order_by('created_at')
 
+    # ── Jab user chat open kare, staff ke unread messages read mark karo ──
+    TicketComment.objects.filter(
+        ticket=ticket,
+        sender__is_staff=True,
+        is_read=False
+    ).update(is_read=True)
+
     if request.method == "POST":
         message = request.POST.get("message", "").strip()
         image   = request.FILES.get("image")
@@ -397,7 +404,6 @@ def ticket_chat(request, ticket_id):
         "ticket": ticket,
         "chats":  chats,
     })
-
 
 # =============================================
 # 📦 TRACKING
