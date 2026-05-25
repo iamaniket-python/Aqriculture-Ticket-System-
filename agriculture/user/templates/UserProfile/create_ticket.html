@@ -1,192 +1,420 @@
 {% extends 'Base/base.html' %} {% block title %}Create Ticket{% endblock %}
-{%block content %} {% load static %}
-
-<br><br><br>
-
-<div class="ticket-wrapper">
-  <div class="ticket-card">
-    <h2>🎫 Create Ticket</h2>
-{% if messages %}
-  {% for message in messages %}
-    <div style="background:#fef2f2;color:#991b1b;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:13px;font-weight:500;border:1px solid #fca5a5;">
-      {{ message }}
-    </div>
-  {% endfor %}
-{% endif %}
-    <!-- STEP 1: ORDER SELECT -->
-    <form method="GET">
-      <label>Select Your Order ID <span style="color:red;">*</span></label>
-      <select name="purchase" onchange="this.form.submit()">
-        <option value="">Select Order</option>
-        {% for p in purchases %}
-          <option value="{{ p.purchase_id }}"
-            {% if selected_purchase == p.purchase_id %}selected{% endif %}>
-            {{ p.purchase_id }}
-          </option>
-        {% endfor %}
-      </select>
-    </form>
-
-    <br>
-
-    <!-- STEP 2: MAIN FORM -->
-    <form method="POST" enctype="multipart/form-data" id="ticketForm">
-      {% csrf_token %}
-
-      <input type="hidden" name="purchase" value="{{ selected_purchase }}">
-
-      <!-- PRODUCT -->
-      <label>Select Product <span style="color:red;">*</span></label>
-      {% if selected_purchase %}
-        <select name="product" required>
-          <option value="">Select Product</option>
-          {% for item in products %}
-            <option value="{{ item.product_name }}"
-              {% if selected_product == item.product_name %}selected{% endif %}>
-              {{ item.product_name }}
-            </option>
-          {% endfor %}
-        </select>
-      {% else %}
-        <select disabled>
-          <option>Select order first</option>
-        </select>
-      {% endif %}
-
-      <!-- CATEGORY -->
-      <label>Category <span style="color:red;">*</span></label>
-      <select name="category" id="categorySelect" required onchange="handleCategory(this.value)">
-        <option value="">Select Category</option>
-        <option value="Product Issue">Product Issue</option>
-        <option value="Delivery Issue">Delivery Issue</option>
-        <option value="Payment Issue">Payment Issue</option>
-        <option value="Other">Other</option>
-      </select>
-
-      <!-- OTHER BOX -->
-      <div id="otherBox" style="display:none;">
-        <label>✏️ Please specify <span style="color:red;">*</span></label>
-        <input
-          type="text"
-          id="otherInput"
-          name="other"
-          placeholder="Describe your issue category..."
-          style="width:100%;"
-        />
-      </div>
-
-      <!-- TITLE -->
-      <label>Title <span style="color:red;">*</span></label>
-      <input name="title" placeholder="Enter Issue Title" required />
-
-      <!-- DESCRIPTION -->
-      <label>Description <span style="color:red;">*</span></label>
-      <textarea name="description" placeholder="Describe your issue" required></textarea>
-
-      <!-- IMAGES -->
-      <label>📷 Upload Images</label>
-      <input
-        type="file"
-        id="imageInput"
-        name="images"
-        multiple
-        accept="image/*"
-        style="display:none"
-      />
-      <button type="button" onclick="openFilePicker()" class="upload-btn">
-        + Select Images
-      </button>
-      <div id="previewContainer" class="preview-box"></div>
-
-      <!-- DOCUMENT -->
-      <label>📄 Upload Document</label>
-      <input type="file" name="document" />
-
-      <!-- SUBMIT BUTTON -->
-      <button type="submit" id="submitBtn">Submit Ticket</button>
-
-      <!-- LOADER -->
-      <div id="loaderMsg" style="display:none;text-align:center;margin-top:12px;">
-        <div style="display:inline-block;width:24px;height:24px;border:3px solid #6366f1;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-        <span style="margin-left:8px;color:#6366f1;font-weight:600;">Please wait...</span>
-      </div>
-
-    </form>
-  </div>
-</div>
+{% block content %} {% load static %}
 
 <style>
-@keyframes spin {
-  to { transform: rotate(360deg); }
+*{box-sizing:border-box;margin:0;padding:0;}
+
+.ct-page{
+  min-height:100vh;background:#f3f4f6;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:32px 16px 48px;
+}
+
+.ct-card{
+  background:#fff;border-radius:20px;
+  border:1px solid #e5e7eb;
+  width:100%;max-width:640px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.06);
+  overflow:hidden;
+}
+
+/* Header */
+.ct-header{
+  background:linear-gradient(135deg,#111827 0%,#1f2937 100%);
+  padding:28px 32px;
+}
+.ct-header h2{
+  color:#fff;font-size:20px;font-weight:700;
+  display:flex;align-items:center;gap:10px;margin-bottom:4px;
+}
+.ct-header p{color:#9ca3af;font-size:13px;}
+
+/* Body */
+.ct-body{padding:28px 32px;}
+
+/* Alert */
+.ct-alert{
+  background:#fef2f2;color:#991b1b;
+  padding:12px 16px;border-radius:10px;
+  margin-bottom:20px;font-size:13px;font-weight:500;
+  border:1px solid #fca5a5;
+  display:flex;align-items:center;gap:8px;
+}
+
+/* Section divider */
+.ct-section{
+  margin-bottom:24px;
+  padding-bottom:24px;
+  border-bottom:1px solid #f3f4f6;
+}
+.ct-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.ct-section-title{
+  font-size:11px;font-weight:700;color:#6366f1;
+  text-transform:uppercase;letter-spacing:0.8px;
+  margin-bottom:14px;display:flex;align-items:center;gap:6px;
+}
+
+/* Form fields */
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+.field label{
+  display:block;font-size:12px;font-weight:600;
+  color:#374151;margin-bottom:6px;
+}
+.field label .req{color:#ef4444;margin-left:2px;}
+.field input,
+.field select,
+.field textarea{
+  width:100%;padding:10px 14px;
+  border:1.5px solid #e5e7eb;border-radius:10px;
+  font-size:14px;color:#111827;
+  background:#fff;transition:border-color 0.15s,box-shadow 0.15s;
+  font-family:inherit;
+  -webkit-appearance:none;appearance:none;
+}
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  padding-right:36px;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus{
+  outline:none;
+  border-color:#6366f1;
+  box-shadow:0 0 0 3px rgba(99,102,241,0.1);
+}
+.field input:disabled,
+.field select:disabled{
+  background:#f9fafb;color:#9ca3af;cursor:not-allowed;
+}
+.field textarea{resize:vertical;min-height:100px;}
+
+/* Other input (hidden by default) */
+.other-box{
+  margin-top:10px;
+  padding:14px;
+  background:#f9fafb;border-radius:10px;
+  border:1.5px dashed #c7d2fe;
+  display:none;
+}
+.other-box label{font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;}
+.other-box input{
+  width:100%;padding:10px 14px;
+  border:1.5px solid #e5e7eb;border-radius:10px;
+  font-size:14px;color:#111827;font-family:inherit;
+}
+.other-box input:focus{
+  outline:none;border-color:#6366f1;
+  box-shadow:0 0 0 3px rgba(99,102,241,0.1);
+}
+
+/* File upload */
+.upload-area{
+  border:2px dashed #e5e7eb;border-radius:12px;
+  padding:20px;text-align:center;
+  cursor:pointer;transition:all 0.15s;
+  background:#fafafa;
+}
+.upload-area:hover{border-color:#6366f1;background:#f5f3ff;}
+.upload-area .upload-icon{font-size:28px;margin-bottom:6px;}
+.upload-area p{font-size:13px;color:#6b7280;margin-bottom:10px;}
+.upload-area .btn-pick{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;background:#111827;color:#fff;
+  border:none;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:background 0.15s;
+}
+.upload-area .btn-pick:hover{background:#374151;}
+
+/* Image preview grid */
+.preview-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+  gap:8px;margin-top:12px;
+}
+.preview-item{
+  position:relative;border-radius:10px;overflow:hidden;
+  aspect-ratio:1;border:1px solid #e5e7eb;
+}
+.preview-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.preview-item .remove-btn{
+  position:absolute;top:4px;right:4px;
+  width:20px;height:20px;border-radius:50%;
+  background:rgba(0,0,0,0.6);color:#fff;
+  font-size:10px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-weight:700;line-height:1;
+}
+.preview-item .remove-btn:hover{background:#ef4444;}
+
+/* Doc upload */
+.doc-upload{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:10px;
+  background:#fafafa;cursor:pointer;transition:border-color 0.15s;
+}
+.doc-upload:hover{border-color:#6366f1;}
+.doc-upload .doc-icon{font-size:22px;}
+.doc-upload-text p{font-size:13px;color:#374151;font-weight:500;margin-bottom:1px;}
+.doc-upload-text span{font-size:11px;color:#9ca3af;}
+.doc-upload input{display:none;}
+#docLabel{font-size:12px;color:#6366f1;font-weight:600;margin-top:6px;display:none;}
+
+/* Submit */
+.ct-footer{
+  padding:20px 32px 28px;
+  border-top:1px solid #f3f4f6;
+}
+.btn-submit{
+  width:100%;padding:14px;
+  background:#111827;color:#fff;
+  border:none;border-radius:12px;
+  font-size:15px;font-weight:700;
+  cursor:pointer;transition:background 0.15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-submit:hover{background:#374151;}
+.btn-submit:disabled{background:#9ca3af;cursor:not-allowed;}
+
+/* Loader */
+.loader-msg{
+  display:none;text-align:center;margin-top:14px;
+  color:#6366f1;font-size:13px;font-weight:600;
+  align-items:center;justify-content:center;gap:8px;
+}
+.spinner{
+  display:inline-block;width:18px;height:18px;
+  border:2.5px solid #c7d2fe;border-top-color:#6366f1;
+  border-radius:50%;animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Mobile */
+@media(max-width:640px){
+  .ct-page{padding:0;}
+  .ct-card{border-radius:0;border:none;box-shadow:none;min-height:100vh;}
+  .ct-header{padding:20px;}
+  .ct-body{padding:20px;}
+  .ct-footer{padding:16px 20px 32px;}
 }
 </style>
 
+<div class="ct-page">
+  <div class="ct-card">
+
+    <!-- Header -->
+    <div class="ct-header">
+      <h2>🎫 Create Ticket</h2>
+      <p>Fill in the details below and our team will get back to you shortly.</p>
+    </div>
+
+    <!-- Body -->
+    <div class="ct-body">
+
+      <!-- Alerts -->
+      {% if messages %}
+        {% for message in messages %}
+        <div class="ct-alert">⚠️ {{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- Section 1: Order -->
+      <div class="ct-section">
+        <div class="ct-section-title">📦 Order Details</div>
+        <form method="GET" id="orderForm">
+          <div class="field">
+            <label>Order ID <span class="req">*</span></label>
+            <select name="purchase" onchange="document.getElementById('orderForm').submit()">
+              <option value="">— Select Order —</option>
+              {% for p in purchases %}
+                <option value="{{ p.purchase_id }}"
+                  {% if selected_purchase == p.purchase_id %}selected{% endif %}>
+                  {{ p.purchase_id }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 2: Ticket Details -->
+      <form method="POST" enctype="multipart/form-data" id="ticketForm">
+        {% csrf_token %}
+        <input type="hidden" name="purchase" value="{{ selected_purchase }}">
+
+        <div class="ct-section">
+          <div class="ct-section-title">🛒 Product & Category</div>
+
+          <div class="field">
+            <label>Product <span class="req">*</span></label>
+            {% if selected_purchase %}
+              <select name="product" required>
+                <option value="">— Select Product —</option>
+                {% for item in products %}
+                  <option value="{{ item.product_name }}"
+                    {% if selected_product == item.product_name %}selected{% endif %}>
+                    {{ item.product_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <select disabled>
+                <option>Select an order first</option>
+              </select>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label>Category <span class="req">*</span></label>
+            <select name="category" required onchange="handleCategory(this.value)">
+              <option value="">— Select Category —</option>
+              <option value="Product Issue">Product Issue</option>
+              <option value="Delivery Issue">Delivery Issue</option>
+              <option value="Payment Issue">Payment Issue</option>
+              <option value="Other">Other</option>
+            </select>
+            <div class="other-box" id="otherBox">
+              <label>✏️ Please specify <span class="req">*</span></label>
+              <input type="text" id="otherInput" name="other" placeholder="Describe your issue category...">
+            </div>
+          </div>
+        </div>
+
+        <div class="ct-section">
+          <div class="ct-section-title">📝 Issue Details</div>
+
+          <div class="field">
+            <label>Title <span class="req">*</span></label>
+            <input type="text" name="title" placeholder="e.g. Product not working after delivery" required>
+          </div>
+
+          <div class="field">
+            <label>Description <span class="req">*</span></label>
+            <textarea name="description" placeholder="Describe your issue in detail..." required></textarea>
+          </div>
+        </div>
+
+        <div class="ct-section">
+          <div class="ct-section-title">📎 Attachments</div>
+
+          <div class="field">
+            <label>Images <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
+            <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+              <div class="upload-icon">🖼️</div>
+              <p>Click to select images</p>
+              <button type="button" class="btn-pick">+ Add Images</button>
+            </div>
+            <input type="file" id="imageInput" name="images" multiple accept="image/*" style="display:none;">
+            <div class="preview-grid" id="previewContainer"></div>
+          </div>
+
+          <div class="field">
+            <label>Document <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
+            <label for="docInput">
+              <div class="doc-upload">
+                <div class="doc-icon">📄</div>
+                <div class="doc-upload-text">
+                  <p>Click to upload document</p>
+                  <span>PDF, DOC, DOCX, XLS, etc.</span>
+                </div>
+              </div>
+            </label>
+            <input type="file" id="docInput" name="document">
+            <div id="docLabel"></div>
+          </div>
+        </div>
+
+      </div><!-- /ct-body -->
+
+      <!-- Footer -->
+      <div class="ct-footer">
+        <button type="submit" form="ticketForm" class="btn-submit" id="submitBtn">
+          🎫 Submit Ticket
+        </button>
+        <div class="loader-msg" id="loaderMsg" style="display:flex;">
+          <div class="spinner"></div> Please wait, submitting...
+        </div>
+      </div>
+
+    </div><!-- /ct-card -->
+  </div><!-- /ct-page -->
+
+</form><!-- close ticketForm -->
+
 <script>
-  // ✅ Form submit pe loader
-  document.getElementById('ticketForm').addEventListener('submit', function() {
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').innerText = '⏳ Submitting...';
-    document.getElementById('loaderMsg').style.display = 'block';
+// Form submit loader
+document.getElementById('ticketForm').addEventListener('submit', function() {
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').innerHTML = '⏳ Submitting...';
+  document.getElementById('loaderMsg').style.display = 'flex';
+});
+
+// Category other toggle
+function handleCategory(value) {
+  var box   = document.getElementById('otherBox');
+  var input = document.getElementById('otherInput');
+  if (value === 'Other') {
+    box.style.display = 'block';
+    input.required    = true;
+  } else {
+    box.style.display = 'none';
+    input.required    = false;
+    input.value       = '';
+  }
+}
+
+// Image preview
+document.addEventListener('DOMContentLoaded', function() {
+  var selectedFiles = [];
+  var imageInput    = document.getElementById('imageInput');
+  var container     = document.getElementById('previewContainer');
+
+  imageInput.addEventListener('change', function(e) {
+    Array.from(e.target.files).forEach(function(file) {
+      selectedFiles.push(file);
+    });
+    renderPreview();
   });
 
-  // ✅ Category Other
-  function handleCategory(value) {
-    let otherBox   = document.getElementById("otherBox");
-    let otherInput = document.getElementById("otherInput");
-    if (value === "Other") {
-      otherBox.style.display = "block";
-      otherInput.required    = true;
-    } else {
-      otherBox.style.display = "none";
-      otherInput.required    = false;
-      otherInput.value       = "";
-    }
+  function renderPreview() {
+    container.innerHTML = '';
+    selectedFiles.forEach(function(file, index) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var div = document.createElement('div');
+        div.className = 'preview-item';
+        div.innerHTML =
+          '<img src="' + e.target.result + '">' +
+          '<div class="remove-btn" onclick="removeImage(' + index + ')">✖</div>';
+        container.appendChild(div);
+      };
+      reader.readAsDataURL(file);
+    });
+    updateFileInput();
   }
 
-  // ✅ Image preview
-  document.addEventListener("DOMContentLoaded", function () {
-    function openFilePicker() {
-      document.getElementById("imageInput").click();
-    }
-    window.openFilePicker = openFilePicker;
+  window.removeImage = function(index) {
+    selectedFiles.splice(index, 1);
+    renderPreview();
+  };
 
-    let selectedFiles = [];
+  function updateFileInput() {
+    var dt = new DataTransfer();
+    selectedFiles.forEach(function(file) { dt.items.add(file); });
+    imageInput.files = dt.files;
+  }
 
-    document.getElementById("imageInput").addEventListener("change", function (e) {
-      Array.from(e.target.files).forEach(file => selectedFiles.push(file));
-      renderPreview();
-    });
-
-    function renderPreview() {
-      let container = document.getElementById("previewContainer");
-      container.innerHTML = "";
-      selectedFiles.forEach((file, index) => {
-        let reader = new FileReader();
-        reader.onload = function (e) {
-          let div = document.createElement("div");
-          div.classList.add("preview-item");
-          div.innerHTML = `
-            <img src="${e.target.result}">
-            <div class="remove-btn" onclick="removeImage(${index})">✖</div>
-          `;
-          container.appendChild(div);
-        };
-        reader.readAsDataURL(file);
-      });
-      updateFileInput();
-    }
-
-    window.removeImage = function (index) {
-      selectedFiles.splice(index, 1);
-      renderPreview();
-    };
-
-    function updateFileInput() {
-      let dt = new DataTransfer();
-      selectedFiles.forEach(file => dt.items.add(file));
-      document.getElementById("imageInput").files = dt.files;
+  // Doc file name show
+  document.getElementById('docInput').addEventListener('change', function() {
+    var label = document.getElementById('docLabel');
+    if (this.files.length > 0) {
+      label.style.display = 'block';
+      label.textContent   = '✅ ' + this.files[0].name;
+    } else {
+      label.style.display = 'none';
     }
   });
+});
 </script>
 
 {% endblock %}
