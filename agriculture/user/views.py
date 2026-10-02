@@ -107,21 +107,21 @@ def login_page(request):
                 "error": "Valid 10-digit mobile number required"
             })
 
-
-       
-
-
-        # if not Profile.objects.filter(mobile=mobile).exists():
-        #     return render(request, 'Authentication/login.html', {
-        #         "error": "Mobile number is not registered"
-        #     })
-
-        # ✅ TEMPORARY: Skip OTP for testing
         profile = Profile.objects.filter(mobile=mobile).first()
+
+        if not profile:
+            return render(request, 'Authentication/login.html', {
+                "error": "Mobile number is not registered"
+            })
+
         user = profile.user
+
         refresh = RefreshToken.for_user(user)
+
         response = redirect('dashboard_user')
+
         set_auth_cookies(response, refresh)
+
         return response
 
     return render(request, 'Authentication/login.html')
