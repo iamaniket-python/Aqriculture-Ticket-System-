@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
@@ -16,9 +17,13 @@ class JWTAuthMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
-    # ✅ Paths accessible without login
-    PUBLIC_PATHS = [
+    # ✅ Sirf exact match wale paths (startswith se '/' sab ko public bana deta tha)
+    PUBLIC_EXACT = (
         '/',
+    )
+
+    # ✅ Prefix match wale public paths
+    PUBLIC_PREFIXES = (
         '/login/',
         '/register/',
         '/verify-otp/',
@@ -29,17 +34,21 @@ class JWTAuthMiddleware:
         '/staff/login/',
         '/staff/register/',
         '/staff/logout/',
-        '/api/',                  # API has its own JWT auth via DRF
-        '/django-admin/',         # ✅ Fixed — was '/admin/' but urls.py uses '/django-admin/'
-    ]
+        '/api/',          
+        '/django-admin/',
+        '/static/',
+        '/media/',
+    )
 
-    # ✅ Path prefixes → their login redirect name
-    STAFF_PREFIXES  = ('/staff/',)
-    ADMIN_PREFIXES  = ('/admin-dashboard/', '/dashboard/')
+    STAFF_PREFIXES = ('/staff/',)
+    ADMIN_PREFIXES = ('/admin-dashboard/', '/dashboard/')
 
     def __call__(self, request):
-        path      = request.path
-        is_public = any(path.startswith(p) for p in self.PUBLIC_PATHS)
+        path = request.path
+        is_public = (
+            path in self.PUBLIC_EXACT
+            or any(path.startswith(p) for p in self.PUBLIC_PREFIXES)
+        )
 
         if is_public:
             return self.get_response(request)
@@ -50,8 +59,8 @@ class JWTAuthMiddleware:
             return self._redirect_to_login(request, reason="no_token")
 
         try:
-            validated            = AccessToken(token)
-            request._jwt_user_id = validated['user_id']   # available to views if needed
+            validated = AccessToken(token)
+            request._jwt_user_id = validated['user_id']
 
         except (TokenError, InvalidToken, KeyError):
             logger.warning(
@@ -64,13 +73,8 @@ class JWTAuthMiddleware:
         return self.get_response(request)
 
     def _redirect_to_login(self, request, reason="", clear_cookies=False):
-        """
-        Redirect to correct login page based on path.
-        Optionally clear bad cookies.
-        """
         path = request.path
 
-        # ✅ Route to the right login page based on path prefix
         if any(path.startswith(p) for p in self.STAFF_PREFIXES):
             login_url = 'staff_login'
         elif any(path.startswith(p) for p in self.ADMIN_PREFIXES):
@@ -89,14 +93,13 @@ class JWTAuthMiddleware:
         response = redirect(login_url)
 
         if clear_cookies:
-            # ✅ Force-expire cookies properly
             for cookie in ('access', 'refresh'):
                 response.delete_cookie(cookie, samesite='Lax')
                 response.set_cookie(
                     cookie, '',
                     max_age=0,
                     httponly=True,
-                    secure=not __import__('django.conf', fromlist=['settings']).settings.DEBUG,
+                    secure=not settings.DEBUG,
                     samesite='Lax',
                 )
 
