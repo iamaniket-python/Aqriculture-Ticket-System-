@@ -1,15 +1,19 @@
 """
-Django settings for agriculture project — Production Ready
+Django settings for agriculture project — Vercel + Neon ready
 """
 
 from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Vercel apne runtime mein VERCEL=1 set karta hai
+IS_VERCEL = os.getenv('VERCEL') == '1'
 
 
 # =============================================
@@ -17,19 +21,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # =============================================
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-change-in-production')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,aqriculture-ticket-system.onrender.com').split(',')
 
-# Production security headers (only active when DEBUG=False)
+DEBUG = os.getenv('DEBUG', 'False').strip().lower() in ('true', '1', 'yes')
+
+ALLOWED_HOSTS = os.getenv(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,.vercel.app'
+).split(',')
+
 if not DEBUG:
-    SECURE_HSTS_SECONDS = 31536000          # 1 year
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True              # HTTP → HTTPS redirect
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # For Railway/Render
+    # Vercel khud HTTP -> HTTPS redirect karta hai, isliye wahan band rakho
+    SECURE_SSL_REDIRECT = not IS_VERCEL
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     X_FRAME_OPTIONS = 'DENY'
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
+else:
+    SECURE_HSTS_SECONDS = 0
+    SECURE_SSL_REDIRECT = False
 
 
 # =============================================
@@ -58,7 +69,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -91,24 +102,22 @@ WSGI_APPLICATION = 'agriculture.wsgi.application'
 
 
 # =============================================
-# 🗄️ DATABASE
+# 🗄️ DATABASE (Neon)
 # =============================================
-
-import dj_database_url
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
-    # Railway/Render gives a single DATABASE_URL — use it directly
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
-            conn_max_age=600,        # ✅ Reuse DB connections for 10 mins (faster)
-            ssl_require=not DEBUG,   # ✅ SSL in production
+            conn_max_age=0,          # serverless: har request pe connection band
+            ssl_require=not DEBUG,
         )
     }
+    # Neon pooler (pgbouncer transaction mode) ke saath zaroori
+    DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
 else:
-    # Fallback: manual config for local dev
     DATABASES = {
         'default': {
             'ENGINE':   'django.db.backends.postgresql',
@@ -156,10 +165,10 @@ CSRF_COOKIE_SAMESITE  = 'Lax'
 CSRF_COOKIE_HTTPONLY  = False
 CSRF_COOKIE_SECURE    = not DEBUG
 
-# ✅ Add your Railway/Render domain here after deployment
+# Custom domain lagao to Vercel env mein CSRF_TRUSTED_ORIGINS add karna
 CSRF_TRUSTED_ORIGINS = os.getenv(
     'CSRF_TRUSTED_ORIGINS',
-    'http://localhost:8000,http://127.0.0.1:8000,https://aqriculture-ticket-system.onrender.com'
+    'http://localhost:8000,http://127.0.0.1:8000,https://*.vercel.app'
 ).split(',')
 
 
@@ -170,7 +179,6 @@ CSRF_TRUSTED_ORIGINS = os.getenv(
 REDIS_URL = os.getenv('REDIS_URL')
 
 if REDIS_URL:
-    # ✅ Production: Redis cache (fast, persistent across restarts)
     CACHES = {
         'default': {
             'BACKEND':  'django_redis.cache.RedisCache',
@@ -181,7 +189,7 @@ if REDIS_URL:
         }
     }
 else:
-    # Local dev: in-memory cache (fine for development)
+    # Vercel pe har instance ka apna memory cache hota hai (instances ke beech share nahi hota)
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -225,13 +233,12 @@ USE_TZ        = True
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    # ✅ Production: real SMTP email
     EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST          = 'smtp.gmail.com'
     EMAIL_PORT          = 587
     EMAIL_USE_TLS       = True
     EMAIL_HOST_USER     = os.getenv('EMAIL_USER')
-    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')   # Use Gmail App Password
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')   # Gmail App Password
     DEFAULT_FROM_EMAIL  = os.getenv('EMAIL_USER')
 
 
@@ -239,20 +246,20 @@ else:
 # 📁 STATIC & MEDIA
 # =============================================
 
-STATIC_URL  = '/static/'
+STATIC_URL = '/static/'
 
-# ✅ Collect static from ALL apps, not just 'user'
 STATICFILES_DIRS = [
     d for d in [
         BASE_DIR / 'user' / 'static',
         BASE_DIR / 'static',
-    ] if d.exists()   # only include if folder exists
+    ] if d.exists()
 ]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# ✅ WhiteNoise compressed static files for production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise seedha app folders se static serve karega,
+# isse Vercel pe collectstatic ke bharose nahi rehna padta
+WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -261,11 +268,52 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # =============================================
-# 📝 LOGGING
+# 🗃️ STORAGES
 # =============================================
 
-LOGS_DIR = BASE_DIR / 'logs'
-LOGS_DIR.mkdir(exist_ok=True)   # auto-create logs/ folder
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY':    os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+STORAGES = {
+    'default': {
+        'BACKEND': (
+            'django.core.files.storage.FileSystemStorage'
+            if DEBUG
+            else 'cloudinary_storage.storage.MediaCloudinaryStorage'
+        ),
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
+
+
+# =============================================
+# 📝 LOGGING (Vercel pe sirf console, file nahi)
+# =============================================
+
+_handlers = {
+    'console': {
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose',
+    },
+}
+_active_handlers = ['console']
+
+if not IS_VERCEL:
+    LOGS_DIR = BASE_DIR / 'logs'
+    LOGS_DIR.mkdir(exist_ok=True)
+    _handlers['file'] = {
+        'class':       'logging.handlers.RotatingFileHandler',
+        'filename':    LOGS_DIR / 'django.log',
+        'maxBytes':    1024 * 1024 * 5,
+        'backupCount': 3,
+        'formatter':   'verbose',
+    }
+    _active_handlers.append('file')
 
 LOGGING = {
     'version': 1,
@@ -276,28 +324,15 @@ LOGGING = {
             'style': '{',
         },
     },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-        'file': {
-            # ✅ Logs saved to file in production for debugging
-            'class':     'logging.handlers.RotatingFileHandler',
-            'filename':  LOGS_DIR / 'django.log',
-            'maxBytes':  1024 * 1024 * 5,    # 5 MB max per log file
-            'backupCount': 3,                # keep last 3 log files
-            'formatter': 'verbose',
-        },
-    },
+    'handlers': _handlers,
     'loggers': {
         'django': {
-            'handlers':  ['console', 'file'],
+            'handlers':  _active_handlers,
             'level':     'WARNING',
             'propagate': True,
         },
         'user': {
-            'handlers':  ['console', 'file'],
+            'handlers':  _active_handlers,
             'level':     'DEBUG' if DEBUG else 'WARNING',
             'propagate': False,
         },
@@ -306,14 +341,3 @@ LOGGING = {
 
 
 FAST2SMS_API_KEY = os.getenv('FAST2SMS_API_KEY')
-
-
-import cloudinary
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dhaq2g9ht',
-    'API_KEY': '796736971946557',
-    'API_SECRET': '_0oqlpqbKBlFwE7CndzYKUV8vwo',
-}
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

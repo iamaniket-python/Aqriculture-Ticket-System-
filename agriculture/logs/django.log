@@ -10,3 +10,63 @@ ERROR 2026-05-09 10:31:23,726 log You're accessing the development server over H
 ERROR 2026-05-09 10:31:23,727 log You're accessing the development server over HTTPS, but it only supports HTTP.
 ERROR 2026-05-09 10:31:44,468 log You're accessing the development server over HTTPS, but it only supports HTTP.
 ERROR 2026-05-09 10:31:44,471 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:08:43,205 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:08:43,313 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:09:07,277 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:09:07,517 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:09:07,669 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:09:07,840 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:09:25,135 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:09:25,137 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:09:25,210 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:09:25,224 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:10:52,190 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:10:52,326 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:10:52,333 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:10:52,336 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:10:53,463 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:10:53,466 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:10:53,470 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:10:53,476 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:12:04,705 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:12:04,712 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:12:05,934 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:12:05,937 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:12:05,945 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:12:05,994 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:13:56,393 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:13:56,394 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:13:56,398 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:13:56,398 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:13:58,592 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:13:58,598 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:13:58,705 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:13:58,721 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:14:31,077 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:14:31,306 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:15:38,375 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:15:38,375 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:15:39,344 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:15:39,645 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:15:49,757 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:15:49,762 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:21,804 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:21,807 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:23,106 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:23,207 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:23,218 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:23,227 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:24,087 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:24,093 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:24,095 log You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2026-10-02 10:16:24,288 log You're accessing the development server over HTTPS, but it only supports HTTP.
+DEBUG 2026-10-02 10:17:23,443 ticket_service Cache MISS for user tickets: user_id=2
+DEBUG 2026-10-02 10:18:53,944 ticket_service Cache MISS for user tickets: user_id=2
+DEBUG 2026-10-02 10:19:40,963 ticket_service Cache MISS for user tickets: user_id=2
+WARNING 2026-10-02 10:21:05,056 log Not Found: /admin/
+WARNING 2026-10-02 10:21:05,058 log "GET /admin/ HTTP/1.1" 404 9300
+WARNING 2026-10-02 10:21:05,787 log Not Found: /favicon.ico
+WARNING 2026-10-02 10:21:05,790 log "GET /favicon.ico HTTP/1.1" 404 9315
+DEBUG 2026-10-02 10:25:25,119 ticket_service Cache MISS for user tickets: user_id=2
+DEBUG 2026-10-02 10:26:59,996 ticket_service Cache MISS for user tickets: user_id=2
+WARNING 2026-10-02 10:27:04,647 log "GET /static/css/custom-theme.css HTTP/1.1" 404 1987
