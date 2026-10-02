@@ -26,7 +26,9 @@ DEBUG = os.getenv('DEBUG', 'False').strip().lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = os.getenv(
     'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,.vercel.app'
+    "aqriculture-ticket-system-bggf.vercel.app",
+    "localhost",
+    "127.0.0.1",
 ).split(',')
 
 if not DEBUG:
